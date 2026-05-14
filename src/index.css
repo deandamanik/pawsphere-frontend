@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-blue-light: #ebf1f5;
+  --color-brand-blue-light-hover: #e2eaef;
+  --color-brand-blue-light-active: #c2d4df;
+  --color-brand-blue-normal: #3b7597;
+  --color-brand-blue-normal-hover: #356988;
+  --color-brand-blue-normal-active: #2f5e79;
+  --color-brand-blue-dark: #2c5871;
+  --color-brand-blue-dark-hover: #23465b;
+  --color-brand-blue-dark-active: #1b3544;
+  --color-brand-blue-darker: #152935;
+
+  --color-brand-red-light: #ffe6e6;
+  --color-brand-red-light-hover: #ffd9d9;
+  --color-brand-red-light-active: #ffb0b0;
+  --color-brand-red-normal: #ff0000;
+  --color-brand-red-normal-hover: #e60000;
+  --color-brand-red-normal-active: #cc0000;
+  --color-brand-red-dark: #bf0000;
+  --color-brand-red-dark-hover: #990000;
+  --color-brand-red-dark-active: #730000;
+  --color-brand-red-darker: #590000;
+  
+
+  --radius-xl: 1.5rem;
+  --shadow-card: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+  --font-poppins: "Poppins", sans-serif;
+
+  --font-weight-regular: 400;    
+  --font-weight-medium: 500;    
+  --font-weight-semibold: 600;   
+
+  --text-xs: 0.75rem;     /* 12px */
+  --text-sm: 0.875rem;    /* 14px */
+  --text-md: 1rem;        /* 16px - Base */
+  --text-lg: 1.125rem;    /* 18px */
+  --text-xl: 1.25rem;     /* 20px */
+  --text-2xl: 1.5rem;     /* 24px */
+  --text-3xl: 1.875rem;   /* 30px */
+  --text-4xl: 2.25rem;    /* 36px */
+  --text-5xl: 3rem;       /* 48px */
+  --text-6xl: 3.75rem;    /* 60px */
+  --text-7xl: 4.5rem;     /* 72px */
+  --text-8xl: 6rem;       /* 96px */
+  --text-9xl: 8rem;       /* 128px */
+}
