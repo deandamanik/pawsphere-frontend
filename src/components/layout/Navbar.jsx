@@ -170,28 +170,38 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
         </div>
       </nav>
 
-      <AnimatePresence>
-        {!isMobileMenuOpen && showPawAlert && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            className="fixed bottom-6 right-4 z-60 flex flex-col items-end group"
-          >
-          <Link 
-            to="/paw-alert" 
-            className="fixed bottom-6 right-4 z-60 flex flex-col items-end group cursor-pointer"
-          >
-            <div className="mb-2 px-3 py-1.5 bg-red-600 text-white text-[10px] font-black rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-xl translate-x-2 group-hover:translate-x-0 uppercase tracking-widest pointer-events-none">
-              Paw Alert
-            </div>
-            <div className="w-14 h-14 bg-red-600 hover:bg-red-500 text-white rounded-2xl shadow-[0_10px_30px_rgba(220,38,38,0.4)] transition-all duration-300 flex items-center justify-center group-active:scale-95">
-              <img src={warningIcon} alt="!" className="w-7 h-7 brightness-0 invert animate-pulse" />
-            </div>
-          </Link>
-          </motion.div>
-        )}
-      </AnimatePresence>
+  <AnimatePresence>
+    {!isMobileMenuOpen && showPawAlert && (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.5, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.5, y: 20 }}
+        transition={{ 
+          type: "spring", 
+          stiffness: 260, 
+          damping: 20 
+        }}
+        className="fixed bottom-6 right-4 z-60"
+      >
+        <Link 
+          to="/paw-alert" 
+          className="flex flex-col items-end group cursor-pointer"
+        >
+          <div className="mb-2 px-3 py-1.5 bg-red-600 text-white text-[10px] font-black rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-xl translate-x-2 group-hover:translate-x-0 uppercase tracking-widest pointer-events-none">
+            Paw Alert
+          </div>
+
+          <div className="w-14 h-14 bg-red-600 hover:bg-red-500 text-white rounded-2xl shadow-[0_10px_30px_rgba(220,38,38,0.4)] transition-all duration-300 flex items-center justify-center group-active:scale-90">
+            <img 
+              src={warningIcon} 
+              alt="!" 
+              className="w-7 h-7 brightness-0 invert animate-pulse" 
+            />
+          </div>
+        </Link>
+      </motion.div>
+    )}
+  </AnimatePresence>
 
       <AnimatePresence>
         {isMobileMenuOpen && (
