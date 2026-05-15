@@ -8,11 +8,29 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [showPawAlert, setShowPawAlert] = useState(true);
+
+  useEffect(() => {
+    document.body.style.overflow = isMobileMenuOpen ? 'hidden' : 'unset';
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [isMobileMenuOpen]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowPawAlert(!entry.isIntersecting),
+      { threshold: 0.1 }
+    );
+
+    const footer = document.querySelector('footer');
+    if (footer) observer.observe(footer);
+
+    return () => { if (footer) observer.unobserve(footer); };
   }, []);
 
   const primaryMenus = ['Home', 'AI Diagnosis', 'Vet Connect'];
@@ -22,12 +40,11 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
     <>
       <nav className={`font-poppins w-full sticky top-0 z-50 transition-all duration-500 ${
         scrolled 
-          ? 'bg-brand-blue-dark/95 backdrop-blur-md py-3 shadow-2xl border-b border-white/5' 
+          ? 'bg-brand-blue-dark backdrop-blur-md py-3' 
           : 'bg-brand-blue-dark py-5'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            
             <div className="shrink-0">
               <img 
                 src={logoPawsphere} 
@@ -93,6 +110,7 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
               </div>
             </div>
 
+            {/* Desktop Auth */}
             <div className="hidden lg:flex items-center">
               {!isLoggedIn ? (
                 <div className="flex items-center bg-brand-orange rounded-full p-1 border border-brand-orange shadow-lg">
@@ -114,7 +132,7 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
             </div>
 
             <div className="lg:hidden">
-              <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-white outline-none cursor-pointer">
+              <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-white outline-none z-50 relative cursor-pointer">
                 <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
                 </svg>
@@ -124,17 +142,23 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
         </div>
       </nav>
 
-      {/* PAW ALERT: Hanya muncul jika menu mobile TIDAK sedang terbuka */}
-      {!isMobileMenuOpen && (
-        <div className="fixed bottom-6 right-4 z-60 flex flex-col items-end group">
-          <div className="mb-2 px-3 py-1.5 bg-red-600 text-white text-[10px] font-black rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-xl translate-x-2 group-hover:translate-x-0 uppercase tracking-widest pointer-events-none">
-            Paw Alert
-          </div>
-          <button className="w-14 h-14 bg-red-600 hover:bg-red-500 text-white rounded-2xl shadow-[0_10px_30px_rgba(220,38,38,0.4)] transition-all duration-300 flex items-center justify-center group-active:scale-90 cursor-pointer">
-            <img src={warningIcon} alt="!" className="w-7 h-7 brightness-0 invert animate-pulse" />
-          </button>
-        </div>
-      )}
+      <AnimatePresence>
+        {!isMobileMenuOpen && showPawAlert && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="fixed bottom-6 right-4 z-60 flex flex-col items-end group"
+          >
+            <div className="mb-2 px-3 py-1.5 bg-red-600 text-white text-[10px] font-black rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-xl translate-x-2 group-hover:translate-x-0 uppercase tracking-widest pointer-events-none">
+              Paw Alert
+            </div>
+            <button className="w-14 h-14 bg-red-600 hover:bg-red-500 text-white rounded-2xl shadow-[0_10px_30px_rgba(220,38,38,0.4)] transition-all duration-300 flex items-center justify-center group-active:scale-90 cursor-pointer">
+              <img src={warningIcon} alt="!" className="w-7 h-7 brightness-0 invert animate-pulse" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {isMobileMenuOpen && (
@@ -142,7 +166,9 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
             initial={{ opacity: 0, x: '100%' }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
-            className="fixed inset-0 z-49 bg-brand-blue-dark flex flex-col pt-24 px-8 lg:hidden"
+            className={`fixed inset-0 z-49 bg-brand-blue-dark flex flex-col px-8 lg:hidden transition-all duration-500 ${
+              scrolled ? 'pt-28' : 'pt-32'
+            }`}
           >
             <div className="space-y-6">
               {[...primaryMenus, ...secondaryMenus].map((item) => (
