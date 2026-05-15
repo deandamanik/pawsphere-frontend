@@ -35,10 +35,8 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
       setActiveMenu(currentMenu.name);
     } else if (location.pathname === '/paw-alert') {
       setActiveMenu('PawAlert'); 
-    } else {
-      setActiveMenu(''); 
-    }
-  }, [location, primaryMenus, secondaryMenus]);
+    } 
+  }, [location.pathname, primaryMenus, secondaryMenus]);
 
   useEffect(() => {
     document.body.style.overflow = isMobileMenuOpen ? 'hidden' : 'unset';
@@ -83,23 +81,30 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
             </div>
 
             <div className="hidden lg:flex items-center gap-2">
-              {primaryMenus.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.path}
-                  className={`relative px-6 py-2 rounded-full text-base font-bold transition-colors duration-300 cursor-pointer
-                    ${activeMenu === item.name ? 'text-brand-blue-dark' : 'text-white/70 hover:text-white hover:bg-white/10'}`}
-                >
-                  {activeMenu === item.name && (
-                    <motion.div
-                      layoutId="navIndicator"
-                      className="absolute inset-0 bg-white rounded-full shadow-lg"
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
-                  <span className="relative z-10">{item.name}</span>
-                </Link>
-              ))}
+            {primaryMenus.map((item) => (
+              <Link
+                key={item.name}
+                to={item.path}
+                className={`relative px-6 py-2 rounded-full text-base font-bold transition-colors duration-300 cursor-pointer
+                  ${activeMenu === item.name ? 'text-brand-blue-dark' : 'text-white/70 hover:text-white hover:bg-white/10'}`}
+              >
+                {activeMenu === item.name && (
+                  <motion.div
+                    layoutId="navIndicator"
+                    initial={false}
+                    className="absolute inset-0 bg-white rounded-full shadow-lg"
+                    transition={{ 
+                      type: "spring", 
+                      bounce: 0.2, 
+                      duration: 0.6,
+                      layout: { duration: 0.3 }
+                    }}
+                    style={{ originY: "50%" }} 
+                  />
+                )}
+                <span className="relative z-10">{item.name}</span>
+              </Link>
+            ))}
 
               <div 
                 className="relative group"
