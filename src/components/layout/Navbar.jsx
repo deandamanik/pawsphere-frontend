@@ -1,14 +1,44 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import logoPawsphere from '../assets/Logo-Pawsphere.svg';
-import warningIcon from '../assets/Warning.svg';
+import { Link, useLocation } from 'react-router-dom';
+import logoPawsphere from '../../assets/Logo-Pawsphere.svg';
+import warningIcon from '../../assets/Warning.svg';
 
 const Navbar = ({ isLoggedIn = false, handleLogout }) => {
+  const location = useLocation();
   const [activeMenu, setActiveMenu] = useState('Home');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [showPawAlert, setShowPawAlert] = useState(true);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const primaryMenus = [
+    { name: 'Home', path: '/' },
+    { name: 'AI Diagnosis', path: '/ai-diagnose' },
+    { name: 'Vet Connect', path: '/vet-connect' }
+  ];
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const secondaryMenus = [
+    { name: 'Adoption', path: '/adoption' },
+    { name: 'Donation', path: '/donation' },
+    { name: 'Marketplace', path: '/marketplace' }
+  ];
+
+  useEffect(() => {
+    const allMenus = [...primaryMenus, ...secondaryMenus];
+    const currentMenu = allMenus.find(menu => menu.path === location.pathname);
+    
+    if (currentMenu) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setActiveMenu(currentMenu.name);
+    } else if (location.pathname === '/paw-alert') {
+      setActiveMenu('PawAlert'); 
+    } else {
+      setActiveMenu(''); 
+    }
+  }, [location, primaryMenus, secondaryMenus]);
 
   useEffect(() => {
     document.body.style.overflow = isMobileMenuOpen ? 'hidden' : 'unset';
@@ -33,9 +63,6 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
     return () => { if (footer) observer.unobserve(footer); };
   }, []);
 
-  const primaryMenus = ['Home', 'AI Diagnosis', 'Vet Connect'];
-  const secondaryMenus = ['Marketplace', 'Adoption', 'Donation'];
-
   return (
     <>
       <nav className={`font-poppins w-full sticky top-0 z-50 transition-all duration-500 ${
@@ -46,31 +73,32 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="shrink-0">
-              <img 
-                src={logoPawsphere} 
-                alt="Pawsphere Logo" 
-                className="h-12 w-auto cursor-pointer hover:scale-105 transition-transform" 
-                onClick={() => setActiveMenu('Home')}
-              />
+              <Link to="/">
+                <img 
+                  src={logoPawsphere} 
+                  alt="Pawsphere Logo" 
+                  className="h-12 w-auto cursor-pointer hover:scale-105 transition-transform" 
+                />
+              </Link>
             </div>
 
             <div className="hidden lg:flex items-center gap-2">
               {primaryMenus.map((item) => (
-                <button
-                  key={item}
-                  onClick={() => setActiveMenu(item)}
+                <Link
+                  key={item.name}
+                  to={item.path}
                   className={`relative px-6 py-2 rounded-full text-base font-bold transition-colors duration-300 cursor-pointer
-                    ${activeMenu === item ? 'text-brand-blue-dark' : 'text-white/70 hover:text-white hover:bg-white/10'}`}
+                    ${activeMenu === item.name ? 'text-brand-blue-dark' : 'text-white/70 hover:text-white hover:bg-white/10'}`}
                 >
-                  {activeMenu === item && (
+                  {activeMenu === item.name && (
                     <motion.div
                       layoutId="navIndicator"
                       className="absolute inset-0 bg-white rounded-full shadow-lg"
                       transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     />
                   )}
-                  <span className="relative z-10">{item}</span>
-                </button>
+                  <span className="relative z-10">{item.name}</span>
+                </Link>
               ))}
 
               <div 
@@ -95,13 +123,14 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
                     >
                       <div className="w-52 bg-white rounded-2xl shadow-2xl py-2 border border-slate-100 overflow-hidden">
                         {secondaryMenus.map((item) => (
-                          <button 
-                            key={item} 
-                            onClick={() => {setActiveMenu(item); setIsDropdownOpen(false);}}
+                          <Link 
+                            key={item.name} 
+                            to={item.path}
+                            onClick={() => setIsDropdownOpen(false)}
                             className="block w-full text-left px-6 py-3 text-base font-bold text-slate-600 hover:bg-slate-50 hover:text-brand-blue-dark transition-all cursor-pointer"
                           >
-                            {item}
-                          </button>
+                            {item.name}
+                          </Link>
                         ))}
                       </div>
                     </motion.div>
@@ -110,16 +139,15 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
               </div>
             </div>
 
-            {/* Desktop Auth */}
             <div className="hidden lg:flex items-center">
               {!isLoggedIn ? (
                 <div className="flex items-center bg-brand-orange rounded-full p-1 border border-brand-orange shadow-lg">
-                  <button className="px-7 py-2 text-white font-bold text-base hover:opacity-80 transition-all cursor-pointer">
+                  <Link to="/login" className="px-7 py-2 text-white font-bold text-base hover:opacity-80 transition-all cursor-pointer">
                     Login
-                  </button>
-                  <button className="px-7 py-2 bg-white text-brand-orange font-bold rounded-full text-base shadow-sm hover:bg-slate-50 transition-all cursor-pointer">
+                  </Link>
+                  <Link to="/register" className="px-7 py-2 bg-white text-brand-orange font-bold rounded-full text-base shadow-sm hover:bg-slate-50 transition-all cursor-pointer">
                     Register
-                  </button>
+                  </Link>
                 </div>
               ) : (
                 <button 
@@ -150,12 +178,17 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
             exit={{ opacity: 0, scale: 0.8 }}
             className="fixed bottom-6 right-4 z-60 flex flex-col items-end group"
           >
+          <Link 
+            to="/paw-alert" 
+            className="fixed bottom-6 right-4 z-60 flex flex-col items-end group cursor-pointer"
+          >
             <div className="mb-2 px-3 py-1.5 bg-red-600 text-white text-[10px] font-black rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-xl translate-x-2 group-hover:translate-x-0 uppercase tracking-widest pointer-events-none">
               Paw Alert
             </div>
-            <button className="w-14 h-14 bg-red-600 hover:bg-red-500 text-white rounded-2xl shadow-[0_10px_30px_rgba(220,38,38,0.4)] transition-all duration-300 flex items-center justify-center group-active:scale-90 cursor-pointer">
+            <div className="w-14 h-14 bg-red-600 hover:bg-red-500 text-white rounded-2xl shadow-[0_10px_30px_rgba(220,38,38,0.4)] transition-all duration-300 flex items-center justify-center group-active:scale-95">
               <img src={warningIcon} alt="!" className="w-7 h-7 brightness-0 invert animate-pulse" />
-            </button>
+            </div>
+          </Link>
           </motion.div>
         )}
       </AnimatePresence>
@@ -166,25 +199,27 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
             initial={{ opacity: 0, x: '100%' }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
-            className={`fixed inset-0 z-49 bg-brand-blue-dark flex flex-col px-8 lg:hidden transition-all duration-500 ${
+            className={`fixed inset-0 z-40 bg-brand-blue-dark flex flex-col px-8 lg:hidden transition-all duration-500 ${
               scrolled ? 'pt-28' : 'pt-32'
             }`}
           >
             <div className="space-y-6">
               {[...primaryMenus, ...secondaryMenus].map((item) => (
-                <button 
-                  key={item} 
+                <Link 
+                  key={item.name} 
+                  to={item.path}
+                  onClick={() => setIsMobileMenuOpen(false)}
                   className="block w-full text-left text-xl font-black text-white/90 border-b border-white/5 pb-4 cursor-pointer"
                 >
-                  {item}
-                </button>
+                  {item.name}
+                </Link>
               ))}
             </div>
             <div className="mt-auto mb-12 flex flex-col gap-4">
               {!isLoggedIn ? (
                 <>
-                  <button className="w-full py-4 bg-brand-orange text-white rounded-2xl font-bold text-lg cursor-pointer">Login</button>
-                  <button className="w-full py-4 bg-white text-brand-orange rounded-2xl font-bold text-lg cursor-pointer">Register</button>
+                  <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full py-4 bg-brand-orange text-white rounded-2xl font-bold text-center text-lg">Login</Link>
+                  <Link to="/register" onClick={() => setIsMobileMenuOpen(false)} className="w-full py-4 bg-white text-brand-orange rounded-2xl font-bold text-center text-lg">Register</Link>
                 </>
               ) : (
                 <button onClick={handleLogout} className="w-full py-4 bg-white/10 text-white rounded-2xl font-bold text-lg border border-white/10 cursor-pointer">Logout</button>
