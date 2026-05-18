@@ -9,6 +9,9 @@ import VetConnect from '../pages/vet-connect/VetConnect';
 import Register from '../pages/auth/Register';
 import Marketplace from '../pages/marketplace/Marketplace';
 import PawAlert from '../pages/paw-alert/Paw-alert';
+import Keranjang from '../pages/marketplace/Keranjang';
+import Pembayaran from '../pages/marketplace/Pembayaran';
+import Selesai from '../pages/marketplace/Selesai';
 
 const AppRouter = () => {
   return (
@@ -22,6 +25,9 @@ const AppRouter = () => {
         <Route path="/vet-connect" element={<VetConnect />} />
         <Route path="/marketplace" element={<Marketplace />} />
         <Route path="/paw-alert" element={<PawAlert />} />
+        <Route path="/Keranjang" element={<Keranjang />} />
+        <Route path="/Pembayaran" element={<Pembayaran />} />
+        <Route path="/Selesai" element={<Selesai/>} />
       </Route>
 
       <Route path="/login" element={<Login />} />
