@@ -56,7 +56,6 @@ const AdoptionContainer = () => {
       </div>
 
       <div className="max-w-7xl mx-auto mt-8 px-4 sm:px-8 lg:px-16">
-        {/* Search & Filter Controls */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="relative flex-1 max-w-2xl">
             <span className="absolute inset-y-0 left-4 flex items-center text-gray-400">
@@ -88,7 +87,6 @@ const AdoptionContainer = () => {
           </div>
         </div>
 
-        {/* Pet Cards Layout Grid */}
         {filteredPets.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredPets.map((pet) => (
@@ -107,9 +105,10 @@ const AdoptionContainer = () => {
       </div>
 
       <AdoptionModal 
-        isOpen={!!selectedPet} 
+        isOpen={Boolean(selectedPet)} 
         onClose={handleCloseModal} 
         pet={selectedPet}
+        currentStage={modalStage} 
       >
         {modalStage === 'detail' && (
           <PetDetailStage 
@@ -121,7 +120,9 @@ const AdoptionContainer = () => {
           <PetFormStage 
             pet={selectedPet} 
             onBack={() => setModalStage('detail')} 
-            onSubmit={() => setModalStage('success')} 
+            onSubmit={() => 
+              {setModalStage('success');
+            }} 
           />
         )}
         {modalStage === 'success' && (
