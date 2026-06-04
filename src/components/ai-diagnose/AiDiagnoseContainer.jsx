@@ -9,12 +9,12 @@ const AiDiagnoseContainer = ({ chatState, chatActions }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="font-poppins bg-slate-50 min-h-screen py-4 md:py-8 px-2 sm:px-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex gap-3 md:gap-5 items-stretch min-h-[calc(100vh-8rem)] md:min-h-150">
+    <div className="font-poppins bg-slate-50 min-h-[calc(100vh-4rem)] flex items-center py-10 md:py-14 px-3 sm:px-6">
+      <div className="max-w-7xl w-full mx-auto flex flex-col gap-5">
+
+        <div className="flex gap-4 md:gap-6 items-stretch min-h-125 md:h-155">
           
-          {/* Desktop Sidebar */}
-          <aside className="hidden lg:flex w-56 shrink-0 flex-col gap-4">
+          <aside className="hidden lg:flex w-72 shrink-0 flex-col gap-4">
             <SidebarContent
               handleNewChat={chatActions.handleNewChat}
               isSearching={chatState.isSearching}
@@ -35,7 +35,6 @@ const AiDiagnoseContainer = ({ chatState, chatActions }) => {
             />
           </aside>
 
-          {/* Mobile Sidebar (Drawer) */}
           <AnimatePresence>
             {isSidebarOpen && (
               <>
@@ -84,7 +83,6 @@ const AiDiagnoseContainer = ({ chatState, chatActions }) => {
             )}
           </AnimatePresence>
 
-          {/* Main Chat Area */}
           <ChatArea
             activeChat={chatState.activeChat}
             setIsSidebarOpen={setIsSidebarOpen}

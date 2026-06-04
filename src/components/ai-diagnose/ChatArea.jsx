@@ -23,8 +23,22 @@ const ChatArea = ({
     );
   };
 
+  const messageVariants = {
+    hidden: { opacity: 0, x: 15 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { type: "spring", stiffness: 140, damping: 18 },
+    },
+  };
+
   return (
-    <div className="flex-1 bg-white rounded-xl md:rounded-2xl shadow-card border border-slate-100 flex flex-col overflow-hidden">
+    <motion.div 
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ type: "spring", stiffness: 100, damping: 20 }}
+      className="flex-1 bg-white rounded-xl md:rounded-2xl shadow-card border border-slate-100 flex flex-col overflow-hidden"
+    >
       <div className="px-3 sm:px-5 py-3 md:py-3.5 border-b border-slate-100 flex items-center gap-2">
         <button
           onClick={() => setIsSidebarOpen(true)}
@@ -43,8 +57,9 @@ const ChatArea = ({
         {!activeChat || activeChat.messages.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-4 sm:gap-6 py-8 sm:py-16 px-4">
             <motion.h2
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, x: 15 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ type: "spring", stiffness: 100, damping: 15, delay: 0.2 }}
               className="text-lg sm:text-2xl font-semibold text-slate-600 text-center"
             >
               Hi, Ada yang bisa ku bantu?
@@ -55,8 +70,9 @@ const ChatArea = ({
             msg.role === "ai" ? (
               <motion.div
                 key={msg.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
+                variants={messageVariants}
+                initial="hidden"
+                animate="visible"
                 className="flex items-end gap-2 sm:gap-3 max-w-[90%] sm:max-w-[80%]"
               >
                 <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-brand-blue-normal flex items-center justify-center shrink-0 mb-4 sm:mb-6">
@@ -85,8 +101,9 @@ const ChatArea = ({
             ) : (
               <motion.div
                 key={msg.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
+                variants={messageVariants}
+                initial="hidden"
+                animate="visible"
                 className="flex items-end gap-2 sm:gap-3 max-w-[90%] sm:max-w-[75%] self-end"
               >
                 <div className="flex flex-col items-end gap-1">
@@ -121,7 +138,11 @@ const ChatArea = ({
         )}
 
         {isTyping && (
-          <div className="flex items-end gap-2 sm:gap-3 max-w-[90%] sm:max-w-[80%]">
+          <motion.div 
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex items-end gap-2 sm:gap-3 max-w-[90%] sm:max-w-[80%]"
+          >
             <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-brand-blue-normal flex items-center justify-center shrink-0">
               <PiPawPrintFill className="text-white w-3 h-3 sm:w-4 sm:h-4" />
             </div>
@@ -142,7 +163,7 @@ const ChatArea = ({
                 ))}
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
 
@@ -178,7 +199,7 @@ const ChatArea = ({
           </button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

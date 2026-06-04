@@ -14,9 +14,40 @@ const SidebarContent = ({
   symptoms,
   handleSymptomClick,
 }) => {
+  const containerVariants = {
+    hidden: { opacity: 0, x: -30 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        type: "spring",
+        stiffness: 120,
+        damping: 20,
+        staggerChildren: 0.1, 
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: { 
+      opacity: 1, 
+      x: 0,
+      transition: { type: "spring", stiffness: 100, damping: 15 }
+    },
+  };
+
   return (
-    <>
-      <div className="bg-white rounded-2xl shadow-card border border-slate-100 p-4">
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="flex flex-col gap-4 w-full"
+    >
+      <motion.div 
+        variants={itemVariants}
+        className="bg-white rounded-2xl shadow-card border border-slate-100 p-4"
+      >
         <div className="flex items-center gap-3 mb-4">
           <div className="w-9 h-9 rounded-xl bg-brand-blue-dark flex items-center justify-center">
             <PiPawPrintFill className="text-white w-4 h-4" />
@@ -50,14 +81,15 @@ const SidebarContent = ({
         <AnimatePresence>
           {isSearching && (
             <motion.input
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
+              initial={{ opacity: 0, height: 0, marginTop: 0 }}
+              animate={{ opacity: 1, height: "auto", marginTop: 8 }}
+              exit={{ opacity: 0, height: 0, marginTop: 0 }}
+              transition={{ type: "spring", stiffness: 200, damping: 20 }}
               type="text"
               placeholder="Cari chat..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full mt-2 px-3 py-1.5 text-xs border border-slate-200 rounded-lg outline-none focus:border-brand-blue-normal"
+              className="w-full px-3 py-1.5 text-xs border border-slate-200 rounded-lg outline-none focus:border-brand-blue-normal"
             />
           )}
         </AnimatePresence>
@@ -80,15 +112,23 @@ const SidebarContent = ({
             ))}
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      <button className="flex items-center justify-center gap-2 bg-brand-blue-dark hover:bg-brand-blue-normal text-white text-sm font-semibold py-3 px-4 rounded-2xl transition-colors shadow-card cursor-pointer">
+      <motion.button 
+        variants={itemVariants}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        className="flex items-center justify-center gap-2 bg-brand-blue-dark hover:bg-brand-blue-normal text-white text-sm font-semibold py-3 px-4 rounded-2xl transition-colors shadow-card cursor-pointer"
+      >
         <LuVideo className="w-4 h-4" />
         <span className="hidden md:inline">Hubungkan ke Dokter Hewan</span>
         <span className="md:hidden">Dokter Hewan</span>
-      </button>
+      </motion.button>
 
-      <div className="bg-white rounded-2xl shadow-card border border-slate-100 p-4">
+      <motion.div 
+        variants={itemVariants}
+        className="bg-white rounded-2xl shadow-card border border-slate-100 p-4"
+      >
         <p className="text-sm font-bold text-slate-700 mb-3">Gejala Umum</p>
         <div className="flex flex-wrap gap-2">
           {symptoms.map((symptom) => (
@@ -101,8 +141,8 @@ const SidebarContent = ({
             </button>
           ))}
         </div>
-      </div>
-    </>
+      </motion.div>
+    </motion.div>
   );
 };
 
