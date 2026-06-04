@@ -5,7 +5,7 @@ const AiDiagnose = () => {
   const [chats, setChats] = useState([
     {
       id: 1,
-      title: "Anjing peliharaan sukja gigit...",
+      title: "Anjing peliharaan suka gigit kaki saya, padahal",
       messages: [
         {
           id: 1,

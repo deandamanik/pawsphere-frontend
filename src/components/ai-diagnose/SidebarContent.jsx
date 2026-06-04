@@ -1,6 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { LuPlus, LuSearch, LuVideo } from "react-icons/lu";
-import { PiPawPrintFill } from "react-icons/pi";
+import { LuPlus, LuSearch, LuVideo, LuBrain } from "react-icons/lu";
 
 const SidebarContent = ({
   handleNewChat,
@@ -15,25 +14,21 @@ const SidebarContent = ({
   handleSymptomClick,
 }) => {
   const containerVariants = {
-    hidden: { opacity: 0, x: -30 },
+    hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      x: 0,
       transition: {
-        type: "spring",
-        stiffness: 120,
-        damping: 20,
-        staggerChildren: 0.1, 
+        staggerChildren: 0.08, 
       },
     },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, x: -20 },
+    hidden: { opacity: 0, y: 15 },
     visible: { 
       opacity: 1, 
-      x: 0,
-      transition: { type: "spring", stiffness: 100, damping: 15 }
+      y: 0,
+      transition: { type: "spring", stiffness: 120, damping: 16 }
     },
   };
 
@@ -42,15 +37,15 @@ const SidebarContent = ({
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="flex flex-col gap-4 w-full"
+      className="flex flex-col items-stretch gap-4 w-full"
     >
       <motion.div 
         variants={itemVariants}
-        className="bg-white rounded-2xl shadow-card border border-slate-100 p-4"
+        className="bg-white rounded-2xl shadow-card border border-slate-100 p-4 flex flex-col w-full"
       >
         <div className="flex items-center gap-3 mb-4">
           <div className="w-9 h-9 rounded-xl bg-brand-blue-dark flex items-center justify-center">
-            <PiPawPrintFill className="text-white w-4 h-4" />
+            <LuBrain className="text-white w-4 h-4" />
           </div>
           <div>
             <p className="text-sm font-bold text-slate-800 leading-tight">
@@ -64,7 +59,7 @@ const SidebarContent = ({
 
         <button
           onClick={handleNewChat}
-          className="flex items-center gap-2 w-full text-sm text-slate-600 hover:text-brand-blue-normal transition-colors py-1.5 cursor-pointer"
+          className="flex items-center gap-2 w-full text-sm text-slate-600 hover:text-brand-blue-normal transition-colors py-1.5 cursor-pointer outline-none"
         >
           <LuPlus className="w-4 h-4" />
           <span>New Chat</span>
@@ -72,7 +67,7 @@ const SidebarContent = ({
 
         <button
           onClick={() => setIsSearching((v) => !v)}
-          className="flex items-center gap-2 w-full text-sm text-slate-600 hover:text-brand-blue-normal transition-colors py-1.5 cursor-pointer"
+          className="flex items-center gap-2 w-full text-sm text-slate-600 hover:text-brand-blue-normal transition-colors py-1.5 cursor-pointer outline-none"
         >
           <LuSearch className="w-4 h-4" />
           <span>Find Chat</span>
@@ -101,7 +96,7 @@ const SidebarContent = ({
               <button
                 key={chat.id}
                 onClick={() => handleChatSelect(chat.id)}
-                className={`w-full text-left text-xs px-2 py-1.5 rounded-lg transition-colors cursor-pointer truncate ${
+                className={`w-full text-left text-xs px-2 py-1.5 rounded-lg transition-colors cursor-pointer truncate outline-none ${
                   activeChatId === chat.id
                     ? "bg-brand-blue-light text-brand-blue-dark font-semibold"
                     : "text-slate-600 hover:bg-slate-50"
@@ -118,7 +113,7 @@ const SidebarContent = ({
         variants={itemVariants}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        className="flex items-center justify-center gap-2 bg-brand-blue-dark hover:bg-brand-blue-normal text-white text-sm font-semibold py-3 px-4 rounded-2xl transition-colors shadow-card cursor-pointer"
+        className="w-full flex items-center justify-center gap-2 bg-brand-blue-dark hover:bg-brand-blue-normal text-white text-sm font-semibold py-3 px-4 rounded-2xl transition-colors shadow-card cursor-pointer outline-none"
       >
         <LuVideo className="w-4 h-4" />
         <span className="hidden md:inline">Hubungkan ke Dokter Hewan</span>
@@ -127,7 +122,7 @@ const SidebarContent = ({
 
       <motion.div 
         variants={itemVariants}
-        className="bg-white rounded-2xl shadow-card border border-slate-100 p-4"
+        className="bg-white rounded-2xl shadow-card border border-slate-100 p-4 flex flex-col w-full"
       >
         <p className="text-sm font-bold text-slate-700 mb-3">Gejala Umum</p>
         <div className="flex flex-wrap gap-2">
@@ -135,7 +130,7 @@ const SidebarContent = ({
             <button
               key={symptom}
               onClick={() => handleSymptomClick(symptom)}
-              className="text-xs px-3 py-1.5 border border-slate-200 rounded-full text-slate-600 hover:border-brand-blue-normal hover:text-brand-blue-normal hover:bg-brand-blue-light transition-all cursor-pointer"
+              className="text-xs px-3 py-1.5 border border-slate-200 rounded-full text-slate-600 hover:border-brand-blue-normal hover:text-brand-blue-normal hover:bg-brand-blue-light transition-all cursor-pointer outline-none"
             >
               {symptom}
             </button>
