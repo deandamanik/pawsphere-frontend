@@ -1,3 +1,5 @@
+import { motion } from 'framer-motion';
+
 const AdoptionSteps = () => {
   const steps = [
     { no: 1, title: 'Ajukan Permohonan', desc: 'Isi formulir adopsi online' },
@@ -6,11 +8,42 @@ const AdoptionSteps = () => {
     { no: 4, title: 'Proses Survey', desc: 'Survey rumah dan wawancara' },
   ];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, x: -24 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        type: "spring",
+        stiffness: 140,
+        damping: 16,
+      },
+    },
+  };
+
   return (
-    <div className="flex flex-col md:flex-row md:items-center gap-4 w-full">
+    <motion.div 
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="flex flex-col md:flex-row md:items-center gap-4 w-full"
+    >
       {steps.map((step, index) => (
-        <div key={step.no} className="flex-1 flex items-center gap-4">
-          
+        <motion.div 
+          key={step.no} 
+          variants={itemVariants}
+          className="flex-1 flex items-center gap-4"
+        >
           <div className="flex-1 bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4">
             <div className="shrink-0 w-9 h-9 rounded-full bg-brand-blue-normal text-white flex items-center justify-center font-extrabold text-sm shadow-inner">
               {step.no}
@@ -35,10 +68,9 @@ const AdoptionSteps = () => {
               </svg>
             </div>
           )}
-
-        </div>
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   );
 };
 

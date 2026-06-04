@@ -1,21 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { IoClose } from 'react-icons/io5';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const AdoptionModal = ({ isOpen, onClose, pet, children, currentStage }) => {
   const [isAnimating, setIsAnimating] = useState(false);
-
-  useEffect(() => {
-    if (isOpen && pet) {
-      document.body.classList.add('overflow-hidden');
-    } else {
-      document.body.classList.remove('overflow-hidden');
-    }
-
-    return () => {
-      document.body.classList.remove('overflow-hidden');
-    };
-  }, [isOpen, pet]);
 
   const smoothSpring = {
     type: "spring",
@@ -28,6 +16,7 @@ const AdoptionModal = ({ isOpen, onClose, pet, children, currentStage }) => {
       {isOpen && pet && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           
+          {/* Backdrop Blur */}
           <motion.div 
             className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             initial={{ opacity: 0 }}
