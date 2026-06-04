@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
-import MainLayout from '../layouts/MainLayout';
+import MainLayout from '../components/layout/MainLayout';
 import Home from '../pages/home/Home';
 import Adoption from '../pages/adoption/Adoption';
 import Login from '../pages/auth/Login';
@@ -39,4 +39,4 @@ const AppRouter = () => {
   );
 };
 
-export default AppRouter;
+export default AppRouter; 
