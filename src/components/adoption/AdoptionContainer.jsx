@@ -2,6 +2,10 @@ import { useState } from 'react';
 import { FiSearch } from 'react-icons/fi';
 import AdoptionSteps from './AdoptionSteps';
 import AdoptionCard from './AdoptionCard';
+import AdoptionModal from './AdoptionModal';
+import PetDetailStage from './PetDetailStage';
+import PetFormStage from './PetFormStage';
+import PetSuccessStage from './PetSuccessStage';
 
 const DUMMY_PETS = [
   { id: 1, name: 'Max', type: 'Anjing', breed: 'Golden Retriever Mix', age: '2 Tahun', gender: 'Jantan', location: 'Denpasar Barat', tags: ['Vaksin', 'Steril', 'Sehat'], shelter: 'Shelter Harapan Hewan', image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=500' },
@@ -12,9 +16,13 @@ const DUMMY_PETS = [
   { id: 6, name: 'Rocky', type: 'Anjing', breed: 'Kintamani Mix', age: '5 Tahun', gender: 'Jantan', location: 'Nusa Dua', tags: ['Vaksin', 'Steril', 'Sehat'], shelter: 'Shelter Harapan Hewan', image: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=500' },
 ];
 
-const Adoption = () => {
+const AdoptionContainer = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('Semua');
+  
+  // State manajemen pop-up modal adopsi
+  const [selectedPet, setSelectedPet] = useState(null);
+  const [modalStage, setModalStage] = useState(''); // 'detail', 'form', 'success'
 
   const categories = ['Semua', 'Anjing', 'Kucing', 'Kelinci'];
 
@@ -24,6 +32,16 @@ const Adoption = () => {
     const matchesCategory = activeFilter === 'Semua' || pet.type === activeFilter;
     return matchesSearch && matchesCategory;
   });
+
+  const handleOpenModal = (pet) => {
+    setSelectedPet(pet);
+    setModalStage('detail');
+  };
+
+  const handleCloseModal = () => {
+    setSelectedPet(null);
+    setModalStage('');
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 font-poppins pb-16">
@@ -38,8 +56,8 @@ const Adoption = () => {
       </div>
 
       <div className="max-w-7xl mx-auto mt-8 px-4 sm:px-8 lg:px-16">
+        {/* Search & Filter Controls */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          
           <div className="relative flex-1 max-w-2xl">
             <span className="absolute inset-y-0 left-4 flex items-center text-gray-400">
               <FiSearch className="w-5 h-5 text-gray-400" />
@@ -70,10 +88,15 @@ const Adoption = () => {
           </div>
         </div>
 
+        {/* Pet Cards Layout Grid */}
         {filteredPets.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredPets.map((pet) => (
-              <AdoptionCard key={pet.id} pet={pet} />
+              <AdoptionCard 
+                key={pet.id} 
+                pet={pet} 
+                onActionClick={() => handleOpenModal(pet)} 
+              />
             ))}
           </div>
         ) : (
@@ -82,8 +105,33 @@ const Adoption = () => {
           </div>
         )}
       </div>
+
+      <AdoptionModal 
+        isOpen={!!selectedPet} 
+        onClose={handleCloseModal} 
+        pet={selectedPet}
+      >
+        {modalStage === 'detail' && (
+          <PetDetailStage 
+            pet={selectedPet} 
+            onNext={() => setModalStage('form')} 
+          />
+        )}
+        {modalStage === 'form' && (
+          <PetFormStage 
+            pet={selectedPet} 
+            onBack={() => setModalStage('detail')} 
+            onSubmit={() => setModalStage('success')} 
+          />
+        )}
+        {modalStage === 'success' && (
+          <PetSuccessStage 
+            onClose={handleCloseModal} 
+          />
+        )}
+      </AdoptionModal>
     </div>
   );
 };
 
-export default Adoption;
+export default AdoptionContainer;

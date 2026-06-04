@@ -3,7 +3,7 @@ import { BiMaleFemale } from 'react-icons/bi';
 import { IoHeartOutline } from 'react-icons/io5'; 
 import Button from '../ui/Button'; 
 
-const AdoptionCard = ({ pet }) => {
+const AdoptionCard = ({ pet, onActionClick }) => {
   const getTypeStyles = (type) => {
     switch (type?.toLowerCase()) {
       case 'anjing':
@@ -83,7 +83,11 @@ const AdoptionCard = ({ pet }) => {
           </p>
         </div>
 
-        <Button variant="blue" className="w-full py-2.5! rounded-xl! text-xs font-bold tracking-wide">
+        <Button 
+          variant="blue" 
+          onClick={onActionClick}
+          className="w-full py-2.5! rounded-xl! text-xs font-bold tracking-wide"
+        >
           Ajukan Adopsi
         </Button>
       </div>
