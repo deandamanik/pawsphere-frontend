@@ -63,49 +63,49 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
 
   return (
     <>
-      <nav className={`font-poppins w-full sticky top-0 z-50 transition-all duration-500 ${
+    <nav className={`font-poppins w-full sticky top-0 z-50 transition-all duration-500 ${
         scrolled 
-          ? 'bg-brand-blue-dark backdrop-blur-md py-3' 
-          : 'bg-brand-blue-dark py-5'
+          ? 'bg-brand-blue-dark backdrop-blur-md py-2 md:py-3 shadow-lg' 
+          : 'bg-brand-blue-dark py-3 md:py-5' 
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="shrink-0">
+          <div className="flex items-center justify-between h-14 md:h-16">
+            
+            <div className="shrink-0 flex items-center">
               <Link to="/">
                 <img 
                   src={logoPawsphere} 
                   alt="Pawsphere Logo" 
-                  className="h-12 w-auto cursor-pointer hover:scale-105 transition-transform" 
+                  className="h-9 md:h-12 w-auto cursor-pointer hover:scale-105 transition-transform" 
                 />
               </Link>
             </div>
 
             <div className="hidden lg:flex items-center gap-2">
-            {primaryMenus.map((item) => (
-              <Link
-                key={item.name}
-                to={item.path}
-                className={`relative px-6 py-2 rounded-full text-base font-bold transition-colors duration-300 cursor-pointer
-                  ${activeMenu === item.name ? 'text-brand-blue-dark' : 'text-white/70 hover:text-white hover:bg-white/10'}`}
-              >
-                {activeMenu === item.name && (
-                  <motion.div
-                    layoutId="navIndicator"
-                    initial={false}
-                    className="absolute inset-0 bg-white rounded-full shadow-lg"
-                    transition={{ 
-                      type: "spring", 
-                      bounce: 0.2, 
-                      duration: 0.6,
-                      layout: { duration: 0.3 }
-                    }}
-                    style={{ originY: "50%" }} 
-                  />
-                )}
-                <span className="relative z-10">{item.name}</span>
-              </Link>
-            ))}
-
+              {primaryMenus.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  className={`relative px-6 py-2 rounded-full text-base font-bold transition-colors duration-300 cursor-pointer
+                    ${activeMenu === item.name ? 'text-brand-blue-dark' : 'text-white/70 hover:text-white hover:bg-white/10'}`}
+                >
+                  {activeMenu === item.name && (
+                    <motion.div
+                      layoutId="navIndicator"
+                      initial={false}
+                      className="absolute inset-0 bg-white rounded-full shadow-lg"
+                      transition={{ 
+                        type: "spring", 
+                        bounce: 0.2, 
+                        duration: 0.6,
+                        layout: { duration: 0.3 }
+                      }}
+                      style={{ originY: "50%" }} 
+                    />
+                  )}
+                  <span className="relative z-10">{item.name}</span>
+                </Link>
+              ))}
               <div 
                 className="relative group"
                 onMouseEnter={() => setIsDropdownOpen(true)}
@@ -143,7 +143,6 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
                 </AnimatePresence>
               </div>
             </div>
-
             <div className="hidden lg:flex items-center">
               {!isLoggedIn ? (
                 <div className="flex items-center bg-brand-orange rounded-full p-1 border border-brand-orange shadow-lg">
@@ -163,14 +162,17 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
                 </button>
               )}
             </div>
-
-            <div className="lg:hidden">
-              <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-white outline-none z-50 relative cursor-pointer">
-                <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="lg:hidden flex items-center">
+              <button 
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+                className="p-1 text-white outline-none z-50 relative cursor-pointer"
+              >
+                <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
                 </svg>
               </button>
             </div>
+
           </div>
         </div>
       </nav>

@@ -10,9 +10,10 @@ const AuthInput = ({ label, type = 'text', name, value, onChange, placeholder, .
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className="w-full px-4 py-3 rounded-xl bg-brand-blue-light border border-brand-blue-normal/30
+        className="w-full px-4 py-2.5 md:py-3 rounded-xl bg-brand-blue-light border border-brand-blue-normal/30
                   text-brand-blue-normal placeholder:text-brand-blue-normal/40
-                  focus:outline-none focus:border-brand-blue-normal text-sm transition-colors"
+                  focus:outline-none focus:border-brand-blue-normal 
+                  text-base md:text-sm transition-colors"
         {...props}
       />
     </div>

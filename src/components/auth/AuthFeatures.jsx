@@ -12,19 +12,20 @@ const AuthFeatures = () => {
       initial={{ opacity: 0, x: -30 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5 }}
-      className="flex-1"
+      className="flex-1 text-center md:text-left flex flex-col items-center md:items-start w-full"
     >
-      <h1 className="text-5xl font-bold text-brand-blue-normal leading-tight mb-5">
-        Permudah Perawatan <br />
-        Kesehatan Hewan <br />
+      <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-brand-blue-normal leading-tight mb-0 md:mb-5">
+        Permudah Perawatan <br className="hidden sm:block" />
+        Kesehatan Hewan <br className="hidden sm:block" />
         Anda
       </h1>
-      <p className="text-brand-blue-normal text-base leading-relaxed mb-8 max-w-md">
+
+      <p className="hidden md:block text-brand-blue-normal text-base leading-relaxed mb-8 max-w-md">
         Akses AI chat diagnosa, konsultasi dokter hewan, laporan rescue darurat,
         adopsi, dan donasi shelter dalam satu platform terintegrasi.
       </p>
 
-      <div className="flex flex-col gap-3">
+      <div className="hidden md:flex flex-col gap-3">
         {features.map((item) => (
           <div
             key={item}
