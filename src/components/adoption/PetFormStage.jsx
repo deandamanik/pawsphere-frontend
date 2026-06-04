@@ -24,13 +24,13 @@ const PetFormStage = ({ pet, onSubmit, onBack }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 font-poppins text-slate-800">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4 font-poppins text-slate-800 pb-2">
       <div>
-        <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">Formulir Adopsi – {pet?.name}</h3>
-        <p className="text-sm text-gray-400 mt-1 font-medium">Isi data diri untuk mengajukan permohonan adopsi</p>
+        <h3 className="text-lg md:text-xl font-extrabold text-slate-900 tracking-tight wrap-break-word">Formulir Adopsi - {pet?.name}</h3>
+        <p className="text-xs md:text-sm text-gray-400 mt-0.5 font-medium">Isi data diri untuk mengajukan permohonan adopsi</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-semibold text-slate-700 px-0.5">Nama Lengkap</label>
           <input 
@@ -39,7 +39,7 @@ const PetFormStage = ({ pet, onSubmit, onBack }) => {
             name="nama"
             value={formData.nama}
             onChange={handleChange}
-            className="border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-blue-normal transition-all placeholder:text-gray-300" 
+            className="border border-gray-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-brand-blue-normal transition-all placeholder:text-gray-300" 
           />
         </div>
         <div className="flex flex-col gap-1.5">
@@ -47,10 +47,12 @@ const PetFormStage = ({ pet, onSubmit, onBack }) => {
           <input 
             required 
             type="tel" 
+            inputMode="numeric"
+            pattern="[0-9]*"
             name="telepon"
             value={formData.telepon}
             onChange={handleChange}
-            className="border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-blue-normal transition-all placeholder:text-gray-300" 
+            className="border border-gray-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-brand-blue-normal transition-all placeholder:text-gray-300" 
           />
         </div>
       </div>
@@ -63,7 +65,7 @@ const PetFormStage = ({ pet, onSubmit, onBack }) => {
           name="email"
           value={formData.email}
           onChange={handleChange}
-          className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-blue-normal transition-all placeholder:text-gray-300" 
+          className="w-full border border-gray-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-brand-blue-normal transition-all placeholder:text-gray-300" 
         />
       </div>
 
@@ -75,7 +77,7 @@ const PetFormStage = ({ pet, onSubmit, onBack }) => {
           name="alamat"
           value={formData.alamat}
           onChange={handleChange}
-          className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-blue-normal transition-all placeholder:text-gray-300" 
+          className="w-full border border-gray-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-brand-blue-normal transition-all placeholder:text-gray-300" 
         />
       </div>
 
@@ -87,7 +89,7 @@ const PetFormStage = ({ pet, onSubmit, onBack }) => {
           name="pengalaman"
           value={formData.pengalaman}
           onChange={handleChange}
-          className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-blue-normal transition-all placeholder:text-gray-300" 
+          className="w-full border border-gray-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-brand-blue-normal transition-all placeholder:text-gray-300" 
         />
       </div>
 
@@ -99,12 +101,12 @@ const PetFormStage = ({ pet, onSubmit, onBack }) => {
           name="alasan"
           value={formData.alasan}
           onChange={handleChange}
-          className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-blue-normal transition-all resize-none placeholder:text-gray-400 font-medium leading-relaxed" 
+          className="w-full border border-gray-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-brand-blue-normal transition-all resize-none placeholder:text-gray-400 font-medium leading-relaxed" 
           placeholder="Ceritakan alasan dan kesiapanmu..." 
         />
       </div>
 
-      <div className="flex gap-4 mt-3">
+      <div className="flex flex-col-reverse sm:flex-row gap-2.5 sm:gap-4 mt-2">
         <button 
           type="button"
           onClick={onBack}
