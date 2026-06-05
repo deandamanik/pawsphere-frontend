@@ -1,82 +1,89 @@
-import { FiCheckCircle, FiHeart, FiImage } from 'react-icons/fi';
+import { motion } from 'framer-motion';
+import { FiClock, FiInfo } from 'react-icons/fi';
 
 const shelterUpdates = [
   {
-    date: '3 Mei',
-    text: 'Rex berhasil melewati operasi dan dalam pemulihan',
-    hasPhoto: true,
+    id: 1,
+    shelter: 'Shelter Harapan Hewan',
+    campaignTitle: 'Operasi Darurat Rex',
+    time: '2 jam yang lalu',
+    status: 'Medis',
+    statusColor: 'bg-amber-500 text-white',
+    content: 'Rex sudah selesai menjalani operasi patah tulang belakang. Saat ini ia sedang dalam masa kritis pemulihan di ruang isolasi medis.',
   },
   {
-    date: '1 Mei',
-    text: 'Operasi dijadwalkan oleh drh. Sari Dewi',
-    hasPhoto: false,
+    id: 2,
+    shelter: 'Cat Haven Jakarta',
+    campaignTitle: 'Renovasi Kandang Kucing',
+    time: 'Yesterday',
+    status: 'Fasilitas',
+    statusColor: 'bg-emerald-500 text-white',
+    content: 'Semen dan material besi untuk fondasi kandang baru blok B telah tiba di lokasi shelter. Pengerjaan fisik dimulai pagi ini.',
   },
   {
-    date: '29 Apr',
-    text: 'Dana operasi terkumpul 75%, terima kasih!',
-    hasPhoto: true,
+    id: 3,
+    shelter: 'Paws for Life',
+    campaignTitle: 'Sterilisasi 50 Kucing Kemang',
+    time: '2 hari yang lalu',
+    status: 'Selesai',
+    statusColor: 'bg-brand-blue-normal text-white',
+    content: '12 ekor kucing liar kloter pertama telah berhasil disterilkan dan dikembalikan ke area pekarangan aman Kemang setelah observasi.',
   },
 ];
 
-const SidebarUpdates = () => (
-  <div className="flex flex-col gap-5 sticky top-24">
-    <div className="bg-white rounded-2xl shadow-card border border-brand-blue-light-active p-5">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-brand-blue-darker font-bold text-sm">
-          Ledger Transparansi
+const SidebarUpdates = () => {
+  return (
+    <div className="w-full lg:w-85 bg-white rounded-2xl border border-brand-blue-light-active p-5 shadow-sm">
+      <div className="flex items-center justify-between mb-5">
+        <h3 className="text-brand-blue-darker font-bold text-base tracking-tight">
+          Kabar Shelter Terbaru
         </h3>
-        <button className="text-brand-blue-normal text-xs font-semibold hover:opacity-70 transition-opacity">
-          Tampilkan
-        </button>
+        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
       </div>
-      <div className="bg-brand-blue-darker rounded-xl p-4">
-        <div className="flex items-start gap-2 mb-2">
-          <FiCheckCircle size={15} className="text-green-400 mt-0.5 shrink-0" />
-          <p className="text-white text-xs font-semibold leading-snug">
-            Semua pengeluaran tercatat &amp; diverifikasi
-          </p>
-        </div>
-        <p className="text-white/60 text-xs pl-5">
-          3 pembaruan transaksi terbaru tersedia
-        </p>
-      </div>
-    </div>
 
-    {/* Update Terbaru Shelter */}
-    <div className="bg-white rounded-2xl shadow-card border border-brand-blue-light-active p-5">
-      <h3 className="text-brand-blue-darker font-bold text-sm mb-4">
-        Update Terbaru Shelter
-      </h3>
-      <div className="flex flex-col gap-4">
-        {shelterUpdates.map((upd, i) => (
-          <div key={i} className="flex gap-3">
-            {/* Timeline dot */}
-            <div className="flex flex-col items-center">
-              <div className="w-7 h-7 rounded-full bg-brand-blue-light flex items-center justify-center shrink-0">
-                <FiHeart size={12} className="text-brand-blue-normal" />
-              </div>
-              {i < shelterUpdates.length - 1 && (
-                <div className="w-px flex-1 bg-brand-blue-light-active mt-1" />
-              )}
+      <div className="relative border-l border-brand-blue-light-active ml-2 pl-4 space-y-6">
+        {shelterUpdates.map((update, index) => (
+          <motion.div
+            key={update.id}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.1 }}
+            className="relative space-y-1.5 group"
+          >
+            <div className="absolute -left-5.25 top-1.5 w-2.5 h-2.5 rounded-full bg-brand-blue-light-active border-2 border-white group-hover:bg-brand-blue-normal transition-colors duration-300" />
+
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+              <span className="font-bold text-brand-blue-darker">
+                {update.shelter}
+              </span>
+              <span className="text-brand-blue-normal/40">•</span>
+              <span className="text-brand-blue-normal/60 flex items-center gap-1 font-medium">
+                <FiClock size={11} /> {update.time}
+              </span>
             </div>
-            {/* Content */}
-            <div className="pb-4">
-              <p className="text-brand-blue-darker/50 text-xs mb-0.5">{upd.date}</p>
-              <p className="text-brand-blue-darker text-xs font-medium leading-snug">
-                {upd.text}
-              </p>
-              {upd.hasPhoto && (
-                <button className="mt-1 text-brand-blue-normal text-xs font-semibold flex items-center gap-1 hover:opacity-70 transition-opacity">
-                  <FiImage size={11} />
-                  Foto tersedia
-                </button>
-              )}
+
+            <div className="flex items-center gap-1.5">
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md tracking-wide uppercase ${update.statusColor}`}>
+                {update.status}
+              </span>
+              <span className="text-xs text-brand-blue-normal/60 font-semibold truncate max-w-45">
+                {update.campaignTitle}
+              </span>
             </div>
-          </div>
+
+            <p className="text-brand-blue-darker/75 text-xs leading-relaxed font-medium bg-brand-blue-light/30 p-2.5 rounded-xl border border-brand-blue-light-active/50">
+              {update.content}
+            </p>
+          </motion.div>
         ))}
       </div>
+
+      <div className="mt-5 pt-4 border-t border-brand-blue-light-active flex items-start gap-2 text-[11px] text-brand-blue-normal/50 leading-normal font-medium">
+        <FiInfo size={13} className="shrink-0 mt-0.5 text-brand-blue-normal/40" />
+        <p>Seluruh informasi di atas diunggah langsung oleh penanggung jawab shelter yang bersangkutan secara berkala.</p>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default SidebarUpdates;

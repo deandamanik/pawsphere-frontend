@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiSearch, FiFilter } from 'react-icons/fi';
+import { FiSearch } from 'react-icons/fi';
 import DonationHero from '../../components/donation/DonationHero';
 import CampaignCard from '../../components/donation/CampaignCard';
-import DonationForm from '../../components/donation/DonationForm';
+import '../../components/donation/DonationForm';
 import CampaignDetail from '../../components/donation/CampaignDetail';
 import SidebarUpdates from '../../components/donation/SidebarUpdates';
 
@@ -108,12 +108,6 @@ const Donation = () => {
                               focus:outline-none focus:border-brand-blue-normal shadow-sm"
                   />
                 </div>
-                <button className="flex items-center gap-2 px-5 py-3 border border-brand-blue-light-active rounded-xl
-                                  bg-white text-brand-blue-darker text-sm font-semibold shadow-sm
-                                  hover:border-brand-blue-normal transition-colors">
-                  <FiFilter size={15} />
-                  Filter
-                </button>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 items-start">
@@ -135,13 +129,6 @@ const Donation = () => {
                 </div>
 
                 <div className="flex flex-col gap-5 sticky top-24">
-                  <div className="bg-white rounded-2xl shadow-card border border-brand-blue-light-active p-5">
-                    <h3 className="text-brand-blue-darker font-bold text-base mb-4">
-                      Form Donasi
-                    </h3>
-                    <DonationForm />
-                  </div>
-
                   <SidebarUpdates />
                 </div>
 
@@ -152,6 +139,6 @@ const Donation = () => {
       </div>
     </div>
   );
-};
+};  
 
 export default Donation;
