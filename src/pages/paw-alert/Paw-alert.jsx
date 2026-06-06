@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiAlertTriangle, FiNavigation } from 'react-icons/fi';
+import { FiNavigation } from 'react-icons/fi';
 
+import HeroHeader from '../../components/paw-alert/HeroHeader';
 import ContactModal from '../../components/paw-alert/ContactModal';
 import ShelterCard from '../../components/paw-alert/ShelterCard';
 import EmergencyTips from '../../components/paw-alert/EmergencyTips';
@@ -97,21 +98,7 @@ const PawAlert = () => {
         )}
       </AnimatePresence>
 
-      <section className="py-10 text-center px-4">
-        <div className="flex items-center justify-center gap-3 mb-2">
-          <div className="w-11 h-11 rounded-full bg-red-100 flex items-center justify-center">
-            <FiAlertTriangle size={22} className="text-red-500" />
-          </div>
-          <h1 className="text-3xl font-bold text-brand-orange">Paw Alert</h1>
-        </div>
-        <p className="text-brand-blue-normal font-semibold text-sm mb-3">
-          Sistem Pelaporan Darurat Hewan
-        </p>
-        <p className="text-red-500 text-sm max-w-md mx-auto leading-relaxed">
-          Laporkan hewan terluka atau terlantar. Sistem kami akan segera mendeteksi lokasi dan
-          menghubungi shelter terdekat untuk respons penyelamatan.
-        </p>
-      </section>
+      <HeroHeader />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 items-start">
