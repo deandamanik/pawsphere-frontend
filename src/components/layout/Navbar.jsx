@@ -44,8 +44,15 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
   }, [isMobileMenuOpen]);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
+    const handleScroll = () => {
+      if (window.scrollY > 20) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -63,10 +70,10 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
 
   return (
     <>
-    <nav className={`font-poppins w-full sticky top-0 z-50 transition-all duration-500 ${
+      <nav className={`font-poppins w-full sticky top-0 z-50 py-4 transition-all duration-300 ${
         scrolled 
-          ? 'bg-brand-blue-dark backdrop-blur-md py-2 md:py-3 shadow-lg' 
-          : 'bg-brand-blue-dark py-3 md:py-5' 
+          ? 'bg-brand-blue-dark backdrop-blur-md shadow-lg' 
+          : 'bg-brand-blue-dark' 
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14 md:h-16">
@@ -76,7 +83,7 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
                 <img 
                   src={logoPawsphere} 
                   alt="Pawsphere Logo" 
-                  className="h-9 md:h-12 w-auto cursor-pointer hover:scale-105 transition-transform" 
+                  className="h-9 md:h-12 w-auto cursor-pointer hover:scale-105 transition-transform duration-300" 
                 />
               </Link>
             </div>
@@ -106,6 +113,7 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
                   <span className="relative z-10">{item.name}</span>
                 </Link>
               ))}
+
               <div 
                 className="relative group"
                 onMouseEnter={() => setIsDropdownOpen(true)}
@@ -143,6 +151,7 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
                 </AnimatePresence>
               </div>
             </div>
+
             <div className="hidden lg:flex items-center">
               {!isLoggedIn ? (
                 <div className="flex items-center bg-brand-orange rounded-full p-1 border border-brand-orange shadow-lg">
@@ -162,6 +171,7 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
                 </button>
               )}
             </div>
+
             <div className="lg:hidden flex items-center">
               <button 
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
@@ -177,38 +187,38 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
         </div>
       </nav>
 
-  <AnimatePresence>
-    {!isMobileMenuOpen && showPawAlert && (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.5, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.5, y: 20 }}
-        transition={{ 
-          type: "spring", 
-          stiffness: 260, 
-          damping: 20 
-        }}
-        className="fixed bottom-6 right-4 z-60"
-      >
-        <Link 
-          to="/paw-alert" 
-          className="flex flex-col items-end group cursor-pointer"
-        >
-          <div className="mb-2 px-3 py-1.5 bg-red-600 text-white text-[10px] font-black rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-xl translate-x-2 group-hover:translate-x-0 uppercase tracking-widest pointer-events-none">
-            Paw Alert
-          </div>
+      <AnimatePresence>
+        {!isMobileMenuOpen && showPawAlert && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.5, y: 20 }}
+            transition={{ 
+              type: "spring", 
+              stiffness: 260, 
+              damping: 20 
+            }}
+            className="fixed bottom-6 right-4 z-60"
+          >
+            <Link 
+              to="/paw-alert" 
+              className="flex flex-col items-end group cursor-pointer"
+            >
+              <div className="mb-2 px-3 py-1.5 bg-red-600 text-white text-[10px] font-black rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-xl translate-x-2 group-hover:translate-x-0 uppercase tracking-widest pointer-events-none">
+                Paw Alert
+              </div>
 
-          <div className="w-14 h-14 bg-red-600 hover:bg-red-500 text-white rounded-2xl shadow-[0_10px_30px_rgba(220,38,38,0.4)] transition-all duration-300 flex items-center justify-center group-active:scale-90">
-            <img 
-              src={warningIcon} 
-              alt="!" 
-              className="w-7 h-7 brightness-0 invert animate-pulse" 
-            />
-          </div>
-        </Link>
-      </motion.div>
-    )}
-  </AnimatePresence>
+              <div className="w-14 h-14 bg-red-600 hover:bg-red-500 text-white rounded-2xl shadow-[0_10px_30px_rgba(220,38,38,0.4)] transition-all duration-300 flex items-center justify-center group-active:scale-90">
+                <img 
+                  src={warningIcon} 
+                  alt="!" 
+                  className="w-7 h-7 brightness-0 invert animate-pulse" 
+                />
+              </div>
+            </Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {isMobileMenuOpen && (
@@ -216,9 +226,7 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
             initial={{ opacity: 0, x: '100%' }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
-            className={`fixed inset-0 z-40 bg-brand-blue-dark flex flex-col px-8 lg:hidden transition-all duration-500 ${
-              scrolled ? 'pt-28' : 'pt-32'
-            }`}
+            className="fixed inset-0 z-40 bg-brand-blue-dark flex flex-col px-8 lg:hidden transition-all duration-500 pt-32"
           >
             <div className="space-y-6">
               {[...primaryMenus, ...secondaryMenus].map((item) => (
