@@ -3,8 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiSearch } from 'react-icons/fi';
 import DonationHero from '../../components/donation/DonationHero';
 import CampaignCard from '../../components/donation/CampaignCard';
-import '../../components/donation/DonationForm';
-import CampaignDetail from '../../components/donation/CampaignDetail';
+import DonationFormView from '../../components/donation/DonationForm';
 import SidebarUpdates from '../../components/donation/SidebarUpdates';
 
 const campaigns = [
@@ -73,25 +72,24 @@ const Donation = () => {
 
   return (
     <div className="min-h-screen bg-white font-poppins">
-      
-      <DonationHero />
+      <AnimatePresence mode="wait">
+        {detailCampaign ? (
+          <motion.div key="detail">
+            <DonationFormView
+              campaign={detailCampaign}
+              onBack={() => setDetailCampaign(null)}
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="list"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <DonationHero />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <AnimatePresence mode="wait">
-          {detailCampaign ? (
-            <motion.div key="detail">
-              <CampaignDetail
-                campaign={detailCampaign}
-                onBack={() => setDetailCampaign(null)}
-              />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="list"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
               <div className="flex items-center gap-3 mb-8">
                 <div className="flex-1 relative">
                   <FiSearch
@@ -110,8 +108,7 @@ const Donation = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 items-start">
-
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 items-start">
                 <div className="flex flex-col gap-6">
                   {filtered.length === 0 ? (
                     <div className="text-center py-16 text-brand-blue-darker/40 text-sm">
@@ -131,14 +128,13 @@ const Donation = () => {
                 <div className="flex flex-col gap-5 sticky top-24">
                   <SidebarUpdates />
                 </div>
-
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
-};  
+};
 
 export default Donation;
