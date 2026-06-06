@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, useInView } from 'framer-motion';
 
 const Features = () => {
@@ -6,31 +7,36 @@ const Features = () => {
     {
       title: "AI Chat Diagnosa",
       desc: "Smart AI triage untuk menganalisis gejala hewan peliharaanmu, panduan pertolongan pertama, dan status urgensi: Hijau, Kuning, atau Merah.",
+      path: "/ai-diagnose"
     },
     {
       title: "Vet Connect",
       desc: "Konsultasi real-time via chat atau video call bersama dokter hewan terverifikasi kapanpun kamu butuhkan.",
+      path: "/vet-connect"
     },
     {
       title: "Pet Care Marketplace",
       desc: "Apotek digital untuk obat, vitamin, dan produk perawatan hewan peliharaan dengan pengiriman ke seluruh Indonesia.",
+      path: "/marketplace"
     },
     {
       title: "Paw Alert",
       desc: "Laporkan hewan terluka atau terlantar dengan foto, deskripsi, dan lokasi GPS otomatis untuk notifikasi shelter terdekat.",
+      path: "/paw-alert"
     },
     {
       title: "Shelter Dashboard",
       desc: "Dashboard lengkap bagi shelter untuk mengelola laporan SOS, kapasitas, katalog adopsi, dan kampanye donasi.",
+      path: "/"
     },
     {
       title: "Care Funding",
       desc: "Crowdfunding transparan dengan progres donasi, pembaruan laporan shelter, dan timeline penyelamatan hewan.",
+      path: "/donation"
     }
   ];
 
   const containerRef = useRef(null);
-  
   const isInView = useInView(containerRef, { once: true, margin: "-80px" });
 
   const sectionVariants = {
@@ -87,38 +93,40 @@ const Features = () => {
                   scale: 1.02,
                   boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)" 
                 }}
-                className="relative group cursor-pointer p-6 md:p-8 rounded-3xl border-2 md:border-3 border-white/80 shadow-xl flex flex-col justify-between min-h-45 md:min-h-60 overflow-hidden transition-shadow duration-300"
+                className="relative group cursor-pointer rounded-3xl border-2 md:border-3 border-white/80 shadow-xl overflow-hidden transition-shadow duration-300"
                 style={{
                   background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.75) 100%)',
                 }}
               >
-                <div className="absolute inset-0 bg-linear-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                <Link to={item.path} className="flex flex-col justify-between min-h-45 md:min-h-60 p-6 md:p-8 w-full h-full">
+                  <div className="absolute inset-0 bg-linear-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-                <div className="relative z-10">
-                  <h3 className="text-brand-blue-normal text-xl md:text-2xl font-black mb-3 md:mb-4 leading-tight">
-                    {item.title}
-                  </h3>
-                  <p className="text-brand-blue-normal/90 text-xs sm:text-sm md:text-[15px] leading-relaxed font-bold">
-                    {item.desc}
-                  </p>
-                </div>
-
-                <div className="relative z-10 flex justify-end mt-4 md:mt-0 md:absolute md:right-6 md:bottom-6">
-                  <div className="w-8 h-8 rounded-full bg-brand-blue-normal/10 flex items-center justify-center group-hover:bg-brand-blue-normal transition-colors duration-300">
-                    <svg 
-                      width="18" height="18" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      className="text-brand-blue-normal group-hover:text-white group-hover:translate-x-0.5 transition-all duration-300"
-                      stroke="currentColor" 
-                      strokeWidth="3.5" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round"
-                    >
-                      <path d="M9 18l6-6-6-6" />
-                    </svg>
+                  <div className="relative z-10">
+                    <h3 className="text-brand-blue-normal text-xl md:text-2xl font-black mb-3 md:mb-4 leading-tight">
+                      {item.title}
+                    </h3>
+                    <p className="text-brand-blue-normal/90 text-xs sm:text-sm md:text-[15px] leading-relaxed font-bold">
+                      {item.desc}
+                    </p>
                   </div>
-                </div>
+
+                  <div className="relative z-10 flex justify-end mt-4 md:mt-0 md:absolute md:right-6 md:bottom-6">
+                    <div className="w-8 h-8 rounded-full bg-brand-blue-normal/10 flex items-center justify-center group-hover:bg-brand-blue-normal transition-colors duration-300">
+                      <svg 
+                        width="18" height="18" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        className="text-brand-blue-normal group-hover:text-white group-hover:translate-x-0.5 transition-all duration-300"
+                        stroke="currentColor" 
+                        strokeWidth="3.5" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"
+                      >
+                        <path d="M9 18l6-6-6-6" />
+                      </svg>
+                    </div>
+                  </div>
+                </Link>
               </motion.div>
             ))}
           </div>
