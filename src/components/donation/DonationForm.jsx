@@ -43,20 +43,34 @@ const DonationForm = ({ campaign }) => {
   return (
     <div className="w-full space-y-4">
       <div className="w-full grid grid-cols-3 gap-3 mb-2">
-        {AMOUNTS.map((amt) => (
-          <button
-            type="button"
-            key={amt}
-            onClick={() => { setSelected(amt); setCustom(''); }}
-            className={`py-3 px-2 rounded-xl text-center font-bold text-sm border transition-all duration-200 ${
-              selected === amt
-                ? 'bg-brand-blue-normal text-white border-brand-blue-normal shadow-sm'
-                : 'bg-white text-brand-blue-darker border-gray-200 hover:border-brand-blue-light-active hover:bg-brand-blue-light/20'
-            }`}
-          >
-            {amt.toLocaleString('id-ID')}
-          </button>
-        ))}
+        {AMOUNTS.map((amt) => {
+          const isSelected = selected === amt;
+          return (
+            <button
+              type="button"
+              key={amt}
+              onClick={() => { 
+                setSelected(amt); 
+                setCustom(amt.toLocaleString('id-ID')); 
+              }}
+              className={`relative isolate py-3 px-2 rounded-xl text-center font-bold text-sm border transition-colors duration-200 ${
+                isSelected
+                  ? 'text-white border-brand-blue-normal'
+                  : 'bg-white text-brand-blue-darker border-gray-200 hover:border-brand-blue-light-active hover:bg-brand-blue-light/20'
+              }`}
+            >
+              <span className="relative z-10">{amt.toLocaleString('id-ID')}</span>
+
+              {isSelected && (
+                <motion.div
+                  layoutId="activeAmountBg"
+                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  className="absolute inset-0 bg-brand-blue-normal rounded-xl -z-10 shadow-sm"
+                />
+              )}
+            </button>
+          );
+        })}
       </div>
 
       <div className="relative">
@@ -69,7 +83,7 @@ const DonationForm = ({ campaign }) => {
           onChange={(e) => {
             const raw = e.target.value.replace(/\D/g, '');
             setCustom(raw ? parseInt(raw, 10).toLocaleString('id-ID') : '');
-            setSelected(null);
+            setSelected(null); 
           }}
           placeholder="Jumlah lainnya"
           className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm
