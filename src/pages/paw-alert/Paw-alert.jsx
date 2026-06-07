@@ -1,11 +1,12 @@
 import { useState, useRef } from 'react';
-import {  AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 
 import HeroHeader from '../../components/paw-alert/HeroHeader';
 import ContactModal from '../../components/paw-alert/ContactModal';
 import EmergencyTips from '../../components/paw-alert/EmergencyTips';
 import NearbyShelters from '../../components/paw-alert/NearbyShelters';
 import AlertForm from '../../components/paw-alert/AlertForm';
+import SuccessModal from '../../components/ui/SuccessModal';
 
 const haversine = (lat1, lng1, lat2, lng2) => {
   const R = 6371;
@@ -39,6 +40,7 @@ const PawAlert = () => {
   const [sortedShelters, setSortedShelters] = useState(SHELTER_DATA.slice(0, 2));
   const [locationError, setLocationError] = useState(null);
   const [locationDetected, setLocationDetected] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -60,7 +62,6 @@ const PawAlert = () => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude: userLat, longitude: userLng } = pos.coords;
-
         const withDist = SHELTER_DATA.map((s) => ({
           ...s,
           distance: haversine(userLat, userLng, s.lat, s.lng),
@@ -80,11 +81,7 @@ const PawAlert = () => {
         setLocationError(msg);
         setLoadingLokasi(false);
       },
-      { 
-        enableHighAccuracy: true, 
-        timeout: 15000, 
-        maximumAge: 0 
-      }
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
   };
 
@@ -97,6 +94,19 @@ const PawAlert = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log({ photo, jenisHewan, kondisiHewan, deskripsi, lokasi });
+    setShowSuccess(true);
+  };
+
+  const handleCloseSuccessModal = () => {
+    setShowSuccess(false);
+    setPhoto(null);
+    setPhotoPreview(null);
+    setJenisHewan('');
+    setKondisiHewan('');
+    setDeskripsi('');
+    setLokasi(null);
+    setLocationDetected(false);
+    setSortedShelters(SHELTER_DATA.slice(0, 2));
   };
 
   return (
@@ -107,12 +117,18 @@ const PawAlert = () => {
         )}
       </AnimatePresence>
 
+      <SuccessModal 
+        isOpen={showSuccess} 
+        onClose={handleCloseSuccessModal} 
+        title="Laporan Dikirim!"
+        message="Laporan darurat Anda telah berhasil diterbitkan ke dalam sistem rescue."
+      />
+
       <HeroHeader />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 items-start">
-          
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-5 w-full min-w-0">
             <NearbyShelters
               locationDetected={locationDetected}
               loadingLokasi={loadingLokasi}
@@ -125,25 +141,27 @@ const PawAlert = () => {
             <EmergencyTips />
           </div>
 
-          <AlertForm
-            photoPreview={photoPreview}
-            fileInputRef={fileInputRef}
-            jenisHewan={jenisHewan}
-            setJenisHewan={setJenisHewan}
-            kondisiHewan={kondisiHewan}
-            setKondisiHewan={setKondisiHewan}
-            deskripsi={deskripsi}
-            setDeskripsi={setDeskripsi}
-            lokasi={lokasi}
-            loadingLokasi={loadingLokasi}
-            handlePhotoChange={handlePhotoChange}
-            handleDeteksiLokasi={handleDeteksiLokasi}
-            handleSubmit={handleSubmit}
-          />
+          <div className="w-full min-w-0">
+            <AlertForm
+              photoPreview={photoPreview}
+              fileInputRef={fileInputRef}
+              jenisHewan={jenisHewan}
+              setJenisHewan={setJenisHewan}
+              kondisiHewan={kondisiHewan}
+              setKondisiHewan={setKondisiHewan}
+              deskripsi={deskripsi}
+              setDeskripsi={setDeskripsi}
+              lokasi={lokasi}
+              loadingLokasi={loadingLokasi}
+              handlePhotoChange={handlePhotoChange}
+              handleDeteksiLokasi={handleDeteksiLokasi}
+              handleSubmit={handleSubmit}
+            />
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-export default PawAlert;
+export default PawAlert;  
