@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiSearch } from 'react-icons/fi';
 import DonationHero from '../../components/donation/DonationHero';
 import CampaignCard from '../../components/donation/CampaignCard';
-import DonationFormView from '../../components/donation/DonationForm';
+import CampaignDetail from '../../components/donation/CampaignDetail'; // Diubah agar memanggil file detail layout
 import SidebarUpdates from '../../components/donation/SidebarUpdates';
 
 const campaigns = [
@@ -74,8 +74,8 @@ const Donation = () => {
     <div className="min-h-screen bg-white font-poppins">
       <AnimatePresence mode="wait">
         {detailCampaign ? (
-          <motion.div key="detail">
-            <DonationFormView
+          <motion.div key="detail" className="w-full">
+            <CampaignDetail
               campaign={detailCampaign}
               onBack={() => setDetailCampaign(null)}
             />
