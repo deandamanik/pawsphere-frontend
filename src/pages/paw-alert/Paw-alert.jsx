@@ -68,7 +68,7 @@ const PawAlert = () => {
         })).sort((a, b) => a.distance - b.distance);
 
         setSortedShelters(withDist.slice(0, 3));
-        setLokasi({ lat: userLat.toFixed(6), lng: userLng.toFixed(6) });
+        setLokasi({ lat: userLat, lng: userLng });
         setLocationDetected(true);
         setLoadingLokasi(false);
       },
@@ -81,7 +81,11 @@ const PawAlert = () => {
         setLocationError(msg);
         setLoadingLokasi(false);
       },
-      { timeout: 10000, maximumAge: 60000 }
+      { 
+        enableHighAccuracy: true, 
+        timeout: 15000, 
+        maximumAge: 0 
+      }
     );
   };
 
@@ -123,8 +127,8 @@ const PawAlert = () => {
 
               {!locationDetected && (
                 <motion.button
-                  whileHover={{ y: -1 }}
-                  whileTap={{ scale: 0.97 }}
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={handleDeteksiLokasi}
                   disabled={loadingLokasi}
                   className="w-full flex items-center justify-center gap-2 py-2 mb-4 rounded-lg
@@ -138,7 +142,7 @@ const PawAlert = () => {
 
               {locationError && (
                 <p className="text-red-500 text-[11px] mb-3 bg-red-50 rounded-lg px-3 py-2">
-                  ⚠️ {locationError}
+                  {locationError}
                 </p>
               )}
 
