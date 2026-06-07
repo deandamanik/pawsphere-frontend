@@ -1,11 +1,10 @@
 import { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FiNavigation } from 'react-icons/fi';
+import {  AnimatePresence } from 'framer-motion';
 
 import HeroHeader from '../../components/paw-alert/HeroHeader';
 import ContactModal from '../../components/paw-alert/ContactModal';
-import ShelterCard from '../../components/paw-alert/ShelterCard';
 import EmergencyTips from '../../components/paw-alert/EmergencyTips';
+import NearbyShelters from '../../components/paw-alert/NearbyShelters';
 import AlertForm from '../../components/paw-alert/AlertForm';
 
 const haversine = (lat1, lng1, lat2, lng2) => {
@@ -89,6 +88,12 @@ const PawAlert = () => {
     );
   };
 
+  const handleResetLokasi = () => {
+    setLocationDetected(false);
+    setSortedShelters(SHELTER_DATA.slice(0, 2));
+    setLokasi(null);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log({ photo, jenisHewan, kondisiHewan, deskripsi, lokasi });
@@ -108,67 +113,15 @@ const PawAlert = () => {
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 items-start">
           
           <div className="flex flex-col gap-5">
-            <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="font-bold text-brand-blue-darker text-sm">Shelter Terdekat</h3>
-                {locationDetected && (
-                  <span className="text-[10px] text-green-600 font-semibold flex items-center gap-1">
-                    <FiNavigation size={9} />
-                    Diurutkan
-                  </span>
-                )}
-              </div>
-
-              {!locationDetected && (
-                <p className="text-brand-blue-darker/50 text-[11px] mb-3 leading-snug">
-                  Aktifkan GPS untuk menampilkan shelter paling dekat dengan lokasimu.
-                </p>
-              )}
-
-              {!locationDetected && (
-                <motion.button
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleDeteksiLokasi}
-                  disabled={loadingLokasi}
-                  className="w-full flex items-center justify-center gap-2 py-2 mb-4 rounded-lg
-                            bg-brand-blue-darker hover:bg-brand-blue-dark-hover text-white
-                            text-xs font-semibold transition-colors disabled:opacity-60"
-                >
-                  <FiNavigation size={12} className={loadingLokasi ? 'animate-spin' : ''} />
-                  {loadingLokasi ? 'Mendeteksi lokasi...' : 'Deteksi Lokasi Saya'}
-                </motion.button>
-              )}
-
-              {locationError && (
-                <p className="text-red-500 text-[11px] mb-3 bg-red-50 rounded-lg px-3 py-2">
-                  {locationError}
-                </p>
-              )}
-
-              <div className="flex flex-col gap-3">
-                <AnimatePresence mode="wait">
-                  {sortedShelters.map((s, i) => (
-                    <ShelterCard
-                      key={s.id}
-                      shelter={s}
-                      rank={i}
-                      onContact={setActiveShelter}
-                    />
-                  ))}
-                </AnimatePresence>
-              </div>
-
-              {locationDetected && (
-                <button
-                  onClick={() => { setLocationDetected(false); setSortedShelters(SHELTER_DATA.slice(0, 2)); setLokasi(null); }}
-                  className="mt-3 w-full text-[11px] text-brand-blue-normal hover:underline font-medium"
-                >
-                  Ubah lokasi
-                </button>
-              )}
-            </div>
-
+            <NearbyShelters
+              locationDetected={locationDetected}
+              loadingLokasi={loadingLokasi}
+              locationError={locationError}
+              sortedShelters={sortedShelters}
+              handleDeteksiLokasi={handleDeteksiLokasi}
+              handleResetLokasi={handleResetLokasi}
+              onContact={setActiveShelter}
+            />
             <EmergencyTips />
           </div>
 

@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiCamera, FiUpload, FiMapPin, FiCheckCircle, FiLoader, FiSend } from 'react-icons/fi';
+import { FiCamera, FiUpload, FiMapPin, FiCheckCircle, FiLoader, FiSend, FiRefreshCw } from 'react-icons/fi';
 
 const fadeUpVariants = {
   hidden: { opacity: 0, y: 10 },
@@ -143,7 +143,7 @@ const AlertForm = ({
           Lokasi Koordinat GPS <span className="text-red-500">*</span>
         </label>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border border-gray-100 bg-gray-50/50 rounded-xl p-3.5">
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             <AnimatePresence mode="wait">
               {lokasi ? (
                 <motion.div 
@@ -189,16 +189,27 @@ const AlertForm = ({
             whileTap={loadingLokasi ? {} : { scale: 0.98 }}
             onClick={handleDeteksiLokasi}
             disabled={loadingLokasi}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-200 hover:border-gray-300
-                      disabled:bg-gray-100 disabled:text-gray-400 text-brand-blue-darker text-xs font-bold rounded-xl 
-                      transition-colors whitespace-nowrap disabled:opacity-100 sm:w-auto w-full shadow-sm"
+            className={`flex items-center justify-center gap-2 px-4 py-2.5 border text-xs font-bold rounded-xl 
+                      transition-colors whitespace-nowrap sm:w-auto w-full shadow-sm
+                      ${lokasi 
+                        ? 'bg-gray-50 border-gray-200 hover:border-red-200 hover:bg-red-50/30 text-gray-700 hover:text-red-600' 
+                        : 'bg-white border-gray-200 hover:border-gray-300 text-brand-blue-darker'
+                      }`}
           >
             {loadingLokasi ? (
               <FiLoader size={13} className="animate-spin text-brand-blue-normal" />
+            ) : lokasi ? (
+              <FiRefreshCw size={13} />
             ) : (
               <FiMapPin size={13} className="text-brand-blue-normal" />
             )}
-            {loadingLokasi ? 'Mengunci Koordinat...' : 'Deteksi Lokasi Otomatis'}
+            
+            {loadingLokasi 
+              ? 'Mengunci Koordinat...' 
+              : lokasi 
+                ? 'Ubah Lokasi' 
+                : 'Deteksi Lokasi Otomatis'
+            }
           </motion.button>
         </div>
       </motion.div>

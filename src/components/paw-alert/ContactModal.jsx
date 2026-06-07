@@ -5,6 +5,8 @@ const formatDist = (km) =>
   km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
 
 const ContactModal = ({ shelter, onClose }) => {
+  if (!shelter) return null;
+
   const isBuka = shelter.status === 'Buka';
   
   const waMessage = encodeURIComponent(
@@ -20,7 +22,6 @@ const ContactModal = ({ shelter, onClose }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0}} 
       className="fixed inset-0 z-50 flex items-center justify-center px-4"
       onClick={onClose}
     >
