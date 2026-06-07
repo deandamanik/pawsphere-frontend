@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiChevronLeft, FiAlertTriangle, FiUsers, FiClock } from 'react-icons/fi';
 import DonationForm from './DonationForm';
+import SuccessModal from '../../components/ui/SuccessModal';
 
 const UrgencyBadge = ({ label, color }) => (
   <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-white ${color}`}>
@@ -16,6 +18,14 @@ const Tag = ({ label }) => (
 );
 
 const CampaignDetail = ({ campaign, onBack }) => {
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successData, setSuccessData] = useState({ amount: 0 });
+
+  const handleSuccess = (amount) => {
+    setSuccessData({ amount });
+    setShowSuccess(true);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -23,6 +33,16 @@ const CampaignDetail = ({ campaign, onBack }) => {
       exit={{ opacity: 0, y: -10 }}
       className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 pt-6 min-h-screen"
     >
+      <SuccessModal 
+        isOpen={showSuccess}
+        onClose={() => {
+          setShowSuccess(false);
+          onBack();
+        }}
+        title="Donasi Berhasil Terkirim!"
+        message={`Terima kasih orang baik! Donasi sebesar Rp ${successData.amount.toLocaleString('id-ID')} untuk "${campaign.title}" telah kami terima.`}
+      />
+
       <div className="w-full flex justify-start mb-6">
         <button
           onClick={onBack}
@@ -35,7 +55,6 @@ const CampaignDetail = ({ campaign, onBack }) => {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(480px,540px)] gap-10 items-start">
         
         <div className="lg:sticky lg:top-24 bg-white rounded-3xl shadow-sm border border-brand-blue-light-active/60 overflow-hidden w-full">
-
           <div className="relative w-full aspect-16/10 bg-gray-100 border-b border-brand-blue-light-active/40">
             <img
               src={campaign.image}
@@ -93,7 +112,10 @@ const CampaignDetail = ({ campaign, onBack }) => {
           <h3 className="text-brand-blue-darker font-black text-xl tracking-tight mb-6 text-center">
             Formulir Donasi
           </h3>
-          <DonationForm campaign={campaign} compact={true} />
+          <DonationForm 
+            campaign={campaign} 
+            onSuccess={handleSuccess}
+          />
         </div>
 
       </div>

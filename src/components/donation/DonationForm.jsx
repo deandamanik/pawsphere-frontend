@@ -12,7 +12,7 @@ const fmt = (n) =>
     ? `${(n / 1_000).toFixed(0)}rb`
     : `${n}`;
 
-const DonationForm = ({ campaign }) => {
+const DonationForm = ({  onSuccess }) => {
   const [selected, setSelected] = useState(null);
   const [custom, setCustom] = useState('');
   const [name, setName] = useState('');
@@ -30,14 +30,7 @@ const DonationForm = ({ campaign }) => {
     e.preventDefault();
     if (!isFormValid) return;
 
-    console.log({
-      campaignId: campaign?.id,
-      campaignTitle: campaign?.title,
-      amount: total,
-      donorName: name || 'Anonim',
-      supportMessage: message,
-      paymentMethod: selectedMethod,
-    });
+    onSuccess(total);
   };
 
   return (
@@ -60,7 +53,6 @@ const DonationForm = ({ campaign }) => {
               }`}
             >
               <span className="relative z-10">{amt.toLocaleString('id-ID')}</span>
-
               {isSelected && (
                 <motion.div
                   layoutId="activeAmountBg"
