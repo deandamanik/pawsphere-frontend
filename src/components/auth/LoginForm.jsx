@@ -1,19 +1,40 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { HiArrowLeft } from 'react-icons/hi';
 import { motion } from 'framer-motion';
 import AuthInput from './AuthInput';
 import AuthPasswordInput from './AuthPasswordInput';
 import Button from '../ui/Button';
+import { useAuth } from '../../context/AuthContext';
+import { homeForRole } from '../../config/roles';
 
 const LoginForm = () => {
-  const [rememberMe, setRememberMe] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log({ email, password, rememberMe });
+    setError('');
+    setSubmitting(true);
+    try {
+      // One login endpoint for every role. The backend returns the user
+      // (with their role), and we decide where to send them next.
+      const user = await login(email, password);
+
+      // If the guard bounced them here, return to the page they wanted.
+      const from = location.state?.from?.pathname;
+      navigate(from || homeForRole(user.role), { replace: true });
+    } catch (err) {
+      setError(err.message || 'Gagal masuk. Coba lagi.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -26,6 +47,12 @@ const LoginForm = () => {
       <h2 className="text-3xl font-bold text-brand-blue-normal mb-1">Selamat Datang</h2>
       <p className="text-brand-blue-normal/90 text-sm mb-7">Masuk ke akun PawSphere kamu</p>
 
+      {error && (
+        <div className="mb-5 rounded-xl bg-brand-red-light border border-brand-red-light-active px-4 py-3 text-sm text-brand-red-dark font-medium">
+          {error}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         <AuthInput
           label="Alamat Email"
@@ -33,6 +60,7 @@ const LoginForm = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="kamu@gmail.com"
+          required
         />
 
         <AuthPasswordInput
@@ -42,24 +70,13 @@ const LoginForm = () => {
           placeholder="••••••••••"
         />
 
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="rememberMe"
-            checked={rememberMe}
-            onChange={(e) => setRememberMe(e.checked)}
-            className="w-4 h-4 accent-brand-blue-normal cursor-pointer rounded border-gray-300"
-          />
-          <label htmlFor="rememberMe" className="text-sm text-brand-blue-normal cursor-pointer select-none font-medium">
-            Remember me
-          </label>
-        </div>
-
         <Button
           type="submit"
-          className="w-full bg-brand-blue-darker hover:bg-brand-blue-dark-hover py-3 rounded-xl text-sm font-semibold mt-2"
+          className={`w-full bg-brand-blue-darker hover:bg-brand-blue-dark-hover py-3 rounded-xl text-sm font-semibold mt-2 ${
+            submitting ? 'opacity-70 pointer-events-none' : ''
+          }`}
         >
-          Login
+          {submitting ? 'Memproses…' : 'Login'}
         </Button>
 
         <p className="text-center text-sm text-brand-blue-normal">

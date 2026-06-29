@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { FiChevronLeft, FiAlertTriangle, FiUsers, FiClock } from 'react-icons/fi';
 import DonationForm from './DonationForm';
 import SuccessModal from '../../components/ui/SuccessModal';
+import { donate } from '../../services/donation.service';
 
 const UrgencyBadge = ({ label, color }) => (
   <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-white ${color}`}>
@@ -17,13 +18,19 @@ const Tag = ({ label }) => (
   </span>
 );
 
-const CampaignDetail = ({ campaign, onBack }) => {
+const CampaignDetail = ({ campaign, onBack, onDonated }) => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successData, setSuccessData] = useState({ amount: 0 });
 
-  const handleSuccess = (amount) => {
-    setSuccessData({ amount });
-    setShowSuccess(true);
+  const handleSuccess = async ({ amount, name, message }) => {
+    try {
+      await donate(campaign.id, { amount, name, message });
+      setSuccessData({ amount });
+      setShowSuccess(true);
+      if (onDonated) onDonated();
+    } catch (err) {
+      alert(err.message || 'Gagal memproses donasi. Coba lagi.');
+    }
   };
 
   return (

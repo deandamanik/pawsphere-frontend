@@ -1,5 +1,8 @@
 import { useState, useRef } from 'react';
 import { AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { createReport } from '../../services/pawAlert.service';
 
 import HeroHeader from '../../components/paw-alert/HeroHeader';
 import ContactModal from '../../components/paw-alert/ContactModal';
@@ -28,7 +31,33 @@ const SHELTER_DATA = [
   { id: 5, name: 'Sanur Pet Rescue', address: 'Jl. Danau Tamblingan No. 3, Sanur', status: 'Tutup', hours: '08.00 - 15.00', phone: '6281255667788', lat: -8.6839, lng: 115.2624 },
 ];
 
+// Resize a photo File into a compact JPEG data URL for storage.
+const fileToResizedDataUrl = (file, max = 800) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, max / Math.max(img.width, img.height));
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.8));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
 const PawAlert = () => {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const [submitting, setSubmitting] = useState(false);
   const [photo, setPhoto] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [jenisHewan, setJenisHewan] = useState('');
@@ -91,10 +120,35 @@ const PawAlert = () => {
     setLokasi(null);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log({ photo, jenisHewan, kondisiHewan, deskripsi, lokasi });
-    setShowSuccess(true);
+    if (submitting) return;
+
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: { pathname: '/paw-alert' } } });
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      let photoUrl = null;
+      if (photo) photoUrl = await fileToResizedDataUrl(photo);
+
+      await createReport({
+        animal_type: jenisHewan || undefined,
+        condition: kondisiHewan || undefined,
+        description: deskripsi,
+        photo_url: photoUrl,
+        latitude: lokasi ? lokasi.lat : undefined,
+        longitude: lokasi ? lokasi.lng : undefined,
+      });
+
+      setShowSuccess(true);
+    } catch (err) {
+      alert(err.message || 'Gagal mengirim laporan. Coba lagi.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleCloseSuccessModal = () => {
@@ -117,9 +171,9 @@ const PawAlert = () => {
         )}
       </AnimatePresence>
 
-      <SuccessModal 
-        isOpen={showSuccess} 
-        onClose={handleCloseSuccessModal} 
+      <SuccessModal
+        isOpen={showSuccess}
+        onClose={handleCloseSuccessModal}
         title="Laporan Dikirim!"
         message="Laporan darurat Anda telah berhasil diterbitkan ke dalam sistem rescue."
       />
@@ -164,4 +218,4 @@ const PawAlert = () => {
   );
 };
 
-export default PawAlert;  
+export default PawAlert;

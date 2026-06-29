@@ -19,7 +19,7 @@ const ChatArea = ({
         <strong key={i}>{part.slice(2, -2)}</strong>
       ) : (
         part
-      ),
+      )
     );
   };
 
@@ -33,7 +33,7 @@ const ChatArea = ({
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ type: "spring", stiffness: 100, damping: 20 }}
@@ -79,7 +79,7 @@ const ChatArea = ({
                   <PiPawPrintFill className="text-white w-3 h-3 sm:w-4 sm:h-4" />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <div className="bg-brand-blue-normal text-white rounded-2xl rounded-bl-sm px-3 sm:px-4 py-2 sm:py-3 shadow-sm text-xs sm:text-sm leading-relaxed">
+                  <div className="bg-brand-blue-normal text-white rounded-2xl rounded-bl-sm px-3 sm:px-4 py-2 sm:py-3 shadow-sm text-xs sm:text-sm leading-relaxed whitespace-pre-wrap">
                     {renderText(msg.text)}
                   </div>
                   <div className="flex items-center gap-2 sm:gap-3 px-1">
@@ -107,7 +107,7 @@ const ChatArea = ({
                 className="flex items-end gap-2 sm:gap-3 max-w-[90%] sm:max-w-[75%] self-end"
               >
                 <div className="flex flex-col items-end gap-1">
-                  <div className="bg-slate-200 text-slate-700 rounded-2xl rounded-br-sm px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm leading-relaxed shadow-sm">
+                  <div className="bg-slate-200 text-slate-700 rounded-2xl rounded-br-sm px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm leading-relaxed shadow-sm whitespace-pre-wrap">
                     {msg.text}
                   </div>
                   <div className="flex items-center gap-1.5 px-1">
@@ -138,7 +138,7 @@ const ChatArea = ({
         )}
 
         {isTyping && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
             className="flex items-end gap-2 sm:gap-3 max-w-[90%] sm:max-w-[80%]"
