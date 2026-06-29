@@ -9,11 +9,9 @@ const AiDiagnoseContainer = ({ chatState, chatActions }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="font-poppins bg-slate-50 min-h-[calc(100vh-4rem)] flex items-center py-10 md:py-14 px-3 sm:px-6">
-      <div className="max-w-7xl w-full mx-auto flex flex-col gap-5">
-
-        <div className="flex gap-4 md:gap-6 items-stretch min-h-125 md:h-155">
-          
+    <div className="font-poppins bg-slate-50 min-h-[calc(100vh-4rem)] flex flex-col py-4 sm:py-6 px-3 sm:px-6">
+      <div className="max-w-7xl w-full mx-auto flex flex-col gap-4 flex-1">
+        <div className="flex gap-4 md:gap-6 items-stretch flex-1 min-h-[30rem]">
           <aside className="hidden lg:flex w-72 shrink-0 flex-col gap-4">
             <SidebarContent
               handleNewChat={chatActions.handleNewChat}

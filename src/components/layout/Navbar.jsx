@@ -3,8 +3,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import logoPawsphere from '../../assets/Logo-Pawsphere.svg';
 import warningIcon from '../../assets/Warning.svg';
+import { homeForRole } from '../../config/roles';
 
-const Navbar = ({ isLoggedIn = false, handleLogout }) => {
+const Navbar = ({ isLoggedIn = false, role = null, user = null, handleLogout }) => {
+  // Roles that have their own workspace get a quick "Dashboard" link.
+  const dashboardPath =
+    role && role !== 'user' ? homeForRole(role) : null;
+
   const location = useLocation();
   const [activeMenu, setActiveMenu] = useState('Home');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -163,12 +168,35 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
                   </Link>
                 </div>
               ) : (
-                <button 
-                  onClick={handleLogout}
-                  className="px-8 py-2.5 bg-white text-brand-orange border border-brand-orange font-bold rounded-full text-base hover:bg-slate-50 transition-all shadow-md active:scale-95 cursor-pointer"
-                >
-                  Logout
-                </button>
+                <div className="flex items-center gap-3">
+                  {dashboardPath && (
+                    <Link
+                      to={dashboardPath}
+                      className="px-6 py-2.5 bg-white/10 text-white border border-white/20 font-bold rounded-full text-base hover:bg-white/20 transition-all cursor-pointer"
+                    >
+                      Dashboard
+                    </Link>
+                  )}
+                  <Link
+                    to="/profile"
+                    title="Profile"
+                    className="w-11 h-11 rounded-full overflow-hidden border-2 border-white/40 hover:border-white transition-all cursor-pointer flex items-center justify-center bg-white/10 shrink-0"
+                  >
+                    {user?.avatarUrl ? (
+                      <img src={user.avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-white font-bold text-lg">
+                        {(user?.name || "?").charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="px-8 py-2.5 bg-white text-brand-orange border border-brand-orange font-bold rounded-full text-base hover:bg-slate-50 transition-all shadow-md active:scale-95 cursor-pointer"
+                  >
+                    Logout
+                  </button>
+                </div>
               )}
             </div>
 
@@ -247,7 +275,22 @@ const Navbar = ({ isLoggedIn = false, handleLogout }) => {
                   <Link to="/register" onClick={() => setIsMobileMenuOpen(false)} className="w-full py-4 bg-white text-brand-orange rounded-2xl font-bold text-center text-lg">Register</Link>
                 </>
               ) : (
-                <button onClick={handleLogout} className="w-full py-4 bg-white/10 text-white rounded-2xl font-bold text-lg border border-white/10 cursor-pointer">Logout</button>
+                <>
+                  {dashboardPath && (
+                    <Link to={dashboardPath} onClick={() => setIsMobileMenuOpen(false)} className="w-full py-4 bg-white/10 text-white rounded-2xl font-bold text-center text-lg border border-white/10">Dashboard</Link>
+                  )}
+                  <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="w-full py-4 bg-white/10 text-white rounded-2xl font-bold text-lg border border-white/10 flex items-center justify-center gap-3">
+                    <span className="w-8 h-8 rounded-full overflow-hidden border border-white/30 flex items-center justify-center bg-white/10 shrink-0">
+                      {user?.avatarUrl ? (
+                        <img src={user.avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-sm font-bold">{(user?.name || "?").charAt(0).toUpperCase()}</span>
+                      )}
+                    </span>
+                    Profile
+                  </Link>
+                  <button onClick={handleLogout} className="w-full py-4 bg-white/10 text-white rounded-2xl font-bold text-lg border border-white/10 cursor-pointer">Logout</button>
+                </>
               )}
             </div>
           </motion.div>

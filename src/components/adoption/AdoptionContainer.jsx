@@ -1,5 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FiSearch } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { getAnimals, applyAdoption } from '../../services/adoption.service';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdoptionSteps from './AdoptionSteps';
 import AdoptionCard from './AdoptionCard';
@@ -8,25 +11,50 @@ import PetDetailStage from './PetDetailStage';
 import PetFormStage from './PetFormStage';
 import PetSuccessStage from './PetSuccessStage';
 
-const DUMMY_PETS = [
-  { id: 1, name: 'Max', type: 'Anjing', breed: 'Golden Retriever Mix', age: '2 Tahun', gender: 'Jantan', location: 'Denpasar Barat', tags: ['Vaksin', 'Steril', 'Sehat'], shelter: 'Shelter Harapan Hewan', image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=500' },
-  { id: 2, name: 'Luna', type: 'Kucing', breed: 'Domestic Shorthair', age: '1.5 Tahun', gender: 'Betina', location: 'Kuta Utara', tags: ['Vaksin', 'Steril', 'Sehat'], shelter: 'Cat Haven Kuta Utara', image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&q=80&w=500' },
-  { id: 3, name: 'Brownie', type: 'Anjing', breed: 'Labrador Mix', age: '2 Tahun', gender: 'Jantan', location: 'Denpasar Timur', tags: ['Vaksin', 'Sehat'], shelter: 'Paws For Life', image: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&q=80&w=500' },
-  { id: 4, name: 'Mochi', type: 'Kucing', breed: 'Persian Mix', age: '4 Tahun', gender: 'Betina', location: 'Kuta Utara', tags: ['Vaksin', 'Steril', 'Perlu perawatan rutin'], shelter: 'Animal Care Indonesia', image: 'https://images.unsplash.com/photo-1573865526739-10659fec78a5 +auto=format&fit=crop&q=80&w=500' },
-  { id: 5, name: 'Coco', type: 'Kelinci', breed: 'Holland Lop', age: '8 Bulan', gender: 'Betina', location: 'Kuta Selatan', tags: ['Sehat'], shelter: 'Rabbit House', image: 'https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?auto=format&fit=crop&q=80&w=500' },
-  { id: 6, name: 'Rocky', type: 'Anjing', breed: 'Kintamani Mix', age: '5 Tahun', gender: 'Jantan', location: 'Nusa Dua', tags: ['Vaksin', 'Steril', 'Sehat'], shelter: 'Shelter Harapan Hewan', image: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=500' },
-];
-
 const AdoptionContainer = () => {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  const [pets, setPets] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('Semua');
-  
+
   const [selectedPet, setSelectedPet] = useState(null);
   const [modalStage, setModalStage] = useState('');
 
+  useEffect(() => {
+    setLoading(true);
+    getAnimals()
+      .then(setPets)
+      .catch(() => setPets([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleApply = async (formData) => {
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: { pathname: '/adoption' } } });
+      return;
+    }
+    try {
+      await applyAdoption({
+        animal_id: selectedPet.id,
+        nama: formData.nama,
+        telepon: formData.telepon,
+        email: formData.email,
+        alamat: formData.alamat,
+        pengalaman: formData.pengalaman,
+        alasan: formData.alasan,
+      });
+      setModalStage('success');
+    } catch (err) {
+      alert(err.message || 'Gagal mengirim permohonan. Coba lagi.');
+    }
+  };
+
   const categories = ['Semua', 'Anjing', 'Kucing', 'Kelinci'];
 
-  const filteredPets = DUMMY_PETS.filter(pet => {
+  const filteredPets = pets.filter(pet => {
     const matchesSearch = pet.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           pet.breed.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = activeFilter === 'Semua' || pet.type === activeFilter;
@@ -187,9 +215,8 @@ const AdoptionContainer = () => {
           <PetFormStage 
             pet={selectedPet} 
             onBack={() => setModalStage('detail')} 
-            onSubmit={() => {
-              setModalStage('success');
-            }} 
+            onSubmit={handleApply}
+
           />
         )}
         {modalStage === 'success' && (

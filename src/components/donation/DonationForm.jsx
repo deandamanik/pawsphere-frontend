@@ -30,7 +30,7 @@ const DonationForm = ({  onSuccess }) => {
     e.preventDefault();
     if (!isFormValid) return;
 
-    onSuccess(total);
+    onSuccess({ amount: total, name, message });
   };
 
   return (
