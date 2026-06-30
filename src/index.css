@@ -49,3 +49,11 @@
   --text-8xl: 6rem;       /* 96px */
   --text-9xl: 8rem;       /* 128px */
 }
+
+a {
+  cursor: pointer;
+}
+
+button {
+  cursor: pointer;
+}

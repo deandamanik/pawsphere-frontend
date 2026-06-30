@@ -1,27 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useCart } from '../../context/CartContext';
 
 
 const Keranjang = () => {
   const navigate = useNavigate();
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: 'Amoxicillin 250mg Tablet',
-      price: 45000,
-      oldPrice: 60000,
-      quantity: 1,
-      image: "/src/assets/product/Amoxicillin.png",
-    },
-    {
-      id: 2,
-      name: 'Ivermectin 1% Injection',
-      price: 35000,
-      oldPrice: null,
-      quantity: 3,
-      image: "/src/assets/product/Ivermectin.png",
-    },
-  ]);
+  const { cart: cartItems, updateQuantity, removeItem } = useCart();
 
   // Fungsi helper format Rupiah
   const formatRupiah = (number) => {
@@ -32,28 +16,10 @@ const Keranjang = () => {
     }).format(number);
   };
 
-  // Fungsi untuk mengubah jumlah barang
-  const updateQuantity = (id, delta) => {
-    setCartItems(items => 
-      items.map(item => {
-        if (item.id === id) {
-          const newQuantity = item.quantity + delta;
-          return { ...item, quantity: newQuantity > 0 ? newQuantity : 1 }; // Minimal 1
-        }
-        return item;
-      })
-    );
-  };
-
-  // Fungsi untuk menghapus barang
-  const removeItem = (id) => {
-    setCartItems(items => items.filter(item => item.id !== id));
-  };
-
   // Perhitungan Ringkasan Belanja
   const subTotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
-  const discount = 15000;
-  const tax = 5000;
+  const discount = 0;
+  const tax = 0;
   const total = subTotal - discount + tax;
 
   return (

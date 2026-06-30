@@ -1,8 +1,11 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Selesai = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const order = location.state?.order || null;
+  const fmtRp = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n || 0);
 
   return (
     <div className="min-h-screen bg-[#FBF8F2]">
@@ -40,10 +43,26 @@ const Selesai = () => {
           </h2>
 
 
-          <p className="text-gray-500 text-lg leading-relaxed max-w-xl mb-12">
-            Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. 
-            Donec volutpat mattis sollicitudin diam.
+          <p className="text-gray-500 text-lg leading-relaxed max-w-xl mb-6">
+            Terima kasih! Pesanan Anda telah kami terima dan sedang diproses oleh Apotek PawSphere.
           </p>
+
+          {order && (
+            <div className="w-full max-w-md bg-gray-50 border border-gray-100 rounded-2xl p-5 mb-12 text-left">
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-gray-500">ID Pesanan</span>
+                <span className="font-semibold text-gray-800">{String(order.id).slice(0, 8)}</span>
+              </div>
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-gray-500">Status</span>
+                <span className="font-semibold text-emerald-600">Dibayar</span>
+              </div>
+              <div className="flex justify-between text-base pt-2 border-t border-gray-200">
+                <span className="font-bold text-gray-900">Total</span>
+                <span className="font-extrabold text-gray-900">{fmtRp(order.total_amount)}</span>
+              </div>
+            </div>
+          )}
 
           {/* Tombol Kembali */}
           <button 

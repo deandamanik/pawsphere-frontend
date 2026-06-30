@@ -1,33 +1,99 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
+import { createOrder } from '../../services/marketplace.service';
 
 const Pembayaran = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
+  const { cart: cartItems, subtotal, clearCart } = useCart();
   const [selectedPayment, setSelectedPayment] = useState('qris');
+  const [placing, setPlacing] = useState(false);
 
-  // Data dummy keranjang 
-  const cartItems = [
-    {
-      id: 1,
-      name: 'Amoxicillin 250mg Tablet',
-      price: 45000,
-      quantity: 1,
-      image: 'src/assets/product/Amoxicillin.png', 
-    },
-    {
-      id: 2,
-      name: 'Ivermectin 1% Injection',
-      price: 35000,
-      quantity: 3,
-      image: '/src/assets/product/Ivermectin.png',
-    },
-  ];
+  // Form pembeli (otomatis terisi dari akun bila sudah login)
+  const [nama, setNama] = useState('');
+  const [alamat, setAlamat] = useState('');
+  const [kodePos, setKodePos] = useState('');
+  const [email, setEmail] = useState('');
+  const [telepon, setTelepon] = useState('');
+  const [catatan, setCatatan] = useState('');
+
+  // Wilayah Indonesia (provinsi -> kabupaten/kota), dimuat dari API publik emsifa.
+  const [provinces, setProvinces] = useState([]);
+  const [regencies, setRegencies] = useState([]);
+  const [provinsiId, setProvinsiId] = useState('');
+  const [provinsiNama, setProvinsiNama] = useState('');
+  const [kotaNama, setKotaNama] = useState('');
+  const [loadingKota, setLoadingKota] = useState(false);
+
+  useEffect(() => {
+    fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json')
+      .then((r) => r.json())
+      .then((data) => setProvinces(Array.isArray(data) ? data : []))
+      .catch(() => setProvinces([]));
+  }, []);
+
+  const handleProvinsiChange = (e) => {
+    const id = e.target.value;
+    const found = provinces.find((p) => p.id === id);
+    setProvinsiId(id);
+    setProvinsiNama(found ? found.name : '');
+    setKotaNama('');
+    setRegencies([]);
+    if (!id) return;
+    setLoadingKota(true);
+    fetch('https://www.emsifa.com/api-wilayah-indonesia/api/regencies/' + id + '.json')
+      .then((r) => r.json())
+      .then((data) => setRegencies(Array.isArray(data) ? data : []))
+      .catch(() => setRegencies([]))
+      .finally(() => setLoadingKota(false));
+  };
+
+  useEffect(() => {
+    if (user) {
+      setNama(user.name || '');
+      setEmail(user.email || '');
+      setTelepon(user.phoneNumber || '');
+    }
+  }, [user]);
+
 
   // Perhitungan Harga
-  const subTotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
-  const discount = 15000;
-  const tax = 5000;
+  const subTotal = subtotal;
+  const discount = 0;
+  const tax = 0;
   const total = subTotal - discount + tax;
+
+  const handleCheckout = async () => {
+    if (placing) return;
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: { pathname: '/marketplace' } } });
+      return;
+    }
+    if (cartItems.length === 0) {
+      alert('Keranjang masih kosong.');
+      return;
+    }
+    setPlacing(true);
+    try {
+      const wilayah = [kotaNama, provinsiNama, kodePos].filter(Boolean).join(', ');
+      const shippingAddress =
+        [nama, telepon, alamat, wilayah].filter(Boolean).join(' | ') +
+        (catatan ? ' | Catatan: ' + catatan : '');
+      const order = await createOrder({
+        items: cartItems.map((i) => ({ product_id: i.id, quantity: i.quantity })),
+        payment_method: selectedPayment,
+        shipping_address: shippingAddress || undefined,
+      });
+      clearCart();
+      navigate('/Selesai', { state: { order } });
+    } catch (err) {
+      alert(err.message || 'Gagal membuat pesanan. Coba lagi.');
+    } finally {
+      setPlacing(false);
+    }
+  };
 
   const formatRupiah = (number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
@@ -81,41 +147,47 @@ const Pembayaran = () => {
               <div className="flex flex-col gap-5">
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium text-gray-700">Nama Lengkap</label>
-                  <input type="text" placeholder="Masukkan nama lengkap" className="w-full border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-[#91D5FF] focus:ring-1 focus:ring-[#91D5FF]" />
+                  <input type="text" value={nama} onChange={(e) => setNama(e.target.value)} placeholder="Masukkan nama lengkap" className="w-full border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-[#91D5FF] focus:ring-1 focus:ring-[#91D5FF]" />
                 </div>
                 
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium text-gray-700">Alamat</label>
-                  <input type="text" className="w-full border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-[#91D5FF] focus:ring-1 focus:ring-[#91D5FF]" />
+                  <input type="text" value={alamat} onChange={(e) => setAlamat(e.target.value)} placeholder="Alamat pengiriman" className="w-full border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-[#91D5FF] focus:ring-1 focus:ring-[#91D5FF]" />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                   <div className="flex flex-col gap-2">
                     <label className="text-sm font-medium text-gray-700">Provinsi</label>
-                    <select className="w-full border border-gray-200 rounded-lg p-3 text-sm text-gray-500 outline-none focus:border-[#91D5FF] bg-white">
-                      <option>Select...</option>
+                    <select value={provinsiId} onChange={handleProvinsiChange} className="w-full border border-gray-200 rounded-lg p-3 text-sm text-gray-700 outline-none focus:border-[#91D5FF] bg-white">
+                      <option value="">Pilih provinsi...</option>
+                      {provinces.map((p) => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
                     </select>
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="text-sm font-medium text-gray-700">Kabupaten/Kota</label>
-                    <select className="w-full border border-gray-200 rounded-lg p-3 text-sm text-gray-500 outline-none focus:border-[#91D5FF] bg-white">
-                      <option>Select...</option>
+                    <select value={kotaNama} onChange={(e) => setKotaNama(e.target.value)} disabled={!provinsiId || loadingKota} className="w-full border border-gray-200 rounded-lg p-3 text-sm text-gray-700 outline-none focus:border-[#91D5FF] bg-white disabled:bg-gray-50 disabled:text-gray-400">
+                      <option value="">{!provinsiId ? 'Pilih provinsi dulu' : loadingKota ? 'Memuat...' : 'Pilih kabupaten/kota...'}</option>
+                      {regencies.map((c) => (
+                        <option key={c.id} value={c.name}>{c.name}</option>
+                      ))}
                     </select>
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="text-sm font-medium text-gray-700">Kode Pos</label>
-                    <input type="text" className="w-full border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-[#91D5FF] focus:ring-1 focus:ring-[#91D5FF]" />
+                    <input type="text" value={kodePos} onChange={(e) => setKodePos(e.target.value)} className="w-full border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-[#91D5FF] focus:ring-1 focus:ring-[#91D5FF]" />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="flex flex-col gap-2">
                     <label className="text-sm font-medium text-gray-700">Email</label>
-                    <input type="email" className="w-full border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-[#91D5FF] focus:ring-1 focus:ring-[#91D5FF]" />
+                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-[#91D5FF] focus:ring-1 focus:ring-[#91D5FF]" />
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="text-sm font-medium text-gray-700">Nomor Telpon</label>
-                    <input type="tel" className="w-full border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-[#91D5FF] focus:ring-1 focus:ring-[#91D5FF]" />
+                    <input type="tel" value={telepon} onChange={(e) => setTelepon(e.target.value)} className="w-full border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-[#91D5FF] focus:ring-1 focus:ring-[#91D5FF]" />
                   </div>
                 </div>
               </div>
@@ -156,6 +228,8 @@ const Pembayaran = () => {
                 <label className="text-sm font-medium text-gray-700">Catatan Order <span className="text-gray-400 font-normal">(Opsional)</span></label>
                 <textarea 
                   rows="4" 
+                  value={catatan}
+                  onChange={(e) => setCatatan(e.target.value)}
                   placeholder="Catatan tentang pesanan Anda, misalnya catatan khusus untuk pengiriman" 
                   className="w-full border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-[#91D5FF] focus:ring-1 focus:ring-[#91D5FF] resize-none"
                 ></textarea>
@@ -215,10 +289,11 @@ const Pembayaran = () => {
 
             {/* Tombol Checkot*/}
             <button 
-              onClick={() => navigate('/Selesai')} 
-              className="w-full bg-[#2C6E91] text-white py-4 rounded-xl font-bold hover:bg-[#235875] transition flex items-center justify-center gap-2"
+              onClick={handleCheckout}
+              disabled={placing}
+              className="w-full bg-[#2C6E91] disabled:opacity-60 text-white py-4 rounded-xl font-bold hover:bg-[#235875] transition flex items-center justify-center gap-2"
             >
-              CHECKOUT <span>&rarr;</span>
+              {placing ? 'MEMPROSES...' : 'CHECKOUT'} <span>&rarr;</span>
             </button>
           </div>
 

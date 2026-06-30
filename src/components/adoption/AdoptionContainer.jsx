@@ -10,6 +10,7 @@ import AdoptionModal from './AdoptionModal';
 import PetDetailStage from './PetDetailStage';
 import PetFormStage from './PetFormStage';
 import PetSuccessStage from './PetSuccessStage';
+import MyAdoptionApplications from './MyAdoptionApplications';
 
 const AdoptionContainer = () => {
   const { isAuthenticated } = useAuth();
@@ -17,6 +18,7 @@ const AdoptionContainer = () => {
 
   const [pets, setPets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [appsRefresh, setAppsRefresh] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('Semua');
 
@@ -47,6 +49,7 @@ const AdoptionContainer = () => {
         alasan: formData.alasan,
       });
       setModalStage('success');
+      setAppsRefresh((n) => n + 1);
     } catch (err) {
       alert(err.message || 'Gagal mengirim permohonan. Coba lagi.');
     }
@@ -125,7 +128,9 @@ const AdoptionContainer = () => {
       </div>
 
       <div className="max-w-7xl mx-auto mt-8 px-4 sm:px-8 lg:px-16">
-        
+
+        {isAuthenticated && <MyAdoptionApplications refreshKey={appsRefresh} />}
+
         <motion.div 
           variants={fadeInUpVariants}
           initial="hidden"

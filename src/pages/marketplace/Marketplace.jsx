@@ -1,16 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ProductCard from '../../components/ProductCard';
-import { productsData } from '../../data/product';
 import { useNavigate } from 'react-router-dom';
+import { getProducts } from '../../services/marketplace.service';
+import { useCart } from '../../context/CartContext';
 
 const Marketplace = () => {
   const categories = ['Semua', 'Obat', 'Vitamin', 'Makanan'];
   const [selectedCategory, setSelectedCategory] = useState('Semua');
+  const [products, setProducts] = useState([]);
   const navigate = useNavigate();
+  const { count } = useCart();
 
-  const filteredProducts = selectedCategory === 'Semua' 
-    ? productsData 
-    : productsData.filter(p => p.category === selectedCategory);
+  useEffect(() => {
+    getProducts().then(setProducts).catch(() => setProducts([]));
+  }, []);
+
+  const filteredProducts = selectedCategory === 'Semua'
+    ? products
+    : products.filter(p => p.category === selectedCategory);
 
   return (
     <div className="min-h-screen bg-[#ffffff]">
@@ -29,14 +36,14 @@ const Marketplace = () => {
           </div>
 
          <button 
-         onClick={() => navigate('/keranjang')} 
+         onClick={() => navigate('/Keranjang')} 
          className="mt-6 sm:mt-0 bg-[#2C6E91] text-white px-8 py-3.5 rounded-full shadow-lg flex items-center gap-3 hover:bg-[#235875] transition-all duration-300">
             <img 
               src="/src/assets/marketplace/Keranjang-Icon.svg" 
               alt="Cart" 
               className="w-5 h-5 object-contain" 
             />
-            <span className="font-semibold text-sm">Keranjang</span>
+            <span className="font-semibold text-sm">Keranjang{count > 0 ? " (" + count + ")" : ""}</span>
           </button>
         </div>
       </section>
