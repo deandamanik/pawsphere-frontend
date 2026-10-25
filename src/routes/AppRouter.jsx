@@ -12,6 +12,7 @@ import PawAlert from '../pages/paw-alert/Paw-alert';
 import Keranjang from '../pages/marketplace/Keranjang';
 import Pembayaran from '../pages/marketplace/Pembayaran';
 import Selesai from '../pages/marketplace/Selesai';
+import Clinic from '../pages/clinic/Clinic';
 
 import ProtectedRoute from './ProtectedRoute';
 import VetDashboard from '../pages/dashboard/VetDashboard';
@@ -29,6 +30,7 @@ const AppRouter = () => {
         <Route path="/ai-diagnose" element={<AiDiagnose />} />
         <Route path="/donation" element={<Donation />} />
         <Route path="/vet-connect" element={<VetConnect />} />
+        <Route path="/clinic" element={<Clinic />} />
         <Route path="/marketplace" element={<Marketplace />} />
         <Route path="/paw-alert" element={<PawAlert />} />
         <Route path="/Keranjang" element={<Keranjang />} />
