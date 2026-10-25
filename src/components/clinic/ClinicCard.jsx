@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function ClinicCard({ clinic }) {
@@ -9,7 +8,7 @@ export default function ClinicCard({ clinic }) {
     <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between">
       <div>
         {/* Gambar Klinik */}
-        <div className="h-52 w-full bg-slate-200 overflow-hidden">
+        <div className="h-52 w-full bg-slate-100 overflow-hidden relative">
           <img
             src={clinic.image}
             alt={clinic.name}
@@ -61,14 +60,16 @@ export default function ClinicCard({ clinic }) {
       {/* Footer Tombol */}
       <div className="px-5 md:px-6 pb-5 md:pb-6 grid grid-cols-2 gap-3">
         <button
+          type="button"
           onClick={() => navigate(`/clinic/${clinic.id}`)}
           className="bg-[#E6EFF5] hover:bg-[#d8e6ef] text-[#1E3A4C] font-semibold py-3 rounded-xl text-sm transition cursor-pointer"
         >
           Lihat profil
         </button>
         <button
-          onClick={() => navigate(`/clinic/${clinic.id}?reserve=true`)}
-          className="bg-[#FF6B1A] hover:bg-[#e85d10] text-white font-semibold py-3 rounded-xl text-sm transition cursor-pointer"
+          type="button"
+          disabled
+          className="bg-[#FF6B1A] text-white font-semibold py-3 rounded-xl text-sm transition cursor-not-allowed opacity-70"
         >
           Reservasi
         </button>

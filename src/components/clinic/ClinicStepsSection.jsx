@@ -36,7 +36,7 @@ const STEPS = [
 
 export default function ClinicStepsSection() {
   return (
-    <section className="bg-[#2C5E7A] rounded-t-[40px] pt-14 pb-16 px-6 lg:px-8 text-white">
+    <section className="bg-brand-blue-dark rounded-t-[40px] pt-14 pb-16 px-6 lg:px-8 text-white">
       <div className="max-w-7xl mx-auto">
         <h2 className="text-2xl md:text-3xl font-bold mb-8">
           Satu platform. Banyak pilihan perawatan.

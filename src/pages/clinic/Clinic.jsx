@@ -23,7 +23,7 @@ export default function Clinic() {
   };
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-white min-h-screen clinic-poppins">
       {/* 1. Hero Banner */}
       <ClinicHero onExploreClick={scrollToSearch} />
 
@@ -59,6 +59,9 @@ export default function Clinic() {
           ))}
         </div>
 
+        <p className="text-xs md:text-sm text-slate-400">
+          Data klinik, kapasitas, dokter, dan harga pada halaman ini bersifat ilustratif.
+        </p>
       </section>
 
       {/* 3. Steps Section */}

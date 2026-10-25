@@ -13,12 +13,14 @@ import Keranjang from '../pages/marketplace/Keranjang';
 import Pembayaran from '../pages/marketplace/Pembayaran';
 import Selesai from '../pages/marketplace/Selesai';
 import Clinic from '../pages/clinic/Clinic';
+import ClinicDetail from '../pages/clinic/ClinicDetail';
 
 import ProtectedRoute from './ProtectedRoute';
 import VetDashboard from '../pages/dashboard/VetDashboard';
 import ShelterDashboard from '../pages/dashboard/ShelterDashboard';
 import AdminDashboard from '../pages/dashboard/AdminDashboard';
 import Profile from '../pages/profile/Profile';
+
 
 const AppRouter = () => {
   return (
@@ -31,6 +33,7 @@ const AppRouter = () => {
         <Route path="/donation" element={<Donation />} />
         <Route path="/vet-connect" element={<VetConnect />} />
         <Route path="/clinic" element={<Clinic />} />
+        <Route path="/clinic/:id" element={<ClinicDetail />} />
         <Route path="/marketplace" element={<Marketplace />} />
         <Route path="/paw-alert" element={<PawAlert />} />
         <Route path="/Keranjang" element={<Keranjang />} />
