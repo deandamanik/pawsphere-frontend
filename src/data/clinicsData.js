@@ -9,9 +9,9 @@ export const CLINICS_DATA = [
     hours: '08.00–20.00 WITA',
     phone: '0812-8800-1919',
     startingPrice: 'Rp150.000 / malam',
-    image: '/assets/clinic-hero-COZWLtmR.png',
+    image: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80',
     gallery: [
-      '/assets/clinic-hero-COZWLtmR.png',
+      'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80',
       'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=600&q=80',
       'https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?auto=format&fit=crop&w=600&q=80',
     ],
@@ -84,16 +84,13 @@ export const CLINICS_DATA = [
     image: 'https://images.unsplash.com/photo-1516455590571-18256e5bb9ff?auto=format&fit=crop&w=800&q=80',
     gallery: [
       'https://images.unsplash.com/photo-1516455590571-18256e5bb9ff?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?auto=format&fit=crop&w=600&q=80',
     ],
-    about:
-      'Layanan kesehatan dan penitipan hewan terpadu di area Sanur dengan halaman bermain semi-outdoor yang asri.',
+    about: 'Layanan kesehatan dan penitipan hewan terpadu di area Sanur.',
     highlights: ['Pemantauan harian', 'Area bermain asri', 'Kabar via WhatsApp'],
     services: {
       hospitalization: {
         name: 'Pet Hospitalization',
-        description: 'Rawat inap dengan pemantauan tim medis. Obat dan tindakan dihitung terpisah.',
+        description: 'Rawat inap dengan pemantauan tim medis.',
         price: 275000,
         priceFormatted: 'Rp275.000 / malam',
         available: 2,
@@ -102,7 +99,7 @@ export const CLINICS_DATA = [
       },
       boarding: {
         name: 'Pet Boarding',
-        description: 'Penitipan dengan makan 2× sehari, ruang nyaman, dan kabar harian.',
+        description: 'Penitipan dengan makan 2× sehari.',
         price: 175000,
         priceFormatted: 'Rp175.000 / malam',
         available: 2,
@@ -126,16 +123,13 @@ export const CLINICS_DATA = [
     image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
     gallery: [
       'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?auto=format&fit=crop&w=600&q=80',
     ],
-    about:
-      'Klinik perawatan holistik dan penitipan tenang bernuansa alam di Ubud untuk kenyamanan ekstra hewan kesayangan Anda.',
+    about: 'Klinik perawatan holistik dan penitipan tenang bernuansa alam di Ubud.',
     highlights: ['Lingkungan tenang', 'Ruang terpisah', 'Kabar via WhatsApp'],
     services: {
       hospitalization: {
         name: 'Pet Hospitalization',
-        description: 'Rawat inap dengan pemantauan tim medis. Obat dan tindakan dihitung terpisah.',
+        description: 'Rawat inap dengan pemantauan tim medis.',
         price: 260000,
         priceFormatted: 'Rp260.000 / malam',
         available: 0,
@@ -144,7 +138,7 @@ export const CLINICS_DATA = [
       },
       boarding: {
         name: 'Pet Boarding',
-        description: 'Penitipan dengan makan 2× sehari, ruang nyaman, dan kabar harian.',
+        description: 'Penitipan dengan makan 2× sehari.',
         price: 160000,
         priceFormatted: 'Rp160.000 / malam',
         available: 4,

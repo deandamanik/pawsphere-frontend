@@ -1,37 +1,26 @@
-import clinicHeroImage from "../../assets/clinic/clinic-hero.png";
+import React from 'react';
 
-export default function ClinicHero() {
+export default function ClinicHero({ onExploreClick }) {
   return (
-    <section className="bg-brand-blue-light py-12 md:py-16">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid items-center gap-8 md:grid-cols-[1.2fr_0.8fr]">
-          <div>
-            <h1 className="mt-5 max-w-2xl text-3xl leading-tight font-extrabold font-poppins tracking-tight text-slate-900 md:text-5xl">
-              Perawatan terbaik, di klinik pilihanmu.
-            </h1>
-
-            <p className="mt-6 max-w-2xl text-sm md:text-lg leading-7 text-brand-blue-normal font-poppins md:text-base">
-              Temukan klinik mitra untuk Pet Hospitalization dan Pet Boarding.
-              Pilih lokasi, cek kapasitas sesuai tanggal, lalu ajukan reservasi
-              dalam satu tempat.
-            </p>
-
-            <a
-              href="#direktori"
-              className="mt-6 inline-flex min-h-12 items-center gap-3 rounded-xl bg-brand-blue-normal px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:brightness-95"
-            >
-              Temukan klinik mitra
-              <span aria-hidden="true">↓</span>
-            </a>
-          </div>
-
-          <div className="overflow-hidden rounded-3xl shadow-lg">
-            <img
-              src={clinicHeroImage}
-              alt="Gambar ilustrasi klinik hewan"
-              className="h-full min-h-64 w-full object-cover md:min-h-96"
-            />
-          </div>
+    <section className="bg-[#EEF4F8] border-b border-slate-200/70">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-14 md:py-20">
+        <div className="max-w-2xl">
+          <h1 className="text-4xl md:text-5xl font-bold text-[#1E3A4C] leading-[1.2] tracking-tight mb-5">
+            Perawatan terbaik, di
+            <br />
+            klinik pilihanmu.
+          </h1>
+          <p className="text-base md:text-lg text-slate-600 leading-relaxed mb-8 font-normal">
+            Temukan klinik mitra untuk Pet Hospitalization dan Pet Boarding. Pilih lokasi,
+            cek kapasitas sesuai tanggal, lalu ajukan reservasi dalam satu tempat.
+          </p>
+          <button
+            onClick={onExploreClick}
+            className="inline-flex items-center gap-2.5 bg-[#2C5E7A] hover:bg-[#234B61] text-white text-sm md:text-base font-semibold px-6 py-3.5 rounded-xl shadow-sm transition cursor-pointer"
+          >
+            <span>Temukan klinik mitra</span>
+            <span className="text-sm">↓</span>
+          </button>
         </div>
       </div>
     </section>
