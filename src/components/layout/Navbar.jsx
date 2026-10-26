@@ -21,14 +21,15 @@ const Navbar = ({ isLoggedIn = false, role = null, user = null, handleLogout }) 
   const primaryMenus = [
     { name: 'Home', path: '/' },
     { name: 'AI Diagnosis', path: '/ai-diagnose' },
-    { name: 'Vet Connect', path: '/vet-connect' }
+    { name: 'Vet Connect', path: '/vet-connect' },
   ];
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const secondaryMenus = [
     { name: 'Adoption', path: '/adoption' },
     { name: 'Donation', path: '/donation' },
-    { name: 'Marketplace', path: '/marketplace' }
+    { name: 'Marketplace', path: '/marketplace' },
+    { name: 'Clinic', path: '/clinic' }
   ];
 
   useEffect(() => {
