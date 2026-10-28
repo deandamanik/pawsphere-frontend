@@ -8,8 +8,14 @@ import {
   FiMinus as Minus,
 } from 'react-icons/fi';
 
+const BALI_CENTER = [-8.6705, 115.2126];
+const BALI_BOUNDS = [
+  [-8.95, 114.40],
+  [-8.05, 115.75],
+];
+
 export default function ClinicMapCanvas({
-  clinics,
+  clinics = [],
   userLocation,
   onSelectClinic,
   onLocateClick,
@@ -18,27 +24,29 @@ export default function ClinicMapCanvas({
   const mapInstanceRef = useRef(null);
   const userMarkerRef = useRef(null);
 
-  // Inisialisasi Peta Leaflet
   useEffect(() => {
-    if (!mapContainerRef.current || mapInstanceRef.current) return;
+    const container = mapContainerRef.current;
+    if (!container || mapInstanceRef.current) return;
 
-    // Titik tengah awal: Denpasar, Bali
-    const map = L.map(mapContainerRef.current, {
-      center: [-8.6650, 115.2280],
+    const map = L.map(container, {
+      center: BALI_CENTER,
       zoom: 13,
-      zoomControl: false, // Kita memakai custom zoom button di kanan atas
+      minZoom: 10,
+      maxZoom: 18,
+      maxBounds: BALI_BOUNDS,
+      maxBoundsViscosity: 0.8,
+      zoomControl: false,
       attributionControl: false,
     });
 
-    // Tile Layer terang & bersih (CartoDB Positron)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
     }).addTo(map);
 
     // Render Pin Klinik bernomor (1, 2, 3)
     clinics.forEach((clinic) => {
       const numberedIcon = L.divIcon({
-        className: 'custom-clinic-marker',
+        className: 'bg-transparent border-0',
         html: `
           <div style="
             width: 36px;
@@ -79,13 +87,19 @@ export default function ClinicMapCanvas({
 
     mapInstanceRef.current = map;
 
+    // ResizeObserver menjamin peta tidak pernah gagal render saat dimensi flex berubah
+    const resizeObserver = new ResizeObserver(() => {
+      map.invalidateSize();
+    });
+    resizeObserver.observe(container);
+
     return () => {
+      resizeObserver.disconnect();
       map.remove();
       mapInstanceRef.current = null;
     };
   }, [clinics, onSelectClinic]);
 
-  // Update Marker Lokasi User saat diaktifkan
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map || !userLocation) return;
@@ -95,7 +109,7 @@ export default function ClinicMapCanvas({
     }
 
     const userIcon = L.divIcon({
-      className: 'custom-user-marker',
+      className: 'bg-transparent border-0',
       html: `
         <div style="
           width: 20px;
@@ -114,7 +128,7 @@ export default function ClinicMapCanvas({
       icon: userIcon,
     })
       .addTo(map)
-      .bindPopup('<strong>Lokasi Anda Saat Ini</strong>')
+      .bindPopup('<strong>Lokasi Anda di Bali</strong>')
       .openPopup();
 
     map.flyTo([userLocation.lat, userLocation.lng], 14, { duration: 1.2 });
@@ -123,26 +137,30 @@ export default function ClinicMapCanvas({
   const handleZoomIn = () => mapInstanceRef.current?.zoomIn();
   const handleZoomOut = () => mapInstanceRef.current?.zoomOut();
   const handleResetNorth = () => {
-    mapInstanceRef.current?.flyTo([-8.6650, 115.2280], 13, { duration: 0.8 });
+    mapInstanceRef.current?.flyTo(BALI_CENTER, 13, { duration: 0.8 });
   };
 
   return (
     <div className="relative w-full h-full">
-      {/* Container Map Leaflet */}
-      <div ref={mapContainerRef} className="w-full h-full z-0" />
+      {/* Kanvas Peta Bali */}
+      <div
+        ref={mapContainerRef}
+        style={{ width: '100%', height: '100%' }}
+        className="w-full h-full z-0"
+      />
 
-      {/* Kontrol Map Kanan Atas (N↑, +, -, Locate) */}
+      {/* Kontrol Map Kanan Atas */}
       <div className="absolute top-6 right-6 z-10 flex flex-col gap-2.5">
         <button
           type="button"
           onClick={handleResetNorth}
-          title="Reset arah utara"
-          className="w-10 h-10 bg-white hover:bg-slate-50 text-[#1E3A4C] font-bold text-xs rounded-xl shadow-md border border-slate-100 flex items-center justify-center cursor-pointer transition"
+          title="Reset tampilan Bali"
+          className="w-10 h-10 bg-white hover:bg-slate-50 text-[#1E3A4C] font-bold text-xs rounded-full shadow-md border border-slate-100 flex items-center justify-center cursor-pointer transition"
         >
           N↑
         </button>
 
-        <div className="bg-white rounded-xl shadow-md border border-slate-100 overflow-hidden flex flex-col">
+        <div className="bg-white rounded-2xl shadow-md border border-slate-100 overflow-hidden flex flex-col">
           <button
             type="button"
             onClick={handleZoomIn}
@@ -164,15 +182,15 @@ export default function ClinicMapCanvas({
         <button
           type="button"
           onClick={onLocateClick}
-          title="Lokasi Saya"
-          className="w-10 h-10 bg-white hover:bg-slate-50 text-[#2C5E7A] rounded-xl shadow-md border border-slate-100 flex items-center justify-center cursor-pointer transition"
+          title="Lokasi Saya di Bali"
+          className="w-10 h-10 bg-white hover:bg-slate-50 text-[#2C5E7A] rounded-full shadow-md border border-slate-100 flex items-center justify-center cursor-pointer transition"
         >
           <LocateFixed className="w-4 h-4 stroke-[2.2]" />
         </button>
       </div>
 
       {/* Legend Kanan Bawah */}
-      <div className="absolute bottom-6 right-6 z-10 bg-white/95 backdrop-blur-xs px-4 py-2.5 rounded-full shadow-md border border-slate-100 flex items-center gap-4 text-xs font-medium text-slate-600">
+      <div className="fixed bottom-6 right-6 z-50 bg-white/95 backdrop-blur-xs px-4 py-2.5 rounded-full shadow-md border border-slate-100 flex items-center gap-4 text-xs font-medium text-slate-600">
         <div className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-[#2C5E7A] inline-block" />
           <span>Klinik mitra</span>

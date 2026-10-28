@@ -8,7 +8,6 @@ export default function Clinic() {
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState('');
 
-  // Fungsi untuk mengaktifkan lokasi terkini menggunakan Geolocation API browser
   const handleRequestLocation = () => {
     if (!navigator.geolocation) {
       setLocationError('Browser Anda tidak mendukung fitur geolokasi.');
@@ -27,7 +26,6 @@ export default function Clinic() {
         setIsLocating(false);
       },
       () => {
-        // Jika user menolak izin atau gagal, tampilkan pesan sesuai UI
         setLocationError('Izin lokasi ditolak. Silakan pilih lokasi secara manual.');
         setIsLocating(false);
       },
@@ -35,38 +33,32 @@ export default function Clinic() {
     );
   };
 
-  // Simulasi pilih lokasi manual (fokus ke pusat Renon, Denpasar)
   const handleManualLocation = () => {
     setLocationError('');
     setUserLocation({
       lat: -8.6725,
-      lng: -115.2260 < 0 ? 115.2260 : 115.2260,
+      lng: 115.2260,
     });
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)] min-h-[640px] bg-[#F4F7F9] overflow-hidden">
-      {/* Sub-header Stepper */}
+    <div className="relative w-full h-[calc(100dvh-80px)] bg-[#E5EEF5] overflow-hidden select-none">
+      {/* Peta Bali Full Canvas */}
+      <ClinicMapCanvas
+        clinics={CLINICS_DATA}
+        userLocation={userLocation}
+        onLocateClick={handleRequestLocation}
+      />
 
-      {/* Area Peta & Floating Sidebar */}
-      <div className="relative flex-1 w-full h-full">
-        {/* Background Peta Leaflet Full */}
-        <ClinicMapCanvas
-          clinics={CLINICS_DATA}
+      {/* Floating Sidebar Kiri: Tanpa overflow-auto di wrapper luar agar border-radius shadow tidak terpotong */}
+      <div className="absolute top-6 left-6 z-20 w-[calc(100%-3rem)] max-w-[360px] pointer-events-auto">
+        <ClinicLocationSidebar
+          onRequestLocation={handleRequestLocation}
+          onManualLocation={handleManualLocation}
+          isLocating={isLocating}
+          locationError={locationError}
           userLocation={userLocation}
-          onLocateClick={handleRequestLocation}
         />
-
-        {/* Floating Sidebar Kiri */}
-        <div className="absolute top-6 left-6 z-10 max-w-[calc(100%-3rem)]">
-          <ClinicLocationSidebar
-            onRequestLocation={handleRequestLocation}
-            onManualLocation={handleManualLocation}
-            isLocating={isLocating}
-            locationError={locationError}
-            userLocation={userLocation}
-          />
-        </div>
       </div>
     </div>
   );

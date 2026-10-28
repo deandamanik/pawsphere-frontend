@@ -11,7 +11,7 @@ const MainLayout = () => {
 
   // Sembunyikan Footer saat berada di halaman /clinic atau /paw-alert
   const hideFooterPaths = ['/clinic', '/paw-alert'];
-  const shouldHideFooter = hideFooterPaths.some((path) =>
+  const isFullScreenMap = hideFooterPaths.some((path) =>
     pathname.toLowerCase().startsWith(path)
   );
 
@@ -21,7 +21,12 @@ const MainLayout = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className={
+      isFullScreenMap
+        ? 'flex flex-col min-h-screen overflow-hidden'
+        : 'flex flex-col min-h-screen'
+    }
+    >
       <ScrollToTop />
       <Navbar
         isLoggedIn={isAuthenticated}
@@ -29,10 +34,10 @@ const MainLayout = () => {
         user={user}
         handleLogout={handleLogout}
       />
-      <main className="grow">
+      <main className={isFullScreenMap ? 'flex-1 flex flex-col min-h-0 overflow-hidden' : 'grow'}>
         <Outlet />
       </main>
-      {!shouldHideFooter && <Footer />}
+      {!isFullScreenMap && <Footer />}
     </div>
   );
 };

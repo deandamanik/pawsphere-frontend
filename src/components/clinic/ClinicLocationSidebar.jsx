@@ -13,27 +13,32 @@ export default function ClinicLocationSidebar({
   userLocation,
 }) {
   return (
-    <div className="w-full max-w-[360px] bg-white rounded-[24px] p-6 md:p-7 shadow-[0_12px_36px_rgba(24,59,86,0.12)] border border-slate-100 font-sans">
+    <div className="w-full bg-white rounded-[24px] p-6 md:p-7 shadow-[0_14px_40px_-8px_rgba(24,59,86,0.16)] border border-slate-100/90 font-sans">
       {/* Badge Atas */}
-      <span className="inline-block bg-[#EBF2F7] text-[#243B53] text-[11px] font-bold tracking-wider uppercase px-3.5 py-1.5 rounded-full mb-5">
+      <span className="inline-block bg-[#EBF2F7] text-[#243B53] text-[11px] font-bold tracking-wider uppercase px-3.5 py-1.5 rounded-full mb-4">
         TEMUKAN CLINIC MITRA
       </span>
 
+      {/* Box Ikon Pin */}
+      <div className="w-11 h-11 rounded-2xl bg-[#EBF2F7] flex items-center justify-center text-[#2C5E7A] mb-4">
+        <MapPin className="w-5 h-5 stroke-[1.8]" />
+      </div>
+
       {/* Heading & Deskripsi */}
-      <h1 className="font-display text-2xl md:text-[26px] font-extrabold text-[#1E3A4C] leading-snug mb-3">
+      <h1 className="font-display text-2xl font-extrabold text-[#1E3A4C] leading-snug mb-2.5">
         Perawatan dekat, hati lebih tenang.
       </h1>
-      <p className="text-sm text-slate-500 leading-relaxed mb-6">
+      <p className="text-xs md:text-sm text-slate-500 leading-relaxed mb-5">
         Izinkan lokasi untuk menemukan klinik mitra terdekat dan melihat pilihan perawatan hewanmu.
       </p>
 
       {/* Tombol Aksi */}
-      <div className="space-y-3 mb-5">
+      <div className="space-y-2.5 mb-4">
         <button
           type="button"
           onClick={onRequestLocation}
           disabled={isLocating}
-          className="w-full bg-[#FF6B00] hover:bg-[#e66000] disabled:opacity-60 text-white font-bold py-3.5 px-5 rounded-xl text-sm flex items-center justify-center gap-2.5 transition shadow-sm cursor-pointer"
+          className="w-full bg-[#FF6B00] hover:bg-[#e66000] disabled:opacity-60 text-white font-bold py-3 px-5 rounded-full text-sm flex items-center justify-center gap-2.5 transition shadow-xs cursor-pointer"
         >
           <LocateFixed className="w-4 h-4 stroke-[2.2]" />
           <span>{isLocating ? 'Mencari lokasi...' : 'Izinkan lokasi'}</span>
@@ -42,7 +47,7 @@ export default function ClinicLocationSidebar({
         <button
           type="button"
           onClick={onManualLocation}
-          className="w-full bg-[#EBF2F7] hover:bg-[#dfe9f0] text-[#1E3A4C] font-bold py-3.5 px-5 rounded-xl text-sm flex items-center justify-center gap-2.5 transition cursor-pointer"
+          className="w-full bg-[#EBF2F7] hover:bg-[#dfe9f0] text-[#1E3A4C] font-bold py-3 px-5 rounded-full text-sm flex items-center justify-center gap-2.5 transition cursor-pointer"
         >
           <MapPin className="w-4 h-4 text-[#2C5E7A] stroke-[2.2]" />
           <span>Pilih lokasi manual</span>
@@ -50,8 +55,8 @@ export default function ClinicLocationSidebar({
       </div>
 
       {/* Info Box Privasi Lokasi */}
-      <div className="bg-[#EEF4F8] rounded-xl p-4 flex items-start gap-3 mb-5">
-        <ShieldCheck className="w-5 h-5 text-[#2C5E7A] shrink-0 mt-0.5" />
+      <div className="bg-[#EEF4F8] rounded-2xl p-3.5 flex items-start gap-3 mb-4">
+        <ShieldCheck className="w-4 h-4 text-[#2C5E7A] shrink-0 mt-0.5" />
         <p className="text-xs text-[#243B53] leading-relaxed font-medium">
           {userLocation
             ? 'Lokasi Anda berhasil diaktifkan. Menampilkan klinik mitra terdekat di sekitar Anda.'
@@ -61,11 +66,11 @@ export default function ClinicLocationSidebar({
 
       {/* Pesan Error / Catatan Kaki */}
       {locationError ? (
-        <p className="text-xs text-red-500 leading-relaxed font-medium">
+        <p className="text-[11px] text-red-500 leading-relaxed font-medium">
           {locationError}
         </p>
       ) : (
-        <p className="text-xs text-slate-400 leading-relaxed">
+        <p className="text-[11px] text-slate-400 leading-relaxed">
           Izin ditolak? Cari area secara manual untuk tetap menemukan klinik pilihanmu.
         </p>
       )}
