@@ -35,13 +35,13 @@ const Navbar = ({ isLoggedIn = false, role = null, user = null, handleLogout }) 
   useEffect(() => {
     const allMenus = [...primaryMenus, ...secondaryMenus];
     const currentMenu = allMenus.find(menu => menu.path === location.pathname);
-    
+
     if (currentMenu) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveMenu(currentMenu.name);
     } else if (location.pathname === '/paw-alert') {
-      setActiveMenu('PawAlert'); 
-    } 
+      setActiveMenu('PawAlert');
+    }
   }, [location.pathname, primaryMenus, secondaryMenus]);
 
   useEffect(() => {
@@ -76,20 +76,19 @@ const Navbar = ({ isLoggedIn = false, role = null, user = null, handleLogout }) 
 
   return (
     <>
-      <nav className={`font-poppins w-full sticky top-0 z-50 py-4 transition-all duration-300 ${
-        scrolled 
-          ? 'bg-brand-blue-dark backdrop-blur-md shadow-lg' 
-          : 'bg-brand-blue-dark' 
-      }`}>
+      <nav className={`font-poppins w-full sticky top-0 z-50 py-4 transition-all duration-300 ${scrolled
+          ? 'bg-brand-blue-dark backdrop-blur-md shadow-lg'
+          : 'bg-brand-blue-dark'
+        }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14 md:h-16">
-            
+
             <div className="shrink-0 flex items-center">
               <Link to="/">
-                <img 
-                  src={logoPawsphere} 
-                  alt="Pawsphere Logo" 
-                  className="h-9 md:h-12 w-auto cursor-pointer hover:scale-105 transition-transform duration-300" 
+                <img
+                  src={logoPawsphere}
+                  alt="Pawsphere Logo"
+                  className="h-9 md:h-12 w-auto cursor-pointer hover:scale-105 transition-transform duration-300"
                 />
               </Link>
             </div>
@@ -107,20 +106,20 @@ const Navbar = ({ isLoggedIn = false, role = null, user = null, handleLogout }) 
                       layoutId="navIndicator"
                       initial={false}
                       className="absolute inset-0 bg-white rounded-full shadow-lg"
-                      transition={{ 
-                        type: "spring", 
-                        bounce: 0.2, 
+                      transition={{
+                        type: "spring",
+                        bounce: 0.2,
                         duration: 0.6,
                         layout: { duration: 0.3 }
                       }}
-                      style={{ originY: "50%" }} 
+                      style={{ originY: "50%" }}
                     />
                   )}
                   <span className="relative z-10">{item.name}</span>
                 </Link>
               ))}
 
-              <div 
+              <div
                 className="relative group"
                 onMouseEnter={() => setIsDropdownOpen(true)}
                 onMouseLeave={() => setIsDropdownOpen(false)}
@@ -142,8 +141,8 @@ const Navbar = ({ isLoggedIn = false, role = null, user = null, handleLogout }) 
                     >
                       <div className="w-52 bg-white rounded-2xl shadow-2xl py-2 border border-slate-100 overflow-hidden">
                         {secondaryMenus.map((item) => (
-                          <Link 
-                            key={item.name} 
+                          <Link
+                            key={item.name}
                             to={item.path}
                             onClick={() => setIsDropdownOpen(false)}
                             className="block w-full text-left px-6 py-3 text-base font-bold text-slate-600 hover:bg-slate-50 hover:text-brand-blue-dark transition-all cursor-pointer"
@@ -202,8 +201,8 @@ const Navbar = ({ isLoggedIn = false, role = null, user = null, handleLogout }) 
             </div>
 
             <div className="lg:hidden flex items-center">
-              <button 
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="p-1 text-white outline-none z-50 relative cursor-pointer"
               >
                 <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -222,36 +221,39 @@ const Navbar = ({ isLoggedIn = false, role = null, user = null, handleLogout }) 
             initial={{ opacity: 0, scale: 0.5, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.5, y: 20 }}
-            transition={{ 
-              type: "spring", 
-              stiffness: 260, 
-              damping: 20 
+            transition={{
+              type: "spring",
+              stiffness: 260,
+              damping: 20
             }}
             className="fixed bottom-6 right-4 z-60"
           >
-            <Link 
-              to="/paw-alert" 
-              className="flex flex-col items-end group cursor-pointer"
-            >
-              <div className="mb-2 px-3 py-1.5 bg-red-600 text-white text-[10px] font-black rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-xl translate-x-2 group-hover:translate-x-0 uppercase tracking-widest pointer-events-none">
-                Paw Alert
-              </div>
+            {!location.pathname.toLowerCase().startsWith('/clinic') &&
+              !location.pathname.toLowerCase().startsWith('/paw-alert') && (
+                <Link
+                  to="/paw-alert"
+                  className="flex flex-col items-end group cursor-pointer"
+                >
+                  <div className="mb-2 px-3 py-1.5 bg-red-600 text-white text-[10px] font-black rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-xl translate-x-2 group-hover:translate-x-0 uppercase tracking-widest pointer-events-none">
+                    Paw Alert
+                  </div>
 
-              <div className="w-14 h-14 bg-red-600 hover:bg-red-500 text-white rounded-2xl shadow-[0_10px_30px_rgba(220,38,38,0.4)] transition-all duration-300 flex items-center justify-center group-active:scale-90">
-                <img 
-                  src={warningIcon} 
-                  alt="!" 
-                  className="w-7 h-7 brightness-0 invert animate-pulse" 
-                />
-              </div>
-            </Link>
-          </motion.div>
+                  <div className="w-14 h-14 bg-red-600 hover:bg-red-500 text-white rounded-2xl shadow-[0_10px_30px_rgba(220,38,38,0.4)] transition-all duration-300 flex items-center justify-center group-active:scale-90">
+                    <img
+                      src={warningIcon}
+                      alt="!"
+                      className="w-7 h-7 brightness-0 invert animate-pulse"
+                    />
+                  </div>
+                </Link>
+              )}
+          </motion.div> 
         )}
       </AnimatePresence>
 
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: '100%' }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
@@ -259,8 +261,8 @@ const Navbar = ({ isLoggedIn = false, role = null, user = null, handleLogout }) 
           >
             <div className="space-y-6">
               {[...primaryMenus, ...secondaryMenus].map((item) => (
-                <Link 
-                  key={item.name} 
+                <Link
+                  key={item.name}
                   to={item.path}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="block w-full text-left text-xl font-black text-white/90 border-b border-white/5 pb-4 cursor-pointer"
