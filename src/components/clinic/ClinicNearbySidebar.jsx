@@ -1,20 +1,19 @@
 // src/components/clinic/ClinicNearbySidebar.jsx
-import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useRef, useEffect } from 'react';
 
 const RADIUS_OPTIONS = [
     { label: 'Radius 5 km', value: 5 },
     { label: 'Radius 10 km', value: 10 },
     { label: 'Radius 20 km', value: 20 },
     { label: 'Radius 30 km', value: 30 },
-    { label: 'Semua area Bali', value: 999 },
+    { label: 'Semua area Bali', value: Infinity },
 ];
 
 const SERVICE_OPTIONS = [
     { label: 'Semua layanan', value: 'all' },
     { label: 'Rawat inap', value: 'hospitalization' },
-    { label: 'Penitipan (Boarding)', value: 'boarding' },
-    { label: 'Konsultasi dokter', value: 'consultation' },
+    { label: 'Penitipan', value: 'boarding' },
+    { label: 'Konsultasi', value: 'consultation' },
     { label: 'Vaksinasi & steril', value: 'vaccination' },
 ];
 
@@ -25,9 +24,8 @@ export default function ClinicNearbySidebar({
     onChangeLocation,
     areaLabel = 'Renon, Denpasar',
 }) {
-    const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedRadius, setSelectedRadius] = useState(RADIUS_OPTIONS[3]);
+    const [selectedRadius, setSelectedRadius] = useState(RADIUS_OPTIONS[4]);
     // Default false agar awalnya terlihat semua klinik (Buka & Tutup), lalu saat diklik menyaring yang Buka saja
     const [onlyOpenNow, setOnlyOpenNow] = useState(false);
     const [selectedService, setSelectedService] = useState(SERVICE_OPTIONS[0]);
@@ -117,8 +115,8 @@ export default function ClinicNearbySidebar({
                         type="button"
                         onClick={() => setOpenDropdown(openDropdown === 'radius' ? null : 'radius')}
                         className={`px-2.5 py-1.5 rounded-full text-[11px] font-bold flex items-center gap-1 whitespace-nowrap transition cursor-pointer ${openDropdown === 'radius'
-                                ? 'bg-[#2C5E7A] text-white'
-                                : 'bg-[#EBF2F7] text-[#1E3A4C] hover:bg-[#dce7f0]'
+                            ? 'bg-[#2C5E7A] text-white'
+                            : 'bg-[#EBF2F7] text-[#1E3A4C] hover:bg-[#dce7f0]'
                             }`}
                     >
                         <span>{selectedRadius.label}</span>
@@ -145,8 +143,8 @@ export default function ClinicNearbySidebar({
                                             setOpenDropdown(null);
                                         }}
                                         className={`w-full px-3.5 py-2 text-left text-xs flex items-center justify-between transition cursor-pointer ${isSelected
-                                                ? 'bg-[#EBF2F7] text-[#1E3A4C] font-bold'
-                                                : 'text-slate-600 hover:bg-slate-50 font-medium'
+                                            ? 'bg-[#EBF2F7] text-[#1E3A4C] font-bold'
+                                            : 'text-slate-600 hover:bg-slate-50 font-medium'
                                             }`}
                                     >
                                         <span>{option.label}</span>
@@ -167,8 +165,8 @@ export default function ClinicNearbySidebar({
                     type="button"
                     onClick={() => setOnlyOpenNow(!onlyOpenNow)}
                     className={`px-2.5 py-1.5 rounded-full text-[11px] font-bold flex items-center gap-1.5 whitespace-nowrap transition cursor-pointer ${onlyOpenNow
-                            ? 'bg-[#2C5E7A] text-white shadow-xs'
-                            : 'bg-[#EBF2F7] text-[#1E3A4C] hover:bg-[#dce7f0]'
+                        ? 'bg-[#2C5E7A] text-white shadow-xs'
+                        : 'bg-[#EBF2F7] text-[#1E3A4C] hover:bg-[#dce7f0]'
                         }`}
                 >
                     <span>Buka sekarang</span>
@@ -180,8 +178,8 @@ export default function ClinicNearbySidebar({
                         type="button"
                         onClick={() => setOpenDropdown(openDropdown === 'service' ? null : 'service')}
                         className={`px-2.5 py-1.5 rounded-full text-[11px] font-bold flex items-center gap-1 whitespace-nowrap transition cursor-pointer ${openDropdown === 'service'
-                                ? 'bg-[#2C5E7A] text-white'
-                                : 'bg-[#EBF2F7] text-[#1E3A4C] hover:bg-[#dce7f0]'
+                            ? 'bg-[#2C5E7A] text-white'
+                            : 'bg-[#EBF2F7] text-[#1E3A4C] hover:bg-[#dce7f0]'
                             }`}
                     >
                         <span>{selectedService.label}</span>
@@ -208,8 +206,8 @@ export default function ClinicNearbySidebar({
                                             setOpenDropdown(null);
                                         }}
                                         className={`w-full px-3.5 py-2 text-left text-xs flex items-center justify-between transition cursor-pointer ${isSelected
-                                                ? 'bg-[#EBF2F7] text-[#1E3A4C] font-bold'
-                                                : 'text-slate-600 hover:bg-slate-50 font-medium'
+                                            ? 'bg-[#EBF2F7] text-[#1E3A4C] font-bold'
+                                            : 'text-slate-600 hover:bg-slate-50 font-medium'
                                             }`}
                                     >
                                         <span>{option.label}</span>
@@ -257,8 +255,8 @@ export default function ClinicNearbySidebar({
                                 key={clinic.id}
                                 onClick={() => onSelectClinic && onSelectClinic(clinic)}
                                 className={`rounded-2xl p-3.5 transition-all duration-200 cursor-pointer border ${isSelected
-                                        ? 'border-[#2C5E7A] bg-[#F8FBFD] shadow-xs ring-1 ring-[#2C5E7A]/20'
-                                        : 'border-slate-200/90 bg-white hover:border-slate-300'
+                                    ? 'border-[#2C5E7A] bg-[#F8FBFD] shadow-xs ring-1 ring-[#2C5E7A]/20'
+                                    : 'border-slate-200/90 bg-white hover:border-slate-300'
                                     }`}
                             >
                                 {/* Baris Atas: Foto + Nama + Badge Status Buka/Tutup */}
@@ -282,8 +280,8 @@ export default function ClinicNearbySidebar({
                                     {/* Elemen Status Buka / Tutup */}
                                     <span
                                         className={`shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold ${clinic.isOpenNow
-                                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/70'
-                                                : 'bg-rose-50 text-rose-600 border border-rose-200/70'
+                                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/70'
+                                            : 'bg-rose-50 text-rose-600 border border-rose-200/70'
                                             }`}
                                     >
                                         <span
@@ -298,8 +296,8 @@ export default function ClinicNearbySidebar({
                                 <div className="flex flex-wrap items-center gap-2 mb-3">
                                     <span
                                         className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${clinic.hospitalizationFull
-                                                ? 'bg-[#EEF3F7] text-slate-600'
-                                                : 'bg-[#EBF2F7] text-[#1E3A4C]'
+                                            ? 'bg-[#EEF3F7] text-slate-600'
+                                            : 'bg-[#EBF2F7] text-[#1E3A4C]'
                                             }`}
                                     >
                                         {clinic.hospitalizationBadge}
@@ -318,7 +316,7 @@ export default function ClinicNearbySidebar({
                                         type="button"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            navigate(`/clinic/${clinic.id}`);
+                                            if (onSelectClinic) onSelectClinic(clinic);
                                         }}
                                         className="text-[11px] font-bold text-[#2C5E7A] hover:text-[#1E3A4C] transition cursor-pointer"
                                     >
