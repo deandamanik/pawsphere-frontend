@@ -2,34 +2,32 @@ import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-import {
-  FiCrosshair as LocateFixed,
-  FiPlus as Plus,
-  FiMinus as Minus,
-} from 'react-icons/fi';
-
 const BALI_CENTER = [-8.6650, 115.2350];
-const BALI_BOUNDS = [
-  [-8.95, 114.40],
-  [-8.05, 115.75],
-];
 
 export default function ClinicMapCanvas({
   clinics = [],
   userLocation,
   selectedClinic,
+  mapView = 'user',
+  isSelectingLocation = false,
+  onMapLocationSelect,
+  showSelectedCallout = false,
   onSelectClinic,
   onLocateClick,
 }) {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
+  const clinicMarkersRef = useRef([]);
   const userMarkerRef = useRef(null);
-  const onSelectClinicRef = useRef(onSelectClinic);
+  const onMapLocationSelectRef = useRef(onMapLocationSelect);
+  const isSelectingLocationRef = useRef(isSelectingLocation);
 
   useEffect(() => {
-    onSelectClinicRef.current = onSelectClinic;
-  }, [onSelectClinic]);
+    onMapLocationSelectRef.current = onMapLocationSelect;
+    isSelectingLocationRef.current = isSelectingLocation;
+  }, [isSelectingLocation, onMapLocationSelect]);
 
+  // 1. Inisialisasi Peta Dasar
   useEffect(() => {
     const container = mapContainerRef.current;
     if (!container || mapInstanceRef.current) return;
@@ -37,10 +35,8 @@ export default function ClinicMapCanvas({
     const map = L.map(container, {
       center: BALI_CENTER,
       zoom: 13,
-      minZoom: 10,
+      minZoom: 3,
       maxZoom: 18,
-      maxBounds: BALI_BOUNDS,
-      maxBoundsViscosity: 0.8,
       zoomControl: false,
       attributionControl: false,
     });
@@ -49,10 +45,85 @@ export default function ClinicMapCanvas({
       maxZoom: 19,
     }).addTo(map);
 
+    mapInstanceRef.current = map;
+    map.on('click', (event) => {
+      if (!isSelectingLocationRef.current) return;
+      onMapLocationSelectRef.current?.({
+        lat: event.latlng.lat,
+        lng: event.latlng.lng,
+      });
+    });
+
+    const resizeObserver = new ResizeObserver(() => {
+      map.invalidateSize();
+    });
+    resizeObserver.observe(container);
+
+    return () => {
+      resizeObserver.disconnect();
+      map.remove();
+      mapInstanceRef.current = null;
+    };
+  }, []);
+
+  // 2. Render & Update Pin Klinik (Biru untuk reguler, Oranye + Kotak Nama untuk yang dipilih)
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    // Bersihkan marker klinik sebelumnya
+    clinicMarkersRef.current.forEach((m) => m.remove());
+    clinicMarkersRef.current = [];
+
     clinics.forEach((clinic) => {
-      const numberedIcon = L.divIcon({
-        className: 'bg-transparent border-0',
-        html: `
+      const isSelected = selectedClinic?.id === clinic.id && showSelectedCallout;
+
+      const markerHtml = isSelected
+        ? `
+          <div style="position: relative; display: flex; flex-direction: column; align-items: center;">
+            <!-- Kotak Floating Info Klinik Mitra -->
+            <div style="
+              margin-bottom: 10px;
+              background: #ffffff;
+              padding: 10px 16px;
+              border-radius: 16px;
+              box-shadow: 0 10px 28px rgba(24, 59, 86, 0.16);
+              border: 1px solid rgba(226, 232, 240, 0.9);
+              white-space: nowrap;
+              font-family: 'Plus Jakarta Sans', sans-serif;
+              text-align: left;
+              min-width: 190px;
+            ">
+              <div style="font-weight: 800; font-size: 13px; color: #1E3A4C; margin-bottom: 2px;">
+                ${clinic.number} · ${clinic.name}
+              </div>
+              <div style="font-size: 11px; color: #64748b; font-weight: 500;">
+                ${clinic.shortArea} · Mitra pilihanmu
+              </div>
+            </div>
+
+            <!-- Pin Lingkaran Oranye -->
+            <div style="
+              width: 38px;
+              height: 38px;
+              background-color: #FF6B00;
+              color: #ffffff;
+              border: 3px solid #ffffff;
+              border-radius: 9999px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-family: 'Poppins', sans-serif;
+              font-weight: 700;
+              font-size: 14px;
+              box-shadow: 0 6px 16px rgba(255, 107, 0, 0.38);
+              cursor: pointer;
+            ">
+              ${clinic.number}
+            </div>
+          </div>
+        `
+        : `
           <div style="
             width: 36px;
             height: 36px;
@@ -71,33 +142,29 @@ export default function ClinicMapCanvas({
           ">
             ${clinic.number}
           </div>
-        `,
-        iconSize: [36, 36],
-        iconAnchor: [18, 18],
+        `;
+
+      const numberedIcon = L.divIcon({
+        className: 'bg-transparent border-0',
+        html: markerHtml,
+        iconSize: isSelected ? [220, 110] : [36, 36],
+        iconAnchor: isSelected ? [110, 91] : [18, 18],
       });
 
-      const marker = L.marker(clinic.coordinates, { icon: numberedIcon }).addTo(map);
+      const marker = L.marker(clinic.coordinates, {
+        icon: numberedIcon,
+        zIndexOffset: isSelected ? 1000 : 0,
+      }).addTo(map);
 
       marker.on('click', () => {
-        onSelectClinicRef.current?.(clinic);
+        if (onSelectClinic) onSelectClinic(clinic);
       });
+
+      clinicMarkersRef.current.push(marker);
     });
+  }, [clinics, selectedClinic, showSelectedCallout, onSelectClinic]);
 
-    mapInstanceRef.current = map;
-
-    const resizeObserver = new ResizeObserver(() => {
-      map.invalidateSize();
-    });
-    resizeObserver.observe(container);
-
-    return () => {
-      resizeObserver.disconnect();
-      map.remove();
-      mapInstanceRef.current = null;
-    };
-  }, [clinics]);
-
-  // Render radar lokasi pengguna.
+  // 3. Render Radar Lokasi Pengguna
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
@@ -116,7 +183,7 @@ export default function ClinicMapCanvas({
           <div style="
             width: 56px;
             height: 56px;
-            background-color: rgba(255, 107, 0, 0.18);
+            background-color: rgba(44, 94, 122, 0.16);
             border-radius: 9999px;
             display: flex;
             align-items: center;
@@ -125,64 +192,72 @@ export default function ClinicMapCanvas({
             <div style="
               width: 14px;
               height: 14px;
-              background-color: #FF6B00;
+              background-color: #2C5E7A;
               border: 3px solid #ffffff;
               border-radius: 9999px;
               box-shadow: 0 2px 6px rgba(0,0,0,0.25);
             "></div>
           </div>
-          <div style="
-            margin-top: 8px;
-            background: #ffffff;
-            color: #1E3A4C;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 12px;
-            font-weight: 700;
-            padding: 6px 14px;
-            border-radius: 9999px;
-            box-shadow: 0 4px 14px rgba(24, 59, 86, 0.14);
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-          ">
-            <span style="color: #FF6B00;">◎</span> Lokasi Anda
-          </div>
         </div>
       `,
-      iconSize: [220, 95],
-      iconAnchor: [110, 28],
+      iconSize: [56, 56],
+      iconAnchor: [28, 28],
     });
 
     userMarkerRef.current = L.marker([userLocation.lat, userLocation.lng], {
       icon: userIcon,
+      draggable: isSelectingLocation,
     }).addTo(map);
-  }, [clinics, userLocation]);
 
-  // Keep the user's location and the selected clinic in view together.
+    if (isSelectingLocation) {
+      userMarkerRef.current.on('dragend', (event) => {
+        const location = event.target.getLatLng();
+        onMapLocationSelectRef.current?.({
+          lat: location.lat,
+          lng: location.lng,
+        });
+      });
+    }
+  }, [isSelectingLocation, userLocation]);
+
+  // 4. Fokuskan peta pada lokasi pengguna atau seluruh klinik sesuai alur.
   useEffect(() => {
     const map = mapInstanceRef.current;
-    if (!map || !selectedClinic) return;
+    if (!map) return;
 
-    if (userLocation) {
-      map.fitBounds(
-        L.latLngBounds([userLocation.lat, userLocation.lng], selectedClinic.coordinates),
-        { padding: [50, 50], maxZoom: 13, animate: true }
-      );
-      return;
+    if (mapView === 'user' && userLocation) {
+      map.flyTo([userLocation.lat, userLocation.lng], 15, { duration: 0.9 });
+    } else if (mapView === 'clinics' && userLocation && clinics.length) {
+      const bounds = L.latLngBounds([
+        [userLocation.lat, userLocation.lng],
+        ...clinics.map((clinic) => clinic.coordinates),
+      ]);
+      const isSmallScreen = map.getSize().x < 768;
+      map.flyToBounds(bounds, {
+        paddingTopLeft: isSmallScreen ? [24, Math.min(360, map.getSize().y * 0.45)] : [420, 40],
+        paddingBottomRight: [32, 32],
+        maxZoom: 12,
+        duration: 0.9,
+      });
+    } else if (mapView === 'selected' && selectedClinic) {
+      map.flyTo(selectedClinic.coordinates, 14, { duration: 0.9 });
+    } else if (mapView === 'manual' && userLocation) {
+      map.flyTo([userLocation.lat, userLocation.lng], 14, { duration: 0.5 });
     }
-
-    map.flyTo(selectedClinic.coordinates, 14, { duration: 0.9 });
-  }, [selectedClinic, userLocation]);
+  }, [clinics, mapView, selectedClinic, userLocation]);
 
   const handleZoomIn = () => mapInstanceRef.current?.zoomIn();
   const handleZoomOut = () => mapInstanceRef.current?.zoomOut();
   const handleResetNorth = () => {
+    if (userLocation) {
+      mapInstanceRef.current?.flyTo([userLocation.lat, userLocation.lng], 15, { duration: 0.8 });
+      return;
+    }
     mapInstanceRef.current?.flyTo(BALI_CENTER, 13, { duration: 0.8 });
   };
 
   return (
-    <div className="relative w-full h-full">
+    <div className={`relative w-full h-full ${isSelectingLocation ? 'cursor-crosshair' : ''}`}>
       <div
         ref={mapContainerRef}
         style={{ width: '100%', height: '100%' }}
@@ -194,7 +269,7 @@ export default function ClinicMapCanvas({
         <button
           type="button"
           onClick={handleResetNorth}
-          title="Reset tampilan Bali"
+          title={userLocation ? 'Fokus ke lokasi Anda' : 'Tampilkan Bali'}
           className="w-10 h-10 bg-white hover:bg-slate-50 text-[#1E3A4C] font-bold text-xs rounded-xl shadow-md border border-slate-100 flex items-center justify-center cursor-pointer transition"
         >
           N↑
@@ -207,7 +282,9 @@ export default function ClinicMapCanvas({
             title="Perbesar"
             className="w-10 h-10 hover:bg-slate-50 text-[#1E3A4C] flex items-center justify-center border-b border-slate-100 cursor-pointer transition"
           >
-            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
+            </svg>
           </button>
           <button
             type="button"
@@ -215,7 +292,9 @@ export default function ClinicMapCanvas({
             title="Perkecil"
             className="w-10 h-10 hover:bg-slate-50 text-[#1E3A4C] flex items-center justify-center cursor-pointer transition"
           >
-            <Minus className="w-4 h-4 stroke-[2.5]" />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M20 12H4" />
+            </svg>
           </button>
         </div>
 
@@ -225,7 +304,11 @@ export default function ClinicMapCanvas({
           title="Lokasi Saya di Bali"
           className="w-10 h-10 bg-white hover:bg-slate-50 text-[#2C5E7A] rounded-xl shadow-md border border-slate-100 flex items-center justify-center cursor-pointer transition"
         >
-          <LocateFixed className="w-4 h-4 stroke-[2.2]" />
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="3" strokeWidth="2" />
+            <circle cx="12" cy="12" r="8" strokeWidth="2" />
+            <path strokeLinecap="round" strokeWidth="2" d="M12 2v2m0 16v2M2 12h2m16 0h2" />
+          </svg>
         </button>
       </div>
 
@@ -236,7 +319,9 @@ export default function ClinicMapCanvas({
           <span>Klinik mitra</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <LocateFixed className="w-3.5 h-3.5 text-[#2C5E7A]" />
+          <span className="w-3.5 h-3.5 rounded-full border-2 border-[#2C5E7A] flex items-center justify-center">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#2C5E7A]" />
+          </span>
           <span>Lokasi Anda</span>
         </div>
         <span className="text-slate-400 border-l border-slate-200 pl-3">1 km</span>
