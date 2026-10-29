@@ -19,11 +19,6 @@ export default function ClinicLocationSidebar({
         TEMUKAN CLINIC MITRA
       </span>
 
-      {/* Box Ikon Pin */}
-      <div className="w-11 h-11 rounded-2xl bg-[#EBF2F7] flex items-center justify-center text-[#2C5E7A] mb-4">
-        <MapPin className="w-5 h-5 stroke-[1.8]" />
-      </div>
-
       {/* Heading & Deskripsi */}
       <h1 className="font-display text-2xl font-extrabold text-[#1E3A4C] leading-snug mb-2.5">
         Perawatan dekat, hati lebih tenang.

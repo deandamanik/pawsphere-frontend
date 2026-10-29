@@ -14,6 +14,7 @@ const MainLayout = () => {
   const isFullScreenMap = hideFooterPaths.some((path) =>
     pathname.toLowerCase().startsWith(path)
   );
+  const isClinicPage = pathname.toLowerCase().startsWith('/clinic');
 
   const handleLogout = () => {
     logout();
@@ -22,7 +23,9 @@ const MainLayout = () => {
 
   return (
     <div className={
-      isFullScreenMap
+      isClinicPage
+        ? 'flex flex-col h-dvh overflow-hidden'
+        : isFullScreenMap
         ? 'flex flex-col min-h-screen overflow-hidden'
         : 'flex flex-col min-h-screen'
     }
