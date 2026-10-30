@@ -11,10 +11,12 @@ const MainLayout = () => {
 
   // Sembunyikan Footer saat berada di halaman /clinic atau /paw-alert
   const hideFooterPaths = ['/clinic', '/paw-alert'];
-  const isFullScreenMap = hideFooterPaths.some((path) =>
-    pathname.toLowerCase().startsWith(path)
+  const normalizedPathname = pathname.toLowerCase();
+  const isClinicMap = normalizedPathname === '/clinic';
+  const isFullScreenPage = isClinicMap || normalizedPathname.startsWith('/paw-alert');
+  const shouldHideFooter = hideFooterPaths.some((path) =>
+    normalizedPathname.startsWith(path)
   );
-  const isClinicPage = pathname.toLowerCase().startsWith('/clinic');
 
   const handleLogout = () => {
     logout();
@@ -23,9 +25,9 @@ const MainLayout = () => {
 
   return (
     <div className={
-      isClinicPage
+      isClinicMap
         ? 'flex flex-col h-dvh overflow-hidden'
-        : isFullScreenMap
+        : isFullScreenPage
         ? 'flex flex-col min-h-screen overflow-hidden'
         : 'flex flex-col min-h-screen'
     }
@@ -37,10 +39,10 @@ const MainLayout = () => {
         user={user}
         handleLogout={handleLogout}
       />
-      <main className={isFullScreenMap ? 'flex-1 flex flex-col min-h-0 overflow-hidden' : 'grow'}>
+      <main className={isFullScreenPage ? 'flex-1 flex flex-col min-h-0 overflow-hidden' : 'grow'}>
         <Outlet />
       </main>
-      {!isFullScreenMap && <Footer />}
+      {!shouldHideFooter && <Footer />}
     </div>
   );
 };
