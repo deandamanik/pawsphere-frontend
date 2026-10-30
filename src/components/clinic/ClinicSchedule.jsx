@@ -18,14 +18,12 @@ export default function ClinicSchedule() {
 
     const clinic = CLINICS_DATA.find((c) => c.id === id) || CLINICS_DATA[0];
 
-    // Ambil daftar dokter (default dari data klinik + opsi dokter mitra)
     const doctorsList = [
         clinic.doctor?.name || 'drh. Putu Ayu Pratiwi',
         'drh. I Made Wirawan',
         'drh. Ni Luh Gede Saraswati',
     ];
 
-    // State Biodata Hewan (Awalnya kosong sesuai Skenario 3)
     const [petData, setPetData] = useState(null);
     const [isPetFormOpen, setIsPetFormOpen] = useState(false);
     const [petForm, setPetForm] = useState({
@@ -36,7 +34,6 @@ export default function ClinicSchedule() {
     });
     const [petFormError, setPetFormError] = useState('');
 
-    // State Jadwal & Keluhan
     const [selectedDateObj, setSelectedDateObj] = useState(DATE_OPTIONS[0]);
     const [selectedDoctor, setSelectedDoctor] = useState(doctorsList[0]);
     const [selectedTime, setSelectedTime] = useState('10.00');

@@ -14,6 +14,8 @@ import Pembayaran from '../pages/marketplace/Pembayaran';
 import Selesai from '../pages/marketplace/Selesai';
 import Clinic from "../pages/clinic/Clinic";
 import ClinicSchedule from "../components/clinic/ClinicSchedule";
+import ClinicPayment from "../pages/clinic/ClinicPayment";
+import ClinicSuccess from "../pages/clinic/ClinicSuccess";
 
 import ProtectedRoute from './ProtectedRoute';
 import VetDashboard from '../pages/dashboard/VetDashboard';
@@ -38,6 +40,9 @@ const AppRouter = () => {
         <Route path="/clinic" element={<Clinic />} />
         <Route path="/clinic/:id" element={<ClinicSchedule />} />
         <Route path="/clinic/:id/jadwal" element={<ClinicSchedule />} />
+        <Route path="/clinic/:id/pembayaran" element={<ClinicPayment />} />
+        <Route path="/clinic/:id/berhasil" element={<ClinicSuccess />} />
+        
         <Route path="/Pembayaran" element={<Pembayaran />} />
         <Route path="/Selesai" element={<Selesai />} />
 
