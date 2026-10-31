@@ -140,8 +140,8 @@ export default function ClinicProfileSidebar({
 
                     <span
                         className={`text-[11px] font-bold px-3 py-1 rounded-full ${clinic.isOpenNow
-                                ? 'bg-[#EBF2F7] text-[#1E3A4C]'
-                                : 'bg-rose-50 text-rose-600'
+                            ? 'bg-[#EBF2F7] text-[#1E3A4C]'
+                            : 'bg-rose-50 text-rose-600'
                             }`}
                     >
                         {clinic.isOpenNow ? `Buka · ${clinic.hours}` : `Tutup · ${clinic.openStatus}`}
@@ -188,8 +188,8 @@ export default function ClinicProfileSidebar({
                                 setCareMethod('klinik');
                             }}
                             className={`py-2.5 px-4 rounded-xl text-xs font-bold transition cursor-pointer ${serviceTab === 'konsultasi'
-                                    ? 'bg-[#2C5E7A] text-white shadow-xs'
-                                    : 'bg-[#EBF2F7] text-[#1E3A4C] hover:bg-[#dce7f0]'
+                                ? 'bg-[#2C5E7A] text-white shadow-xs'
+                                : 'bg-[#EBF2F7] text-[#1E3A4C] hover:bg-[#dce7f0]'
                                 }`}
                         >
                             Konsultasi
@@ -201,8 +201,8 @@ export default function ClinicProfileSidebar({
                                 setCareMethod('klinik');
                             }}
                             className={`py-2.5 px-4 rounded-xl text-xs font-bold transition cursor-pointer ${serviceTab === 'rawat_inap'
-                                    ? 'bg-[#2C5E7A] text-white shadow-xs'
-                                    : 'bg-[#EBF2F7] text-[#1E3A4C] hover:bg-[#dce7f0]'
+                                ? 'bg-[#2C5E7A] text-white shadow-xs'
+                                : 'bg-[#EBF2F7] text-[#1E3A4C] hover:bg-[#dce7f0]'
                                 }`}
                         >
                             Rawat inap
@@ -223,8 +223,8 @@ export default function ClinicProfileSidebar({
                                 type="button"
                                 onClick={() => setCareMethod('klinik')}
                                 className={`p-3 rounded-2xl border-2 text-left flex items-center justify-between gap-2 transition cursor-pointer ${careMethod === 'klinik'
-                                        ? 'bg-[#EEF4F8] border-[#2C5E7A]'
-                                        : 'bg-white border-slate-200/90 hover:border-slate-300'
+                                    ? 'bg-[#EEF4F8] border-[#2C5E7A]'
+                                    : 'bg-white border-slate-200/90 hover:border-slate-300'
                                     }`}
                             >
                                 <div className="flex items-center gap-2.5 min-w-0">
@@ -249,8 +249,8 @@ export default function ClinicProfileSidebar({
                                 type="button"
                                 onClick={() => setCareMethod('rumah')}
                                 className={`p-3 rounded-2xl border-2 text-left flex items-center justify-between gap-2 transition cursor-pointer ${careMethod === 'rumah'
-                                        ? 'bg-[#EEF4F8] border-[#2C5E7A]'
-                                        : 'bg-white border-slate-200/90 hover:border-slate-300'
+                                    ? 'bg-[#EEF4F8] border-[#2C5E7A]'
+                                    : 'bg-white border-slate-200/90 hover:border-slate-300'
                                     }`}
                             >
                                 <div className="flex items-center gap-2.5 min-w-0">
@@ -275,8 +275,8 @@ export default function ClinicProfileSidebar({
                                 type="button"
                                 onClick={() => setCareMethod('klinik')}
                                 className={`p-3 rounded-2xl border-2 text-left flex items-center justify-between gap-2 transition cursor-pointer ${careMethod === 'klinik'
-                                        ? 'bg-[#EEF4F8] border-[#2C5E7A]'
-                                        : 'bg-white border-slate-200/90 hover:border-slate-300'
+                                    ? 'bg-[#EEF4F8] border-[#2C5E7A]'
+                                    : 'bg-white border-slate-200/90 hover:border-slate-300'
                                     }`}
                             >
                                 <div className="min-w-0">
@@ -294,8 +294,8 @@ export default function ClinicProfileSidebar({
                                 type="button"
                                 onClick={() => setCareMethod('rumah')}
                                 className={`p-3 rounded-2xl border-2 text-left flex items-center justify-between gap-2 transition cursor-pointer ${careMethod === 'rumah'
-                                        ? 'bg-[#EEF4F8] border-[#2C5E7A]'
-                                        : 'bg-white border-slate-200/90 hover:border-slate-300'
+                                    ? 'bg-[#EEF4F8] border-[#2C5E7A]'
+                                    : 'bg-white border-slate-200/90 hover:border-slate-300'
                                     }`}
                             >
                                 <div className="min-w-0">
@@ -318,7 +318,9 @@ export default function ClinicProfileSidebar({
                         if (onContinueSchedule) {
                             onContinueSchedule({ clinic, serviceTab, careMethod });
                         } else {
-                            navigate(`/clinic/${clinic.id}`);
+                            navigate(`/clinic/${clinic.id}/jadwal`, {
+                                state: { serviceTab, careMethod },
+                            });
                         }
                     }}
                     className="w-full bg-[#FF6B00] hover:bg-[#e66000] text-white font-bold py-3.5 px-5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition shadow-sm cursor-pointer mb-4"
