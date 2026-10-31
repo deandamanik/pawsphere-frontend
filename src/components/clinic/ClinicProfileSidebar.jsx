@@ -326,7 +326,11 @@ export default function ClinicProfileSidebar({
                     className="w-full bg-[#FF6B00] hover:bg-[#e66000] text-white font-bold py-3.5 px-5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition shadow-sm cursor-pointer mb-4"
                 >
                     <span>→</span>
-                    <span>Lanjut pilih jadwal</span>
+                    <span>
+                        {careMethod === 'rumah'
+                            ? 'Lanjut isi data hewan'
+                            : 'Lanjut pilih jadwal'}
+                    </span>
                 </button>
 
                 {/* Footer Card: Vitamin, pakan & perawatan -> Lihat produk */}
