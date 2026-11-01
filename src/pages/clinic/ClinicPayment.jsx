@@ -24,6 +24,7 @@ export default function ClinicPayment() {
     const isHomeCare =
         location.state?.careMethod === 'rumah' ||
         location.state?.method === 'Dokter ke rumah';
+    const isInpatient = ['Rawat inap', 'Penitipan'].includes(location.state?.service);
 
     // Data hewan & jadwal (fallback ke Milo & 2 Nov 2026 · 10.00 sesuai gambar desain)
     const petData = location.state?.petData || {
@@ -42,7 +43,8 @@ export default function ClinicPayment() {
     const selectedDoctor =
         location.state?.doctor || clinic.doctor?.name || 'drh. Putu Ayu Pratiwi';
     const serviceName = location.state?.service || 'Konsultasi';
-    const methodName = isHomeCare ? 'Dokter ke rumah' : 'Datang ke klinik';
+    const methodName =
+        location.state?.method || (isHomeCare ? 'Dokter ke rumah' : 'Datang ke klinik');
 
     // State Pilihan Metode Pembayaran (Slicing UI)
     const [paymentMethod, setPaymentMethod] = useState('gopay'); // 'gopay' | 'va'
@@ -53,10 +55,21 @@ export default function ClinicPayment() {
         parseInt((clinic.startingPrice || 'Rp150.000').replace(/\D/g, ''), 10) ||
         150000;
 
-    const basePriceNum = isHomeCare ? 200000 : clinicBasePrice;
-    const travelFeeNum = isHomeCare ? 35000 : 0;
-    const serviceFeeNum = 5000;
-    const totalPriceNum = basePriceNum + travelFeeNum + serviceFeeNum;
+    const basePriceNum = isInpatient
+        ? location.state?.basePriceNum ?? 0
+        : isHomeCare
+            ? 200000
+            : clinicBasePrice;
+    const travelFeeNum = isInpatient
+        ? location.state?.travelFeeNum ?? 0
+        : isHomeCare
+            ? 35000
+            : 0;
+    const serviceFeeNum = isInpatient
+        ? location.state?.serviceFeeNum ?? 5000
+        : 5000;
+    const totalPriceNum =
+        location.state?.totalPriceNum ?? basePriceNum + travelFeeNum + serviceFeeNum;
 
     const formatRupiah = (num) => 'Rp' + num.toLocaleString('id-ID');
 
@@ -69,12 +82,16 @@ export default function ClinicPayment() {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
                     {/* ================= KOLOM KIRI: RINCIAN BIAYA & METODE PEMBAYARAN ================= */}
                     <div className="lg:col-span-7 space-y-5">
-                        {/* CARD 1: Rincian Konsultasi (Rumah vs Klinik) */}
+                        {/* CARD 1: Rincian Layanan */}
                         <div className="bg-white border border-slate-200/80 rounded-[24px] p-6 md:p-8 shadow-[0_8px_30px_rgba(24,59,86,0.05)]">
                             {/* Header & Badge Kanan Atas */}
                             <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
                                 <h1 className="font-display text-xl md:text-2xl font-extrabold text-[#1E3A4C]">
-                                    {isHomeCare ? 'Konsultasi di rumah' : 'Konsultasi di klinik'}
+                                    {isInpatient
+                                        ? `Ringkasan ${serviceName.toLowerCase()}`
+                                        : isHomeCare
+                                            ? 'Konsultasi di rumah'
+                                            : 'Konsultasi di klinik'}
                                 </h1>
                                 <span className="bg-[#EBF2F7] text-[#243B53] text-xs font-bold px-3.5 py-1.5 rounded-full">
                                     {isHomeCare ? 'Dokter merawat di rumah' : shortDateBadge}
@@ -125,7 +142,30 @@ export default function ClinicPayment() {
                             )}
 
                             {/* Rincian Item Pembayaran */}
-                            {isHomeCare ? (
+                            {isInpatient ? (
+                                <div className="space-y-3.5 text-xs md:text-sm pb-5 mb-5 border-b border-slate-100">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-slate-500">
+                                            {serviceName} {petData.name} · {location.state?.totalNights} malam
+                                        </span>
+                                        <span className="font-bold text-[#1E3A4C]">
+                                            {formatRupiah(basePriceNum)}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-slate-500">{methodName}</span>
+                                        <span className="font-bold text-[#1E3A4C]">
+                                            {travelFeeNum ? formatRupiah(travelFeeNum) : 'Gratis'}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-slate-500">Biaya layanan PawSphere</span>
+                                        <span className="font-bold text-[#1E3A4C]">
+                                            {formatRupiah(serviceFeeNum)}
+                                        </span>
+                                    </div>
+                                </div>
+                            ) : isHomeCare ? (
                                 <div className="space-y-3.5 text-xs md:text-sm pb-5 mb-5 border-b border-slate-100">
                                     <div className="flex items-center justify-between">
                                         <span className="text-slate-500">
@@ -203,8 +243,9 @@ export default function ClinicPayment() {
                                 </div>
                             ) : (
                                 <p className="text-[11px] md:text-xs text-slate-400 leading-relaxed">
-                                    Pemeriksaan konsultasi termasuk. Obat atau tindakan tambahan
-                                    hanya dilakukan dengan persetujuan dan biaya terpisah.
+                                    {isInpatient
+                                        ? 'Biaya jemput hanya dikenakan jika memilih opsi jemput hewan. Biaya tindakan tambahan akan dikonfirmasi oleh klinik.'
+                                        : 'Pemeriksaan konsultasi termasuk. Obat atau tindakan tambahan hanya dilakukan dengan persetujuan dan biaya terpisah.'}
                                 </p>
                             )}
                         </div>
@@ -378,6 +419,12 @@ export default function ClinicPayment() {
                                             time: selectedTime,
                                             service: serviceName,
                                             method: methodName,
+                                            stayType: location.state?.stayType,
+                                            transportMethod: location.state?.transportMethod,
+                                            checkInDate: location.state?.checkInDate,
+                                            checkOutDate: location.state?.checkOutDate,
+                                            totalNights: location.state?.totalNights,
+                                            notes: location.state?.notes,
                                             paymentMethodLabel:
                                                 paymentMethod === 'gopay'
                                                     ? 'GoPay'

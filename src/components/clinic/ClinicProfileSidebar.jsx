@@ -201,8 +201,8 @@ export default function ClinicProfileSidebar({
                                 setCareMethod('klinik');
                             }}
                             className={`py-2.5 px-4 rounded-xl text-xs font-bold transition cursor-pointer ${serviceTab === 'rawat_inap'
-                                ? 'bg-[#2C5E7A] text-white shadow-xs'
-                                : 'bg-[#EBF2F7] text-[#1E3A4C] hover:bg-[#dce7f0]'
+                                    ? 'bg-[#2C5E7A] text-white shadow-xs'
+                                    : 'bg-[#EBF2F7] text-[#1E3A4C] hover:bg-[#dce7f0]'
                                 }`}
                         >
                             Rawat inap
@@ -315,7 +315,14 @@ export default function ClinicProfileSidebar({
                 <button
                     type="button"
                     onClick={() => {
-                        if (onContinueSchedule) {
+                        if (serviceTab === 'rawat_inap') {
+                            navigate(`/clinic/${clinic.id}/rawat-inap`, {
+                                state: {
+                                    clinic,
+                                    stayType: careMethod === 'rumah' ? 'penitipan' : 'rawat_inap',
+                                },
+                            });
+                        } else if (onContinueSchedule) {
                             onContinueSchedule({ clinic, serviceTab, careMethod });
                         } else {
                             navigate(`/clinic/${clinic.id}/jadwal`, {
@@ -327,7 +334,9 @@ export default function ClinicProfileSidebar({
                 >
                     <span>→</span>
                     <span>
-                        {careMethod === 'rumah'
+                        {serviceTab === 'rawat_inap'
+                            ? 'Lanjut pilih jadwal'
+                            : careMethod === 'rumah'
                             ? 'Lanjut isi data hewan'
                             : 'Lanjut pilih jadwal'}
                     </span>

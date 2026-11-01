@@ -118,3 +118,80 @@ button {
   width: 256px !important;
   height: 256px !important;
 }
+
+.clinic-receipt-print {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: 80mm auto;
+    margin: 4mm;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  .clinic-receipt-print,
+  .clinic-receipt-print * {
+    visibility: visible !important;
+  }
+
+  .clinic-receipt-print {
+    display: block !important;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 72mm;
+    color: #111 !important;
+    background: #fff !important;
+    font: 10px/1.45 Arial, sans-serif !important;
+  }
+
+  .clinic-receipt-print p,
+  .clinic-receipt-print h1 {
+    margin: 0;
+  }
+
+  .clinic-receipt-header {
+    text-align: center;
+    margin-bottom: 10px !important;
+  }
+
+  .clinic-receipt-header h1 {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+  }
+
+  .clinic-receipt-header p,
+  .clinic-receipt-footer {
+    font-size: 9px;
+  }
+
+  .clinic-receipt-divider {
+    border-top: 1px dashed #555;
+    margin: 8px 0;
+  }
+
+  .clinic-receipt-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 4px 0;
+  }
+
+  .clinic-receipt-row > :last-child {
+    text-align: right;
+  }
+
+  .clinic-receipt-total {
+    font-size: 12px;
+  }
+
+  .clinic-receipt-footer {
+    text-align: center;
+    margin-top: 12px !important;
+  }
+}
