@@ -5,6 +5,78 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { CLINICS_DATA } from '../../data/clinicsData';
 
+function ClinicPaymentReceipt({
+    clinic,
+    petData,
+    serviceName,
+    methodName,
+    schedule,
+    paymentMethodLabel,
+    transactionId,
+    items,
+    totalPriceNum,
+    formatRupiah,
+}) {
+    return (
+        <section className="clinic-receipt-print" aria-label="Nota pembayaran PawSphere">
+            <header className="clinic-receipt-header">
+                <h1>PAWSPHERE</h1>
+                <p>Bukti pembayaran layanan klinik</p>
+            </header>
+            <div className="clinic-receipt-divider" />
+            <p><strong>{clinic.name}</strong></p>
+            <p>{clinic.address}</p>
+            <div className="clinic-receipt-divider" />
+            <div className="clinic-receipt-row">
+                <span>No. transaksi</span>
+                <strong>{transactionId}</strong>
+            </div>
+            <div className="clinic-receipt-row">
+                <span>Status</span>
+                <strong>LUNAS</strong>
+            </div>
+            <div className="clinic-receipt-row">
+                <span>Pembayaran</span>
+                <span>{paymentMethodLabel}</span>
+            </div>
+            <div className="clinic-receipt-divider" />
+            <p><strong>Rincian layanan</strong></p>
+            <div className="clinic-receipt-row">
+                <span>Layanan</span>
+                <span>{serviceName}</span>
+            </div>
+            <div className="clinic-receipt-row">
+                <span>Metode</span>
+                <span>{methodName}</span>
+            </div>
+            <div className="clinic-receipt-row">
+                <span>Hewan</span>
+                <span>{petData.name} · {petData.type}</span>
+            </div>
+            <div className="clinic-receipt-row">
+                <span>Jadwal</span>
+                <span>{schedule}</span>
+            </div>
+            <div className="clinic-receipt-divider" />
+            {items.map((item) => (
+                <div className="clinic-receipt-row" key={item.label}>
+                    <span>{item.label}</span>
+                    <span>{formatRupiah(item.amount)}</span>
+                </div>
+            ))}
+            <div className="clinic-receipt-divider" />
+            <div className="clinic-receipt-row clinic-receipt-total">
+                <strong>TOTAL</strong>
+                <strong>{formatRupiah(totalPriceNum)}</strong>
+            </div>
+            <footer className="clinic-receipt-footer">
+                <p>Terima kasih telah menggunakan PawSphere.</p>
+                <p>Simpan nota ini sebagai bukti pembayaran.</p>
+            </footer>
+        </section>
+    );
+}
+
 export default function ClinicSuccess() {
     const { id } = useParams();
     const location = useLocation();
@@ -35,7 +107,8 @@ export default function ClinicSuccess() {
 
     const selectedTime = location.state?.time || '10.00';
     const serviceName = location.state?.service || 'Konsultasi';
-    const methodName = isHomeCare ? 'Dokter ke rumah' : 'Datang ke klinik';
+    const methodName =
+        location.state?.method || (isHomeCare ? 'Dokter ke rumah' : 'Datang ke klinik');
     const paymentMethodLabel = location.state?.paymentMethodLabel || 'GoPay';
 
     // Harga menyesuaikan mode Rumah (Rp240.000) atau Klinik (Rp155.000)
@@ -51,6 +124,25 @@ export default function ClinicSuccess() {
     const formatRupiah = (num) => 'Rp' + num.toLocaleString('id-ID');
     const shortPetSpecies = petData?.type ? petData.type.split(' ')[0] : 'Kucing';
     const shortScheduleText = `${dateObj.short.replace(' 2026', '')} · ${selectedTime} WITA`;
+    const totalNights = location.state?.totalNights;
+    const receiptItems = [
+        {
+            label: totalNights
+                ? `${serviceName} · ${totalNights} malam`
+                : serviceName,
+            amount: basePriceNum,
+        },
+        ...(travelFeeNum > 0
+            ? [{ label: 'Biaya perjalanan', amount: travelFeeNum }]
+            : []),
+        { label: 'Biaya layanan', amount: serviceFeeNum },
+    ];
+    const receiptSchedule = totalNights && location.state?.checkInDate && location.state?.checkOutDate
+        ? `${location.state.checkInDate.short} – ${location.state.checkOutDate.short}`
+        : shortScheduleText;
+    const transactionId =
+        location.state?.transactionId ||
+        (isHomeCare ? 'PS-H-261102-008' : 'PS-C-261102-012');
 
     // ================= STATE KHUSUS FORM ALAMAT RUMAH (HOME CARE) =================
     const [homeCoords, setHomeCoords] = useState({
@@ -61,8 +153,31 @@ export default function ClinicSuccess() {
     const [address, setAddress] = useState('');
     const [phone, setPhone] = useState('');
     const [landmark, setLandmark] = useState('');
+    const [homeAddressError, setHomeAddressError] = useState('');
     const [isSubmittingHome, setIsSubmittingHome] = useState(false);
     const [isHomeSubmitted, setIsHomeSubmitted] = useState(false);
+
+    const updateHomeAddressField = (field, value) => {
+        const fields = { address, phone, landmark, [field]: value };
+        if (field === 'address') setAddress(value);
+        if (field === 'phone') setPhone(value);
+        if (field === 'landmark') setLandmark(value);
+
+        if (homeAddressError) {
+            const missingFields = [
+                [fields.address, 'alamat lengkap'],
+                [fields.phone, 'nomor telepon'],
+            ]
+                .filter(([fieldValue]) => !fieldValue.trim())
+                .map(([, label]) => label);
+
+            setHomeAddressError(
+                missingFields.length
+                    ? `Semua data wajib diisi. Lengkapi: ${missingFields.join(', ')}.`
+                    : ''
+            );
+        }
+    };
 
     const miniMapContainerRef = useRef(null);
     const miniMapInstanceRef = useRef(null);
@@ -217,8 +332,19 @@ export default function ClinicSuccess() {
     // Tombol "Kirim alamat & panggil dokter"
     const handleSendHomeAddress = (e) => {
         e.preventDefault();
-        if (!address.trim() || !phone.trim()) return;
+        const missingFields = [
+            [address, 'alamat lengkap'],
+            [phone, 'nomor telepon'],
+        ]
+            .filter(([value]) => !value.trim())
+            .map(([, label]) => label);
 
+        if (missingFields.length > 0) {
+            setHomeAddressError(`Semua data wajib diisi. Lengkapi: ${missingFields.join(', ')}.`);
+            return;
+        }
+
+        setHomeAddressError('');
         setIsSubmittingHome(true);
         setTimeout(() => {
             setIsSubmittingHome(false);
@@ -246,6 +372,18 @@ export default function ClinicSuccess() {
     if (isHomeCare) {
         return (
             <div className="bg-[#F4F8FB] min-h-[calc(100dvh-80px)] py-10 md:py-12 px-6 lg:px-10 font-sans">
+                <ClinicPaymentReceipt
+                    clinic={clinic}
+                    petData={petData}
+                    serviceName={serviceName}
+                    methodName={methodName}
+                    schedule={receiptSchedule}
+                    paymentMethodLabel={paymentMethodLabel}
+                    transactionId={transactionId}
+                    items={receiptItems}
+                    totalPriceNum={totalPriceNum}
+                    formatRupiah={formatRupiah}
+                />
                 <div className="max-w-6xl mx-auto">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
                         {/* ================= KOLOM KIRI: RINGKASAN LUNAS KONSULTASI RUMAH ================= */}
@@ -348,7 +486,7 @@ export default function ClinicSuccess() {
 
                         {/* ================= KOLOM KANAN: PILIH TITIK RUMAH KAMU & FORM ALAMAT ================= */}
                         <div className="lg:col-span-7">
-                            <form onSubmit={handleSendHomeAddress}>
+                            <form onSubmit={handleSendHomeAddress} noValidate>
                                 <div className="bg-white border border-slate-200/80 rounded-[24px] p-6 md:p-8 shadow-[0_8px_30px_rgba(24,59,86,0.05)]">
                                     {/* Header Card Kanan */}
                                     <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
@@ -436,8 +574,9 @@ export default function ClinicSuccess() {
                                         </label>
                                         <textarea
                                             rows={2}
+                                            required
                                             value={address}
-                                            onChange={(e) => setAddress(e.target.value)}
+                                            onChange={(e) => updateHomeAddressField('address', e.target.value)}
                                             placeholder="Masukkan alamat lengkap rumahmu..."
                                             className="w-full bg-white border border-slate-200/90 rounded-2xl p-4 text-xs md:text-sm text-[#1E3A4C] placeholder:text-slate-400 focus:outline-none focus:border-[#2C5E7A] transition resize-none leading-relaxed"
                                         />
@@ -452,8 +591,9 @@ export default function ClinicSuccess() {
                                             <div className="relative">
                                                 <input
                                                     type="text"
+                                                    required
                                                     value={phone}
-                                                    onChange={(e) => setPhone(e.target.value)}
+                                                    onChange={(e) => updateHomeAddressField('phone', e.target.value)}
                                                     placeholder="0812 xxxx xxxx"
                                                     className="w-full bg-white border border-slate-200/90 rounded-2xl px-4 py-3.5 pr-10 text-xs md:text-sm text-[#1E3A4C] placeholder:text-slate-400 focus:outline-none focus:border-[#2C5E7A] transition"
                                                 />
@@ -480,13 +620,19 @@ export default function ClinicSuccess() {
                                             <input
                                                 type="text"
                                                 value={landmark}
-                                                onChange={(e) => setLandmark(e.target.value)}
+                                                onChange={(e) => updateHomeAddressField('landmark', e.target.value)}
                                                 placeholder="Contoh: Pagar putih, sebelah warung"
                                                 className="w-full bg-white border border-slate-200/90 rounded-2xl px-4 py-3.5 text-xs md:text-sm text-[#1E3A4C] placeholder:text-slate-400 focus:outline-none focus:border-[#2C5E7A] transition"
                                             />
                                         </div>
                                     </div>
                                 </div>
+
+                                {homeAddressError && (
+                                    <p role="alert" className="mt-3 text-xs font-medium text-rose-600">
+                                        {homeAddressError}
+                                    </p>
+                                )}
 
                                 {/* Baris Bawah Card Kanan: Catatan Privasi & Tombol Oranye Kirim Alamat */}
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-5">
@@ -535,6 +681,18 @@ export default function ClinicSuccess() {
     // =================================================================================
     return (
         <div className="bg-[#F4F8FB] min-h-[calc(100dvh-80px)] py-10 md:py-12 px-6 lg:px-10 font-sans">
+            <ClinicPaymentReceipt
+                clinic={clinic}
+                petData={petData}
+                serviceName={serviceName}
+                methodName={methodName}
+                schedule={receiptSchedule}
+                paymentMethodLabel={paymentMethodLabel}
+                transactionId={transactionId}
+                items={receiptItems}
+                totalPriceNum={totalPriceNum}
+                formatRupiah={formatRupiah}
+            />
             <div className="max-w-6xl mx-auto">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
                     {/* KOLOM KIRI: TIKET ANTREAN & BUKTI PEMBAYARAN */}

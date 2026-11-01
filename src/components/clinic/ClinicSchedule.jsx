@@ -28,9 +28,9 @@ export default function ClinicSchedule() {
     ];
 
     // State Biodata Hewan (Awalnya kosong)
-    const [petData, setPetData] = useState(null);
+    const [petData, setPetData] = useState(location.state?.petData || null);
     const [isPetFormOpen, setIsPetFormOpen] = useState(false);
-    const [petForm, setPetForm] = useState({
+    const [petForm, setPetForm] = useState(() => location.state?.petData || {
         name: '',
         type: '',
         age: '',
@@ -42,7 +42,7 @@ export default function ClinicSchedule() {
     const [selectedDateObj, setSelectedDateObj] = useState(DATE_OPTIONS[0]);
     const [selectedDoctor, setSelectedDoctor] = useState(doctorsList[0]);
     const [selectedTime, setSelectedTime] = useState('10.00');
-    const [complaint, setComplaint] = useState('');
+    const [complaint, setComplaint] = useState(location.state?.complaint || '');
     const [formValidationMsg, setFormValidationMsg] = useState('');
 
     // State Konfirmasi & Animasi Loading
