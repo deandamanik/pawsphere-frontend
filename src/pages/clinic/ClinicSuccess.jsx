@@ -156,6 +156,8 @@ export default function ClinicSuccess() {
     const [homeAddressError, setHomeAddressError] = useState('');
     const [isSubmittingHome, setIsSubmittingHome] = useState(false);
     const [isHomeSubmitted, setIsHomeSubmitted] = useState(false);
+    const [isLocating, setIsLocating] = useState(false);
+    const [locationError, setLocationError] = useState('');
 
     const updateHomeAddressField = (field, value) => {
         const fields = { address, phone, landmark, [field]: value };
@@ -183,6 +185,54 @@ export default function ClinicSuccess() {
     const miniMapInstanceRef = useRef(null);
     const homeMarkerRef = useRef(null);
     const isPinEditModeRef = useRef(false);
+    const addressLookupIdRef = useRef(0);
+    const reverseGeocodeAddressRef = useRef(null);
+
+    const reverseGeocodeAddress = async (coords, lookupId) => {
+        setIsLocating(true);
+        setLocationError('');
+
+        try {
+            const query = new URLSearchParams({
+                format: 'jsonv2',
+                lat: String(coords.lat),
+                lon: String(coords.lng),
+                zoom: '18',
+                addressdetails: '1',
+            });
+            const response = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?${query.toString()}`,
+                { headers: { 'Accept-Language': 'id' } }
+            );
+
+            if (!response.ok) {
+                throw new Error(`Layanan alamat merespons dengan status ${response.status}.`);
+            }
+
+            const result = await response.json();
+            if (!result.display_name) {
+                throw new Error('Alamat tidak ditemukan untuk titik ini.');
+            }
+
+            if (lookupId === addressLookupIdRef.current) {
+                updateHomeAddressField('address', result.display_name);
+            }
+        } catch (error) {
+            if (lookupId === addressLookupIdRef.current) {
+                console.error('Gagal mencari alamat dari koordinat lokasi:', error);
+                setLocationError(
+                    'Titik lokasi berhasil ditemukan, tetapi alamat otomatis gagal dimuat. Silakan isi alamat secara manual.'
+                );
+            }
+        } finally {
+            if (lookupId === addressLookupIdRef.current) {
+                setIsLocating(false);
+            }
+        }
+    };
+    useEffect(() => {
+        reverseGeocodeAddressRef.current = reverseGeocodeAddress;
+    });
 
     useEffect(() => {
         isPinEditModeRef.current = isPinEditMode;
@@ -239,7 +289,10 @@ export default function ClinicSuccess() {
         // Klik pada peta untuk memindahkan pin rumah saat mode "Ubah pin di peta" aktif
         map.on('click', (e) => {
             if (isPinEditModeRef.current) {
-                setHomeCoords({ lat: e.latlng.lat, lng: e.latlng.lng });
+                const coords = { lat: e.latlng.lat, lng: e.latlng.lng };
+                const lookupId = ++addressLookupIdRef.current;
+                setHomeCoords(coords);
+                reverseGeocodeAddressRef.current?.(coords, lookupId);
             }
         });
 
@@ -302,30 +355,39 @@ export default function ClinicSuccess() {
     const handleUseCurrentLocation = () => {
         setIsPinEditMode(false);
         if (!navigator.geolocation) {
-            setHomeCoords({ lat: -8.6815, lng: 115.2215 });
-            miniMapInstanceRef.current?.flyTo([-8.6815, 115.2215], 13, {
-                duration: 0.8,
-            });
+            addressLookupIdRef.current += 1;
+            setIsLocating(false);
+            setLocationError('Browser ini tidak mendukung akses lokasi. Silakan pilih titik di peta.');
             return;
         }
 
+        const lookupId = ++addressLookupIdRef.current;
+        setIsLocating(true);
+        setLocationError('');
         navigator.geolocation.getCurrentPosition(
             (pos) => {
-                const nextCoords = {
-                    lat: pos.coords.latitude,
-                    lng: pos.coords.longitude,
-                };
+                if (lookupId !== addressLookupIdRef.current) return;
+                const nextCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                 setHomeCoords(nextCoords);
                 miniMapInstanceRef.current?.flyTo([nextCoords.lat, nextCoords.lng], 14, {
                     duration: 0.9,
                 });
+                reverseGeocodeAddressRef.current?.(nextCoords, lookupId);
             },
-            () => {
-                setHomeCoords({ lat: -8.6815, lng: 115.2215 });
-                miniMapInstanceRef.current?.flyTo([-8.6815, 115.2215], 13, {
-                    duration: 0.8,
-                });
-            }
+            (error) => {
+                if (lookupId !== addressLookupIdRef.current) return;
+                const messages = {
+                    1: 'Izin lokasi ditolak. Izinkan akses lokasi di browser atau pilih titik di peta.',
+                    2: 'Lokasi tidak dapat dideteksi. Coba lagi atau pilih titik secara manual.',
+                    3: 'Waktu pencarian lokasi habis. Coba lagi atau pilih titik secara manual.',
+                };
+                setLocationError(
+                    messages[error.code] ||
+                        'Lokasi gagal dideteksi. Coba lagi atau pilih titik secara manual.'
+                );
+                setIsLocating(false);
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
         );
     };
 
@@ -514,7 +576,8 @@ export default function ClinicSuccess() {
                                         <button
                                             type="button"
                                             onClick={handleUseCurrentLocation}
-                                            className="w-full bg-[#EBF2F7] hover:bg-[#dfe9f0] text-[#1E3A4C] font-bold py-3 px-4 rounded-xl text-xs md:text-sm inline-flex items-center justify-center gap-2 transition cursor-pointer"
+                                            disabled={isLocating}
+                                            className="w-full bg-[#EBF2F7] hover:bg-[#dfe9f0] disabled:opacity-60 disabled:cursor-wait text-[#1E3A4C] font-bold py-3 px-4 rounded-xl text-xs md:text-sm inline-flex items-center justify-center gap-2 transition cursor-pointer"
                                         >
                                             <svg
                                                 className="w-4 h-4 text-[#2C5E7A]"
@@ -530,7 +593,11 @@ export default function ClinicSuccess() {
                                                     d="M12 2v3m0 14v3M2 12h3m14 0h3"
                                                 />
                                             </svg>
-                                            <span>Gunakan lokasi terkini</span>
+                                            <span>
+                                                {isLocating
+                                                    ? 'Memperbarui alamat...'
+                                                    : 'Gunakan lokasi terkini'}
+                                            </span>
                                         </button>
 
                                         <button
@@ -566,6 +633,17 @@ export default function ClinicSuccess() {
                                             </span>
                                         </button>
                                     </div>
+
+                                    {locationError && (
+                                        <p role="alert" className="mb-4 text-xs font-medium text-rose-600">
+                                            {locationError}
+                                        </p>
+                                    )}
+                                    {isLocating && (
+                                        <p role="status" className="mb-4 text-xs font-medium text-slate-500">
+                                            Mencari alamat untuk titik yang dipilih...
+                                        </p>
+                                    )}
 
                                     {/* Input Alamat Lengkap */}
                                     <div className="mb-4">
