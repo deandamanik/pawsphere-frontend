@@ -21,6 +21,7 @@ const Navbar = ({ isLoggedIn = false, role = null, user = null, handleLogout }) 
   const primaryMenus = [
     { name: 'Home', path: '/' },
     { name: 'AI Diagnosis', path: '/ai-diagnose' },
+    { name: 'Clinic', path: '/clinic' },
     { name: 'Vet Connect', path: '/vet-connect' },
   ];
 
@@ -29,7 +30,6 @@ const Navbar = ({ isLoggedIn = false, role = null, user = null, handleLogout }) 
     { name: 'Adoption', path: '/adoption' },
     { name: 'Donation', path: '/donation' },
     { name: 'Marketplace', path: '/marketplace' },
-    { name: 'Clinic', path: '/clinic' }
   ];
 
   useEffect(() => {
