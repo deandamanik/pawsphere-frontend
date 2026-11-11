@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 export default function ClinicProfileSidebar({
     clinic,
+    userLocation,
     onBack,
     onContinueSchedule,
 }) {
@@ -320,13 +321,14 @@ export default function ClinicProfileSidebar({
                                 state: {
                                     clinic,
                                     stayType: careMethod === 'rumah' ? 'penitipan' : 'rawat_inap',
+                                    userLocation,
                                 },
                             });
                         } else if (onContinueSchedule) {
                             onContinueSchedule({ clinic, serviceTab, careMethod });
                         } else {
                             navigate(`/clinic/${clinic.id}/jadwal`, {
-                                state: { serviceTab, careMethod },
+                                state: { serviceTab, careMethod, userLocation },
                             });
                         }
                     }}
