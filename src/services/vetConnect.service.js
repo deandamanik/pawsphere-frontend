@@ -27,9 +27,9 @@ export const updateConsultationStatus = (id, status) =>
 export const getMessages = (id) =>
   apiRequest(`/vet-connect/consultations/${id}/messages`, { auth: true });
 
-export const sendMessage = (id, content) =>
+export const sendMessage = (id, payload) =>
   apiRequest(`/vet-connect/consultations/${id}/messages`, {
     method: "POST",
-    body: { content },
+    body: typeof payload === "string" ? { content: payload } : payload,
     auth: true,
   });
