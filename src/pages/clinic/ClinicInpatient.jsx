@@ -1,7 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 import { CLINICS_DATA } from '../../data/clinicsData';
 
 const MONTHS_ID = [
@@ -146,98 +144,6 @@ export default function ClinicInpatient() {
         }
     };
 
-    // ================= INISIALISASI PETA MINI KANAN ATAS =================
-    const miniMapRef = useRef(null);
-    const mapInstanceRef = useRef(null);
-
-    useEffect(() => {
-        const container = miniMapRef.current;
-        if (!container || mapInstanceRef.current) return;
-
-        const map = L.map(container, {
-            center: [-8.6725, 115.2335],
-            zoom: 12,
-            zoomControl: false,
-            attributionControl: false,
-        });
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-        }).addTo(map);
-
-        // Render Pin Klinik (Pin 1 Oranye, Pin 2 & 3 Biru)
-        CLINICS_DATA.forEach((item) => {
-            const isSelected = item.id === clinic.id;
-            const pinIcon = L.divIcon({
-                className: 'bg-transparent border-0',
-                html: `
-          <div style="
-            width: 28px;
-            height: 28px;
-            background-color: ${isSelected ? '#FF6B00' : '#2C5E7A'};
-            color: #ffffff;
-            border: 2.5px solid #ffffff;
-            border-radius: 9999px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 700;
-            font-size: 12px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.22);
-          ">
-            ${item.number}
-          </div>
-        `,
-                iconSize: [28, 28],
-                iconAnchor: [14, 14],
-            });
-
-            L.marker(item.coordinates, { icon: pinIcon }).addTo(map);
-        });
-
-        // Render Titik Radar Lokasi User di Renon
-        const userRadarIcon = L.divIcon({
-            className: 'bg-transparent border-0',
-            html: `
-        <div style="
-          width: 32px;
-          height: 32px;
-          background-color: rgba(44, 94, 122, 0.18);
-          border-radius: 9999px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        ">
-          <div style="
-            width: 10px;
-            height: 10px;
-            background-color: #2C5E7A;
-            border: 2px solid #ffffff;
-            border-radius: 9999px;
-          "></div>
-        </div>
-      `,
-            iconSize: [32, 32],
-            iconAnchor: [16, 16],
-        });
-
-        L.marker([-8.6815, 115.2215], { icon: userRadarIcon }).addTo(map);
-
-        mapInstanceRef.current = map;
-
-        const resizeObserver = new ResizeObserver(() => {
-            map.invalidateSize();
-        });
-        resizeObserver.observe(container);
-
-        return () => {
-            resizeObserver.disconnect();
-            map.remove();
-            mapInstanceRef.current = null;
-        };
-    }, [clinic.id]);
-
     // Handler Tombol Oranye "Cek ringkasan & biaya →"
     const handleProceedSummary = () => {
         if (isPetFormOpen) {
@@ -306,16 +212,18 @@ export default function ClinicInpatient() {
             {/* Konten Utama */}
             <div className="max-w-6xl w-full mx-auto py-8 md:py-10 px-6 lg:px-10">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
-                    {/* ================= KOLOM KIRI: FORM RAWAT INAP & PENITIPAN ================= */}
-                    <div className="lg:col-span-7">
-                        {/* Heading Halaman */}
+                    {/* Heading Halaman */}
+                    <div className="order-1 lg:order-1 lg:col-span-7 lg:col-start-1">
                         <h1 className="font-display text-2xl md:text-[32px] font-extrabold text-[#1E3A4C] leading-tight mb-1.5">
                             Tempat nyaman untuk {petData.name || 'hewanmu'}
                         </h1>
-                        <p className="text-xs md:text-sm text-slate-500 mb-6">
+                        <p className="text-xs md:text-sm text-slate-500 ">
                             Cek tanggal dan kapasitas di klinik pilihanmu.
                         </p>
+                    </div>
 
+                    {/* ================= KOLOM KIRI: FORM RAWAT INAP & PENITIPAN ================= */}
+                    <div className="order-3 lg:order-2 lg:col-span-7 lg:col-start-1 lg:row-start-2">
                         {/* Card Form Utama */}
                         <div className="bg-white border border-slate-200/80 rounded-[24px] p-6 md:p-7 shadow-[0_8px_30px_rgba(24,59,86,0.05)]">
                             {/* 1. Radio Option: Rawat inap vs Penitipan */}
@@ -761,17 +669,8 @@ export default function ClinicInpatient() {
                         </div>
                     </div>
 
-                    {/* ================= KOLOM KANAN: PETA MINI & KARTU KAPASITAS KLINIK ================= */}
-                    <aside className="lg:col-span-5 space-y-5">
-                        {/* Peta Mini Bali */}
-                        <div className="w-full h-52 rounded-[24px] overflow-hidden border border-slate-200/80 shadow-[0_8px_30px_rgba(24,59,86,0.05)] bg-[#E5EEF5]">
-                            <div
-                                ref={miniMapRef}
-                                style={{ width: '100%', height: '100%' }}
-                                className="w-full h-full z-0"
-                            />
-                        </div>
-
+                    {/* ================= KOLOM KANAN: KARTU KAPASITAS KLINIK ================= */}
+                    <aside className="order-2 lg:order-3 lg:col-span-5 lg:col-start-8 lg:row-start-2">
                         {/* Kartu Kapasitas Mitra PawSphere */}
                         <div className="bg-white border border-slate-200/80 rounded-[24px] p-6 md:p-7 shadow-[0_8px_30px_rgba(24,59,86,0.05)]">
                             <div className="flex items-center gap-1.5 text-xs font-bold text-[#2C5E7A] mb-2">
@@ -852,10 +751,7 @@ export default function ClinicInpatient() {
             <footer className="bg-white border-t border-slate-200/70 py-4 px-6 lg:px-10 mt-6">
                 <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-400">
                     <span>PawSphere Clinic · Mitra perawatan hewan di Bali</span>
-                    <span>
-                        Data contoh · Peta ilustratif, bukan lokasi, antrean, atau
-                        pembayaran langsung.
-                    </span>
+                    <span>Data contoh · Bukan lokasi, antrean, atau pembayaran langsung.</span>
                 </div>
             </footer>
         </div>
