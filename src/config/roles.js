@@ -3,10 +3,11 @@
 // route guards. Change a destination here and the whole app follows.
 
 export const ROLE_HOME = {
-  user: "/", // pet owner / volunteer -> the normal public app
-  vet: "/dashboard/vet", // veterinarian -> vet workspace
-  shelter: "/dashboard/shelter", // shelter manager -> shelter workspace
-  admin: "/dashboard/admin", // platform admin -> admin console
+  user: "/",
+  vet: "/dashboard/vet",
+  shelter: "/dashboard/shelter",
+  klinik: "/dashboard/klinik",
+  admin: "/dashboard/admin",
 };
 
 // Roles a visitor is allowed to pick on the public Register page.
@@ -15,6 +16,7 @@ export const REGISTERABLE_ROLES = [
   { value: "user", label: "Pemilik Hewan / Relawan" },
   { value: "vet", label: "Dokter Hewan" },
   { value: "shelter", label: "Pengelola Shelter" },
+  { value: "klinik", label: "Pengelola Klinik" },
 ];
 
 export const homeForRole = (role) => ROLE_HOME[role] || "/";
