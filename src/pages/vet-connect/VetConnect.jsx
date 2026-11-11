@@ -1,7 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { LuSearch, LuFilter, LuCalendar, LuMessageCircle } from "react-icons/lu";
+import {
+  LuSearch,
+  LuFilter,
+  LuCalendar,
+  LuMessageCircle,
+} from "react-icons/lu";
 import DoctorCard from "../../components/vet-connect/DoctorCard";
 import DoctorDetailModal from "../../components/vet-connect/DoctorDetailModal";
 import BookingSuccessModal from "../../components/vet-connect/BookingSuccessModal";
@@ -74,7 +79,7 @@ const VetConnect = () => {
   const pending = consultations.filter((c) => c.status === "pending");
   const active = consultations.filter((c) => c.status === "active");
   const finished = consultations.filter(
-    (c) => c.status === "completed" || c.status === "cancelled"
+    (c) => c.status === "completed" || c.status === "cancelled",
   );
 
   const handleBookNow = (doctor) => {
@@ -124,13 +129,11 @@ const VetConnect = () => {
   };
 
   const openChat = (consultation) => {
-    setActiveConsultation(consultation);
-    setView("chat");
+    setActiveConsultation(consultation); // buka chat sebagai pop-up (modal)
   };
 
   const backFromChat = () => {
-    setView("home");
-    setActiveConsultation(null);
+    setActiveConsultation(null); // tutup pop-up
     loadConsultations(); // status may have changed
   };
 
@@ -138,7 +141,7 @@ const VetConnect = () => {
     (doctor) =>
       doctor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       doctor.specialty.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doctor.location.toLowerCase().includes(searchQuery.toLowerCase())
+      doctor.location.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   // ----- Booking view -----
@@ -149,22 +152,6 @@ const VetConnect = () => {
         onSuccess={handleBookingSuccess}
         onCancel={handleCancelBooking}
       />
-    );
-  }
-
-  // ----- Chat view -----
-  if (view === "chat" && activeConsultation) {
-    return (
-      <div className="min-h-screen bg-slate-50">
-        <ConsultationChat
-          consultationId={activeConsultation.id}
-          title={activeConsultation.doctor.name}
-          subtitle={activeConsultation.doctor.specialty}
-          avatar={activeConsultation.doctor.avatar}
-          status={activeConsultation.status}
-          onBack={backFromChat}
-        />
-      </div>
     );
   }
 
@@ -190,7 +177,11 @@ const VetConnect = () => {
                 </div>
                 <div className="space-y-4">
                   {pending.map((c) => (
-                    <div key={c.id} onClick={() => openChat(c)} className="cursor-pointer">
+                    <div
+                      key={c.id}
+                      onClick={() => openChat(c)}
+                      className="cursor-pointer"
+                    >
                       <ScheduledConsultationCard
                         consultation={{
                           id: c.id,
@@ -204,14 +195,17 @@ const VetConnect = () => {
                   ))}
                 </div>
                 <p className="text-xs text-slate-400 mt-2">
-                  Klik kartu untuk membuka chat. Dokter akan membalas saat tersedia.
+                  Klik kartu untuk membuka chat. Dokter akan membalas saat
+                  tersedia.
                 </p>
               </motion.div>
             )}
 
             {/* Search */}
             <div className="mb-6">
-              <h2 className="text-xl font-bold text-slate-800 mb-4">Cari Dokter Hewan</h2>
+              <h2 className="text-xl font-bold text-slate-800 mb-4">
+                Cari Dokter Hewan
+              </h2>
               <div className="flex gap-3">
                 <div className="flex-1 relative">
                   <LuSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -247,7 +241,9 @@ const VetConnect = () => {
                 ))
               ) : (
                 <div className="bg-white rounded-2xl shadow-card border border-slate-100 p-12 text-center">
-                  <p className="text-slate-500">Tidak ada dokter yang ditemukan</p>
+                  <p className="text-slate-500">
+                    Tidak ada dokter yang ditemukan
+                  </p>
                 </div>
               )}
             </div>
@@ -330,6 +326,28 @@ const VetConnect = () => {
           }
         }
       />
+
+      {/* Chat konsultasi sebagai pop-up (bukan halaman baru) */}
+      {activeConsultation && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-6"
+          onClick={backFromChat}
+        >
+          <div
+            className="w-full max-w-lg h-[80vh] bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ConsultationChat
+              consultationId={activeConsultation.id}
+              title={activeConsultation.doctor.name}
+              subtitle={activeConsultation.doctor.specialty}
+              avatar={activeConsultation.doctor.avatar}
+              status={activeConsultation.status}
+              onBack={backFromChat}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
