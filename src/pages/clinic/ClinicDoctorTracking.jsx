@@ -47,10 +47,14 @@ export default function ClinicDoctorTracking() {
     const paymentMethodLabel = location.state?.paymentMethodLabel || 'GoPay';
     const totalPriceNum = location.state?.totalPriceNum || 240000;
 
-    const homeCoords = location.state?.homeCoords || {
-        lat: -8.6815,
-        lng: 115.2215,
-    };
+    const suppliedHomeCoords = location.state?.homeCoords;
+    const homeCoords = Array.isArray(suppliedHomeCoords)
+        ? { lat: suppliedHomeCoords[0], lng: suppliedHomeCoords[1] }
+        : suppliedHomeCoords ||
+          location.state?.userLocation || {
+              lat: -8.6815,
+              lng: 115.2215,
+          };
 
     const formatRupiah = (num) => 'Rp' + num.toLocaleString('id-ID');
 
@@ -72,7 +76,7 @@ export default function ClinicDoctorTracking() {
         ];
 
         const map = L.map(container, {
-            center: [-8.675, 115.232],
+            center: userCoords,
             zoom: 13,
             zoomControl: false,
             attributionControl: false,
@@ -187,6 +191,8 @@ export default function ClinicDoctorTracking() {
             icon: doctorMarkerIcon,
             zIndexOffset: 900,
         }).addTo(map);
+
+        map.fitBounds(routePoints, { padding: [40, 40], maxZoom: 14 });
 
         mapInstanceRef.current = map;
 

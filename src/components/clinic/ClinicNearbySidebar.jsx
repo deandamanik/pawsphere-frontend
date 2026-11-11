@@ -1,338 +1,320 @@
 // src/components/clinic/ClinicNearbySidebar.jsx
-import { useState, useRef, useEffect } from 'react';
-
-const RADIUS_OPTIONS = [
-    { label: 'Radius 5 km', value: 5 },
-    { label: 'Radius 10 km', value: 10 },
-    { label: 'Radius 20 km', value: 20 },
-    { label: 'Radius 30 km', value: 30 },
-    { label: 'Semua area Bali', value: Infinity },
-];
-
-const SERVICE_OPTIONS = [
-    { label: 'Semua layanan', value: 'all' },
-    { label: 'Rawat inap', value: 'hospitalization' },
-    { label: 'Penitipan', value: 'boarding' },
-    { label: 'Konsultasi', value: 'consultation' },
-    { label: 'Vaksinasi & steril', value: 'vaccination' },
-];
+import React, { useState } from 'react';
 
 export default function ClinicNearbySidebar({
-    clinics = [],
-    selectedClinicId,
-    onSelectClinic,
-    onChangeLocation,
-    areaLabel = 'Renon, Denpasar',
+  clinics = [],
+  selectedClinicId,
+  onSelectClinic,
+  onViewProfile,
+  areaLabel = 'Di sekitar lokasi Anda',
+  userLocationLabel,
+  onChangeLocation,
+  onRetryMap,
+  areaFilter = 'Semua area Bali',
+  setAreaFilter,
+  openNowOnly = false,
+  setOpenNowOnly,
+  serviceFilter = 'Semua layanan',
+  setServiceFilter,
+  searchQuery = '',
+  setSearchQuery,
 }) {
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedRadius, setSelectedRadius] = useState(RADIUS_OPTIONS[4]);
-    // Default false agar awalnya terlihat semua klinik (Buka & Tutup), lalu saat diklik menyaring yang Buka saja
-    const [onlyOpenNow, setOnlyOpenNow] = useState(false);
-    const [selectedService, setSelectedService] = useState(SERVICE_OPTIONS[0]);
-    const [openDropdown, setOpenDropdown] = useState(null); // 'radius' | 'service' | null
+  const [localSearch, setLocalSearch] = useState('');
+  const [localArea, setLocalArea] = useState('Semua area Bali');
+  const [localOpenNow, setLocalOpenNow] = useState(false);
+  const [localService, setLocalService] = useState('Semua layanan');
 
-    const dropdownContainerRef = useRef(null);
+  // State tinggi Bottom Sheet di Mobile (bisa diketuk garis abu-abunya untuk naik/turun)
+  const [sheetExpanded, setSheetExpanded] = useState(false);
 
-    useEffect(() => {
-        const handleClickOutside = (e) => {
-            if (dropdownContainerRef.current && !dropdownContainerRef.current.contains(e.target)) {
-                setOpenDropdown(null);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+  const activeSearch = setSearchQuery ? searchQuery : localSearch;
+  const handleSearchChange = setSearchQuery || setLocalSearch;
 
-    const filteredClinics = clinics.filter((c) => {
-        const matchesSearch =
-            c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            c.area.toLowerCase().includes(searchQuery.toLowerCase());
+  const activeArea = setAreaFilter ? areaFilter : localArea;
+  const handleAreaChange = setAreaFilter || setLocalArea;
 
-        const matchesRadius = (c.distanceKm ?? 0) <= selectedRadius.value;
-        const matchesOpen = onlyOpenNow ? c.isOpenNow === true : true;
-        const matchesService =
-            selectedService.value === 'all'
-                ? true
-                : selectedService.value === 'hospitalization'
-                    ? !c.hospitalizationFull
-                    : c.availableServices?.includes(selectedService.value);
+  const activeOpenNow = setOpenNowOnly ? openNowOnly : localOpenNow;
+  const handleOpenNowToggle = () => {
+    if (setOpenNowOnly) {
+      setOpenNowOnly(!openNowOnly);
+    } else {
+      setLocalOpenNow(!localOpenNow);
+    }
+  };
 
-        return matchesSearch && matchesRadius && matchesOpen && matchesService;
-    });
+  const activeService = setServiceFilter ? serviceFilter : localService;
+  const handleServiceChange = setServiceFilter || setLocalService;
 
-    return (
-        <div className="w-full bg-white rounded-[24px] p-5 md:p-6 shadow-[0_14px_40px_-8px_rgba(24,59,86,0.16)] border border-slate-100/90 font-sans flex flex-col max-h-[calc(100dvh-140px)]">
-            {/* Header: Temukan klinik & Badge jumlah mitra */}
-            <div className="flex items-center justify-between mb-2 shrink-0">
-                <h2 className="font-display text-xl font-extrabold text-[#1E3A4C]">
-                    Temukan klinik
-                </h2>
-                <span className="bg-[#EBF2F7] text-[#243B53] text-xs font-bold px-3 py-1 rounded-full">
-                    {filteredClinics.length} mitra
-                </span>
-            </div>
+  const displayLocationText = userLocationLabel || areaLabel;
 
-            {/* Baris Lokasi Aktif & Tombol Ubah */}
-            <div className="flex items-center justify-between text-xs md:text-sm mb-3.5 shrink-0">
-                <div className="flex items-center gap-1.5 text-slate-600 font-medium">
-                    <svg className="w-4 h-4 text-[#2C5E7A] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span>{areaLabel}</span>
-                </div>
-                <button
-                    type="button"
-                    onClick={onChangeLocation}
-                    className="text-xs font-bold text-[#2C5E7A] hover:underline cursor-pointer"
-                >
-                    Ubah
-                </button>
-            </div>
+  const filteredClinics = clinics.filter((c) => {
+    const matchSearch =
+      !activeSearch.trim() ||
+      c.name.toLowerCase().includes(activeSearch.toLowerCase()) ||
+      (c.area || '').toLowerCase().includes(activeSearch.toLowerCase()) ||
+      (c.shortArea || '').toLowerCase().includes(activeSearch.toLowerCase());
 
-            {/* Input Pencarian */}
-            <div className="relative mb-3 shrink-0">
-                <svg className="w-4 h-4 text-[#2C5E7A] absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Cari nama klinik atau area"
-                    className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs md:text-sm text-[#1E3A4C] placeholder:text-slate-400 focus:outline-none focus:border-[#2C5E7A] transition"
-                />
-            </div>
+    const matchArea =
+      activeArea === 'Semua area Bali' ||
+      (c.area || '').toLowerCase().includes(activeArea.toLowerCase()) ||
+      (c.shortArea || '').toLowerCase().includes(activeArea.toLowerCase());
 
-            {/* Barisan Filter Pills (1 Baris Kesamping) */}
-            <div
-                ref={dropdownContainerRef}
-                className="relative flex items-center gap-1.5 mb-2.5 shrink-0"
-            >
-                {/* 1. Dropdown Radius */}
-                <div className="relative">
-                    <button
-                        type="button"
-                        onClick={() => setOpenDropdown(openDropdown === 'radius' ? null : 'radius')}
-                        className={`px-2.5 py-1.5 rounded-full text-[11px] font-bold flex items-center gap-1 whitespace-nowrap transition cursor-pointer ${openDropdown === 'radius'
-                            ? 'bg-[#2C5E7A] text-white'
-                            : 'bg-[#EBF2F7] text-[#1E3A4C] hover:bg-[#dce7f0]'
-                            }`}
-                    >
-                        <span>{selectedRadius.label}</span>
-                        <svg
-                            className={`w-3 h-3 transition-transform duration-200 ${openDropdown === 'radius' ? 'rotate-180' : ''}`}
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </button>
+    const matchOpen = !activeOpenNow || c.isOpen;
 
-                    {openDropdown === 'radius' && (
-                        <div className="absolute left-0 top-full mt-1.5 w-44 bg-white rounded-2xl shadow-[0_10px_28px_rgba(24,59,86,0.16)] border border-slate-100 py-1.5 z-30">
-                            {RADIUS_OPTIONS.map((option) => {
-                                const isSelected = selectedRadius.value === option.value;
-                                return (
-                                    <button
-                                        key={option.value}
-                                        type="button"
-                                        onClick={() => {
-                                            setSelectedRadius(option);
-                                            setOpenDropdown(null);
-                                        }}
-                                        className={`w-full px-3.5 py-2 text-left text-xs flex items-center justify-between transition cursor-pointer ${isSelected
-                                            ? 'bg-[#EBF2F7] text-[#1E3A4C] font-bold'
-                                            : 'text-slate-600 hover:bg-slate-50 font-medium'
-                                            }`}
-                                    >
-                                        <span>{option.label}</span>
-                                        {isSelected && (
-                                            <svg className="w-3.5 h-3.5 text-[#2C5E7A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
-                                            </svg>
-                                        )}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    )}
-                </div>
+    const matchService =
+      activeService === 'Semua layanan' ||
+      (activeService === 'Rawat inap' &&
+        !c.inpatientBadge?.includes('penuh')) ||
+      (activeService === 'Penitipan' && !c.boardingBadge?.includes('penuh'));
 
-                {/* 2. Toggle Pill: Buka sekarang */}
-                <button
-                    type="button"
-                    onClick={() => setOnlyOpenNow(!onlyOpenNow)}
-                    className={`px-2.5 py-1.5 rounded-full text-[11px] font-bold flex items-center gap-1.5 whitespace-nowrap transition cursor-pointer ${onlyOpenNow
-                        ? 'bg-[#2C5E7A] text-white shadow-xs'
-                        : 'bg-[#EBF2F7] text-[#1E3A4C] hover:bg-[#dce7f0]'
-                        }`}
-                >
-                    <span>Buka sekarang</span>
-                </button>
+    return matchSearch && matchArea && matchOpen && matchService;
+  });
 
-                {/* 3. Dropdown Semua Layanan */}
-                <div className="relative">
-                    <button
-                        type="button"
-                        onClick={() => setOpenDropdown(openDropdown === 'service' ? null : 'service')}
-                        className={`px-2.5 py-1.5 rounded-full text-[11px] font-bold flex items-center gap-1 whitespace-nowrap transition cursor-pointer ${openDropdown === 'service'
-                            ? 'bg-[#2C5E7A] text-white'
-                            : 'bg-[#EBF2F7] text-[#1E3A4C] hover:bg-[#dce7f0]'
-                            }`}
-                    >
-                        <span>{selectedService.label}</span>
-                        <svg
-                            className={`w-3 h-3 transition-transform duration-200 ${openDropdown === 'service' ? 'rotate-180' : ''}`}
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </button>
+  return (
+    <aside
+      className={`w-full bg-white rounded-t-[28px] md:rounded-[28px] shadow-[0_-10px_35px_rgba(15,23,42,0.14)] md:shadow-[0_14px_40px_rgba(24,59,86,0.12)] border-t md:border border-slate-200/80 flex flex-col overflow-hidden transition-all duration-300 font-sans ${
+        sheetExpanded ? 'max-h-[82dvh]' : 'max-h-[56dvh]'
+      } md:max-h-[calc(100dvh-128px)]`}
+    >
+      {/* DRAG HANDLE KHUSUS MOBILE (Persis Google Maps Bottom Sheet) */}
+      <button
+        type="button"
+        onClick={() => setSheetExpanded((prev) => !prev)}
+        aria-label="Perluas atau kecilkan daftar klinik"
+        className="md:hidden w-full pt-3 pb-1.5 flex flex-col items-center justify-center cursor-pointer shrink-0 focus:outline-none"
+      >
+        <span className="w-11 h-1.5 rounded-full bg-slate-300" />
+      </button>
 
-                    {openDropdown === 'service' && (
-                        <div className="absolute right-0 top-full mt-1.5 w-48 bg-white rounded-2xl shadow-[0_10px_28px_rgba(24,59,86,0.16)] border border-slate-100 py-1.5 z-30">
-                            {SERVICE_OPTIONS.map((option) => {
-                                const isSelected = selectedService.value === option.value;
-                                return (
-                                    <button
-                                        key={option.value}
-                                        type="button"
-                                        onClick={() => {
-                                            setSelectedService(option);
-                                            setOpenDropdown(null);
-                                        }}
-                                        className={`w-full px-3.5 py-2 text-left text-xs flex items-center justify-between transition cursor-pointer ${isSelected
-                                            ? 'bg-[#EBF2F7] text-[#1E3A4C] font-bold'
-                                            : 'text-slate-600 hover:bg-slate-50 font-medium'
-                                            }`}
-                                    >
-                                        <span>{option.label}</span>
-                                        {isSelected && (
-                                            <svg className="w-3.5 h-3.5 text-[#2C5E7A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
-                                            </svg>
-                                        )}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Daftar Card Klinik */}
-            <div className="space-y-3 overflow-y-auto pr-1 flex-1 min-h-0">
-                {filteredClinics.length === 0 ? (
-                    <div className="text-center py-8 px-4 bg-slate-50 rounded-2xl border border-slate-100">
-                        <p className="text-xs font-bold text-[#1E3A4C] mb-1">
-                            Tidak ada klinik dalam filter ini
-                        </p>
-                        <p className="text-[11px] text-slate-500 mb-3">
-                            Coba matikan filter "Buka sekarang" atau perluas radius pencarian.
-                        </p>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setSelectedRadius(RADIUS_OPTIONS[3]);
-                                setSelectedService(SERVICE_OPTIONS[0]);
-                                setOnlyOpenNow(false);
-                                setSearchQuery('');
-                            }}
-                            className="text-xs font-bold text-[#2C5E7A] hover:underline cursor-pointer"
-                        >
-                            Reset semua filter
-                        </button>
-                    </div>
-                ) : (
-                    filteredClinics.map((clinic) => {
-                        const isSelected = clinic.id === selectedClinicId;
-                        return (
-                            <div
-                                key={clinic.id}
-                                onClick={() => onSelectClinic && onSelectClinic(clinic)}
-                                className={`rounded-2xl p-3.5 transition-all duration-200 cursor-pointer border ${isSelected
-                                    ? 'border-[#2C5E7A] bg-[#F8FBFD] shadow-xs ring-1 ring-[#2C5E7A]/20'
-                                    : 'border-slate-200/90 bg-white hover:border-slate-300'
-                                    }`}
-                            >
-                                {/* Baris Atas: Foto + Nama + Badge Status Buka/Tutup */}
-                                <div className="flex items-start justify-between gap-2 mb-3">
-                                    <div className="flex items-center gap-3 min-w-0">
-                                        <img
-                                            src={clinic.image}
-                                            alt={clinic.name}
-                                            className="w-12 h-12 rounded-xl object-cover shrink-0 bg-slate-100"
-                                        />
-                                        <div className="min-w-0">
-                                            <h3 className="text-xs md:text-sm font-bold text-[#1E3A4C] truncate">
-                                                {clinic.number}. {clinic.name}
-                                            </h3>
-                                            <p className="text-[11px] text-slate-500 truncate mt-0.5">
-                                                {clinic.shortArea} · {clinic.distance} · {clinic.openStatus}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Elemen Status Buka / Tutup */}
-                                    <span
-                                        className={`shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold ${clinic.isOpenNow
-                                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/70'
-                                            : 'bg-rose-50 text-rose-600 border border-rose-200/70'
-                                            }`}
-                                    >
-                                        <span
-                                            className={`w-1.5 h-1.5 rounded-full ${clinic.isOpenNow ? 'bg-emerald-500' : 'bg-rose-500'
-                                                }`}
-                                        />
-                                        {clinic.isOpenNow ? 'Buka' : 'Tutup'}
-                                    </span>
-                                </div>
-
-                                {/* Badge Kapasitas */}
-                                <div className="flex flex-wrap items-center gap-2 mb-3">
-                                    <span
-                                        className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${clinic.hospitalizationFull
-                                            ? 'bg-[#EEF3F7] text-slate-600'
-                                            : 'bg-[#EBF2F7] text-[#1E3A4C]'
-                                            }`}
-                                    >
-                                        {clinic.hospitalizationBadge}
-                                    </span>
-                                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#EBF2F7] text-[#1E3A4C]">
-                                        {clinic.boardingBadge}
-                                    </span>
-                                </div>
-
-                                {/* Harga & Link Lihat Profil */}
-                                <div className="flex items-center justify-between pt-1">
-                                    <span className="text-[11px] text-slate-500">
-                                        Konsultasi mulai {clinic.startingPrice}
-                                    </span>
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (onSelectClinic) onSelectClinic(clinic);
-                                        }}
-                                        className="text-[11px] font-bold text-[#2C5E7A] hover:text-[#1E3A4C] transition cursor-pointer"
-                                    >
-                                        Lihat profil →
-                                    </button>
-                                </div>
-                            </div>
-                        );
-                    })
-                )}
-            </div>
-
-            {/* Catatan Kaki Bawah */}
-            <p className="text-[11px] text-slate-400 leading-relaxed mt-3.5 pt-2 border-t border-slate-100 shrink-0">
-                Belum menemukan yang cocok? Perluas radius atau ubah area. Peta gagal dimuat? Coba lagi.
-            </p>
+      {/* HEADER, LOKASI, SEARCH, & FILTER HORIZONTAL SCROLL */}
+      <div className="px-5 pt-2 md:pt-6 pb-3.5 border-b border-slate-100 shrink-0">
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <h2 className="font-display text-xl md:text-2xl font-extrabold text-[#1E3A4C]">
+            Temukan klinik
+          </h2>
+          <span className="bg-[#EBF2F7] text-[#1E3A4C] text-xs font-bold px-3 py-1 rounded-full shrink-0">
+            {filteredClinics.length} mitra
+          </span>
         </div>
-    );
+
+        <div className="flex items-center justify-between gap-2 text-xs mb-3.5">
+          <div className="flex items-center gap-1.5 text-slate-600 min-w-0">
+            <svg
+              className="w-4 h-4 text-[#2C5E7A] shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+            <span className="truncate">{displayLocationText}</span>
+          </div>
+          <button
+            type="button"
+            onClick={onChangeLocation}
+            className="font-bold text-[#2C5E7A] hover:underline cursor-pointer shrink-0"
+          >
+            Ubah
+          </button>
+        </div>
+
+        <div className="relative mb-3">
+          <svg
+            className="w-4 h-4 text-[#2C5E7A] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <circle cx="11" cy="11" r="8" strokeWidth="2" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M21 21l-4.35-4.35"
+            />
+          </svg>
+          <input
+            type="text"
+            value={activeSearch}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            placeholder="Cari nama klinik atau area"
+            className="w-full bg-white border border-slate-200/90 rounded-full pl-10 pr-4 py-2.5 text-xs md:text-sm text-[#1E3A4C] placeholder:text-slate-400 focus:outline-none focus:border-[#2C5E7A] transition"
+          />
+        </div>
+
+        {/* BARIS FILTER: BISA DI-SWIPE KE KIRI/KANAN DI LAYAR HP TANPA KELUAR CARD */}
+        <div className="flex items-center gap-2 overflow-x-auto flex-nowrap -mx-5 px-5 md:mx-0 md:px-0 pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <div className="relative shrink-0">
+            <select
+              value={activeArea}
+              onChange={(e) => handleAreaChange(e.target.value)}
+              className="appearance-none bg-[#EBF2F7] hover:bg-[#dfe9f0] text-[#1E3A4C] text-xs font-bold pl-3.5 pr-8 py-2 rounded-full cursor-pointer focus:outline-none transition"
+            >
+              <option value="Semua area Bali">Semua area Bali</option>
+              <option value="Renon">Renon</option>
+              <option value="Sanur">Sanur</option>
+              <option value="Ubud">Ubud</option>
+            </select>
+            <svg
+              className="w-3.5 h-3.5 text-[#1E3A4C] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2.2"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleOpenNowToggle}
+            className={`shrink-0 text-xs font-bold px-3.5 py-2 rounded-full transition cursor-pointer whitespace-nowrap ${
+              activeOpenNow
+                ? 'bg-[#2C5E7A] text-white shadow-2xs'
+                : 'bg-[#EBF2F7] hover:bg-[#dfe9f0] text-[#1E3A4C]'
+            }`}
+          >
+            Buka sekarang
+          </button>
+
+          <div className="relative shrink-0">
+            <select
+              value={activeService}
+              onChange={(e) => handleServiceChange(e.target.value)}
+              className="appearance-none bg-[#EBF2F7] hover:bg-[#dfe9f0] text-[#1E3A4C] text-xs font-bold pl-3.5 pr-8 py-2 rounded-full cursor-pointer focus:outline-none transition"
+            >
+              <option value="Semua layanan">Semua layanan</option>
+              <option value="Konsultasi">Konsultasi</option>
+              <option value="Rawat inap">Rawat inap</option>
+              <option value="Penitipan">Penitipan</option>
+            </select>
+            <svg
+              className="w-3.5 h-3.5 text-[#1E3A4C] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2.2"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      {/* DAFTAR KLINIK */}
+      <div className="flex-1 overflow-y-auto px-4 md:px-5 py-3.5 space-y-3">
+        {filteredClinics.map((clinic) => {
+          const isSelected = selectedClinicId === clinic.id;
+          return (
+            <div
+              key={clinic.id}
+              onClick={() => onSelectClinic && onSelectClinic(clinic)}
+              className={`rounded-2xl p-4 border transition cursor-pointer ${
+                isSelected
+                  ? 'bg-[#F4F8FB] border-[#2C5E7A] shadow-xs'
+                  : 'bg-white border-slate-200/80 hover:border-slate-300'
+              }`}
+            >
+              <div className="flex items-start justify-between gap-2.5 mb-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <img
+                    src={clinic.image}
+                    alt={clinic.name}
+                    className="w-12 h-12 rounded-full object-cover bg-slate-100 shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-extrabold text-[#1E3A4C] truncate">
+                      {clinic.number}. {clinic.name}
+                    </h3>
+                    <p className="text-xs text-slate-500 truncate mt-0.5">
+                      {clinic.shortArea || clinic.area} · {clinic.distance} ·{' '}
+                      {clinic.hours}
+                    </p>
+                  </div>
+                </div>
+
+                <span
+                  className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0 ${
+                    clinic.isOpen
+                      ? 'bg-[#E6F7EF] text-[#15803D]'
+                      : 'bg-[#FEE2E2] text-[#DC2626]'
+                  }`}
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      clinic.isOpen ? 'bg-[#16A34A]' : 'bg-[#DC2626]'
+                    }`}
+                  />
+                  {clinic.isOpen ? 'Buka' : 'Tutup'}
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <span className="bg-[#EBF2F7] text-[#1E3A4C] text-[11px] font-bold px-3 py-1 rounded-full">
+                  {clinic.inpatientBadge || 'Rawat inap 3/8'}
+                </span>
+                <span className="bg-[#EBF2F7] text-[#1E3A4C] text-[11px] font-bold px-3 py-1 rounded-full">
+                  {clinic.boardingBadge || 'Penitipan 5/12'}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between gap-2 pt-1 text-xs">
+                <span className="text-slate-500">
+                  Konsultasi mulai {clinic.startingPrice || 'Rp150.000'}
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onViewProfile) {
+                      onViewProfile(clinic);
+                    } else if (onSelectClinic) {
+                      onSelectClinic(clinic);
+                    }
+                  }}
+                  className="font-bold text-[#2C5E7A] hover:underline inline-flex items-center gap-1 cursor-pointer shrink-0"
+                >
+                  <span>Lihat profil</span>
+                  <span>→</span>
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* FOOTER */}
+      <div className="px-5 py-3 bg-slate-50/70 border-t border-slate-100 text-[11px] text-slate-400 leading-relaxed shrink-0">
+        Belum menemukan yang cocok? Perluas radius atau ubah area. Peta gagal
+        dimuat?{' '}
+        <button
+          type="button"
+          onClick={onRetryMap || onChangeLocation}
+          className="font-semibold text-[#2C5E7A] hover:underline cursor-pointer"
+        >
+          Coba lagi.
+        </button>
+      </div>
+    </aside>
+  );
 }

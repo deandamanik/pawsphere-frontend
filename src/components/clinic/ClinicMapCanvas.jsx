@@ -313,19 +313,6 @@ export default function ClinicMapCanvas({
       </div>
 
       {/* Legend Kanan Bawah */}
-      <div className="fixed bottom-6 right-6 z-50 bg-white/95 backdrop-blur-xs px-4 py-2.5 rounded-full shadow-md border border-slate-100 flex items-center gap-4 text-xs font-medium text-slate-600">
-        <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#2C5E7A] inline-block" />
-          <span>Klinik mitra</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-3.5 h-3.5 rounded-full border-2 border-[#2C5E7A] flex items-center justify-center">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#2C5E7A]" />
-          </span>
-          <span>Lokasi Anda</span>
-        </div>
-        <span className="text-slate-400 border-l border-slate-200 pl-3">1 km</span>
-      </div>
     </div>
   );
 }
