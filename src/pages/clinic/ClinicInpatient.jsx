@@ -4,18 +4,44 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { CLINICS_DATA } from '../../data/clinicsData';
 
-const CHECKIN_DATES = [
-    { label: '2 November 2026', short: '2', dayNum: 2 },
-    { label: '3 November 2026', short: '3', dayNum: 3 },
-    { label: '4 November 2026', short: '4', dayNum: 4 },
+const MONTHS_ID = [
+    'Januari',
+    'Februari',
+    'Maret',
+    'April',
+    'Mei',
+    'Juni',
+    'Juli',
+    'Agustus',
+    'September',
+    'Oktober',
+    'November',
+    'Desember',
 ];
 
-const CHECKOUT_DATES = [
-    { label: '3 November 2026', short: '3 Nov 2026', dayNum: 3 },
-    { label: '4 November 2026', short: '4 Nov 2026', dayNum: 4 },
-    { label: '5 November 2026', short: '5 Nov 2026', dayNum: 5 },
-    { label: '6 November 2026', short: '6 Nov 2026', dayNum: 6 },
-];
+const getLocalISODate = (date = new Date()) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+const addDaysToISODate = (isoDate, days) => {
+    const [year, month, day] = isoDate.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    date.setDate(date.getDate() + days);
+    return getLocalISODate(date);
+};
+
+const formatStayDate = (isoDate) => {
+    const [year, month, day] = isoDate.split('-').map(Number);
+    const monthName = MONTHS_ID[month - 1];
+    return {
+        iso: isoDate,
+        label: `${day} ${monthName} ${year}`,
+        short: `${day} ${monthName.slice(0, 3)} ${year}`,
+    };
+};
 const SERVICE_FEE = 5000;
 const PET_FIELD_LABELS = [
     ['name', 'nama hewan'],
@@ -56,8 +82,14 @@ export default function ClinicInpatient() {
     const [petFormError, setPetFormError] = useState('');
 
     // 3. State Tanggal Masuk & Tanggal Keluar
-    const [checkInDate, setCheckInDate] = useState(CHECKIN_DATES[0]); // 2 November 2026
-    const [checkOutDate, setCheckOutDate] = useState(CHECKOUT_DATES[1]); // 4 November 2026
+    const [checkInDate, setCheckInDate] = useState(() => {
+        const today = getLocalISODate();
+        return formatStayDate(today);
+    });
+    const [checkOutDate, setCheckOutDate] = useState(() => {
+        const today = getLocalISODate();
+        return formatStayDate(addDaysToISODate(today, 2));
+    });
 
     // 4. State Metode Kedatangan ('antar' | 'jemput')
     const [arrivalMethod, setArrivalMethod] = useState('antar');
@@ -66,7 +98,14 @@ export default function ClinicInpatient() {
     const [notes, setNotes] = useState('');
 
     // Hitung durasi malam otomatis (minimal 1 malam)
-    const totalNights = Math.max(1, checkOutDate.dayNum - checkInDate.dayNum);
+    const totalNights = Math.max(
+        1,
+        Math.round(
+            (Date.parse(`${checkOutDate.iso}T00:00:00Z`) -
+                Date.parse(`${checkInDate.iso}T00:00:00Z`)) /
+                86400000
+        )
+    );
     const nightlyRate = stayType === 'rawat_inap' ? 250000 : 150000;
     const availableSlots = stayType === 'rawat_inap' ? 3 : 5;
     const accommodationPrice = totalNights * nightlyRate;
@@ -225,6 +264,7 @@ export default function ClinicInpatient() {
                     clinic,
                     careMethod: 'rumah',
                     petData,
+                    userLocation: location.state?.userLocation,
                     service: 'Konsultasi',
                     method: 'Dokter ke rumah',
                     complaint: notes,
@@ -238,6 +278,7 @@ export default function ClinicInpatient() {
             state: {
                 clinic,
                 petData,
+                userLocation: location.state?.userLocation,
                 stayType,
                 checkInDate,
                 checkOutDate,
@@ -504,42 +545,25 @@ export default function ClinicInpatient() {
                                     <label className="block text-xs font-bold text-[#1E3A4C] mb-2">
                                         Tanggal masuk
                                     </label>
-                                    <div className="relative">
-                                        <select
-                                            value={checkInDate.label}
+                                    <div>
+                                        <input
+                                            type="date"
+                                            value={checkInDate.iso}
+                                            min={getLocalISODate()}
                                             onChange={(e) => {
-                                                const found = CHECKIN_DATES.find(
-                                                    (d) => d.label === e.target.value
-                                                );
-                                                if (found) setCheckInDate(found);
+                                                if (!e.target.value) return;
+                                                const nextCheckInDate = formatStayDate(e.target.value);
+                                                setCheckInDate(nextCheckInDate);
+                                                if (e.target.value >= checkOutDate.iso) {
+                                                    setCheckOutDate(
+                                                        formatStayDate(
+                                                            addDaysToISODate(e.target.value, 1)
+                                                        )
+                                                    );
+                                                }
                                             }}
-                                            className="w-full appearance-none bg-white border border-slate-200/90 rounded-2xl px-4 py-3.5 pr-10 text-xs md:text-sm font-medium text-[#1E3A4C] focus:outline-none focus:border-[#2C5E7A] cursor-pointer"
-                                        >
-                                            {CHECKIN_DATES.map((d) => (
-                                                <option key={d.label} value={d.label}>
-                                                    {d.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <svg
-                                            className="w-4 h-4 text-[#2C5E7A] absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <rect
-                                                width="18"
-                                                height="18"
-                                                x="3"
-                                                y="4"
-                                                rx="2"
-                                                ry="2"
-                                                strokeWidth="1.8"
-                                            />
-                                            <line x1="16" y1="2" x2="16" y2="6" strokeWidth="1.8" />
-                                            <line x1="8" y1="2" x2="8" y2="6" strokeWidth="1.8" />
-                                            <line x1="3" y1="10" x2="21" y2="10" strokeWidth="1.8" />
-                                        </svg>
+                                            className="w-full bg-white border border-slate-200/90 rounded-2xl px-4 py-3.5 text-xs md:text-sm font-medium text-[#1E3A4C] focus:outline-none focus:border-[#2C5E7A] cursor-pointer"
+                                        />
                                     </div>
                                 </div>
 
@@ -548,42 +572,23 @@ export default function ClinicInpatient() {
                                     <label className="block text-xs font-bold text-[#1E3A4C] mb-2">
                                         Tanggal keluar
                                     </label>
-                                    <div className="relative">
-                                        <select
-                                            value={checkOutDate.label}
+                                    <div>
+                                        <input
+                                            type="date"
+                                            value={checkOutDate.iso}
+                                            min={addDaysToISODate(checkInDate.iso, 1)}
                                             onChange={(e) => {
-                                                const found = CHECKOUT_DATES.find(
-                                                    (d) => d.label === e.target.value
-                                                );
-                                                if (found) setCheckOutDate(found);
+                                                if (
+                                                    e.target.value &&
+                                                    e.target.value > checkInDate.iso
+                                                ) {
+                                                    setCheckOutDate(
+                                                        formatStayDate(e.target.value)
+                                                    );
+                                                }
                                             }}
-                                            className="w-full appearance-none bg-white border border-slate-200/90 rounded-2xl px-4 py-3.5 pr-10 text-xs md:text-sm font-medium text-[#1E3A4C] focus:outline-none focus:border-[#2C5E7A] cursor-pointer"
-                                        >
-                                            {CHECKOUT_DATES.map((d) => (
-                                                <option key={d.label} value={d.label}>
-                                                    {d.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <svg
-                                            className="w-4 h-4 text-[#2C5E7A] absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <rect
-                                                width="18"
-                                                height="18"
-                                                x="3"
-                                                y="4"
-                                                rx="2"
-                                                ry="2"
-                                                strokeWidth="1.8"
-                                            />
-                                            <line x1="16" y1="2" x2="16" y2="6" strokeWidth="1.8" />
-                                            <line x1="8" y1="2" x2="8" y2="6" strokeWidth="1.8" />
-                                            <line x1="3" y1="10" x2="21" y2="10" strokeWidth="1.8" />
-                                        </svg>
+                                            className="w-full bg-white border border-slate-200/90 rounded-2xl px-4 py-3.5 text-xs md:text-sm font-medium text-[#1E3A4C] focus:outline-none focus:border-[#2C5E7A] cursor-pointer"
+                                        />
                                     </div>
                                 </div>
                             </div>

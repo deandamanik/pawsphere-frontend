@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CLINICS_DATA } from '../../data/clinicsData';
 import ClinicLocationSidebar from '../../components/clinic/ClinicLocationSidebar';
 import ClinicNearbySidebar from '../../components/clinic/ClinicNearbySidebar';
@@ -24,40 +24,48 @@ export default function Clinic() {
     }, 200);
   }, []);
 
-  const getCurrentLocation = useCallback((showClinicsAfterLocate = true) => {
-    setIsLocating(true);
-    setLocationError('');
+  const getCurrentLocation = useCallback(
+    (showClinicsAfterLocate = true) => {
+      setIsLocating(true);
+      setLocationError('');
 
-    if (!navigator.geolocation) {
-      setLocationError('Browser ini tidak mendukung akses lokasi. Silakan pilih titik di peta.');
-      setIsLocating(false);
-      return;
-    }
+      if (!navigator.geolocation) {
+        setLocationError(
+          'Browser ini tidak mendukung akses lokasi. Silakan pilih titik di peta.'
+        );
+        setIsLocating(false);
+        return;
+      }
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const location = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        };
-        setUserLocation(location);
-        setManualLocation(null);
-        setMapView(showClinicsAfterLocate ? 'clinics' : 'user');
-        setIsLocating(false);
-        if (showClinicsAfterLocate) switchSidebarSmoothly('nearby');
-      },
-      (error) => {
-        const messages = {
-          1: 'Izin lokasi ditolak. Izinkan akses lokasi di browser atau pilih titik secara manual.',
-          2: 'Lokasi tidak dapat dideteksi. Coba lagi atau pilih titik secara manual.',
-          3: 'Waktu pencarian lokasi habis. Coba lagi atau pilih titik secara manual.',
-        };
-        setLocationError(messages[error.code] || 'Lokasi gagal dideteksi. Coba lagi atau pilih titik secara manual.');
-        setIsLocating(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
-  }, [switchSidebarSmoothly]);
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const location = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+          setUserLocation(location);
+          setManualLocation(null);
+          setMapView(showClinicsAfterLocate ? 'clinics' : 'user');
+          setIsLocating(false);
+          if (showClinicsAfterLocate) switchSidebarSmoothly('nearby');
+        },
+        (error) => {
+          const messages = {
+            1: 'Izin lokasi ditolak. Izinkan akses lokasi di browser atau pilih titik secara manual.',
+            2: 'Lokasi tidak dapat dideteksi. Coba lagi atau pilih titik secara manual.',
+            3: 'Waktu pencarian lokasi habis. Coba lagi atau pilih titik secara manual.',
+          };
+          setLocationError(
+            messages[error.code] ||
+              'Lokasi gagal dideteksi. Coba lagi atau pilih titik secara manual.'
+          );
+          setIsLocating(false);
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    },
+    [switchSidebarSmoothly]
+  );
 
   useEffect(() => {
     if (initialLocationRequested.current) return;
@@ -113,10 +121,13 @@ export default function Clinic() {
           Math.cos((clinicLat * Math.PI) / 180) *
           Math.sin(lngDiff / 2) ** 2;
       const boundedHaversine = Math.min(1, Math.max(0, haversine));
-      const distanceKm = 6371 * 2 * Math.atan2(
-        Math.sqrt(boundedHaversine),
-        Math.sqrt(1 - boundedHaversine)
-      );
+      const distanceKm =
+        6371 *
+        2 *
+        Math.atan2(
+          Math.sqrt(boundedHaversine),
+          Math.sqrt(1 - boundedHaversine)
+        );
 
       return {
         ...clinic,
@@ -136,17 +147,24 @@ export default function Clinic() {
         mapView={mapView}
         isSelectingLocation={sidebarMode === 'manual'}
         onMapLocationSelect={handleManualMapClick}
-        showSelectedCallout={sidebarMode === 'detail' || sidebarMode === 'nearby'}
+        showSelectedCallout={
+          sidebarMode === 'detail' || sidebarMode === 'nearby'
+        }
         onSelectClinic={handleOpenClinicDetail}
         onLocateClick={handleRequestLocation}
       />
 
-      {/* Floating Sidebar Kiri dengan Transisi Smooth */}
+      {/* Wrapper Sidebar: Menempel di Bawah pada Layar HP (Bottom Sheet) & Melayang di Kiri Atas pada Desktop */}
       <div
-        className={`absolute top-5 left-6 z-20 w-[calc(100%-3rem)] ${sidebarMode === 'detail' ? 'max-w-[460px]' : 'max-w-[395px]'} pointer-events-auto transition-all duration-300 ease-out ${isTransitioning
-            ? 'opacity-0 -translate-x-3 scale-[0.98]'
-            : 'opacity-100 translate-x-0 scale-100'
-          }`}
+        className={`absolute inset-x-0 bottom-0 md:inset-auto md:top-5 md:left-6 z-20 w-full ${
+          sidebarMode === 'detail'
+            ? 'md:w-[460px] md:max-w-[460px]'
+            : 'md:w-[395px] md:max-w-[395px]'
+        } pointer-events-auto transition-all duration-300 ease-out ${
+          isTransitioning
+            ? 'opacity-0 translate-y-4 md:translate-y-0 md:-translate-x-3 scale-[0.98]'
+            : 'opacity-100 translate-y-0 md:translate-x-0 scale-100'
+        }`}
       >
         {sidebarMode === 'permission' && (
           <ClinicLocationSidebar
@@ -176,7 +194,11 @@ export default function Clinic() {
             clinics={clinicsByDistance}
             selectedClinicId={selectedClinic?.id}
             onSelectClinic={handleOpenClinicDetail}
-            areaLabel={manualLocation ? 'Lokasi pilihan di peta' : 'Di sekitar lokasi Anda'}
+            areaLabel={
+              manualLocation
+                ? 'Lokasi pilihan di peta'
+                : 'Di sekitar lokasi Anda'
+            }
             onChangeLocation={() => {
               setMapView('user');
               switchSidebarSmoothly('permission');
@@ -187,6 +209,7 @@ export default function Clinic() {
         {sidebarMode === 'detail' && (
           <ClinicProfileSidebar
             clinic={selectedClinic}
+            userLocation={manualLocation || userLocation}
             onBack={() => {
               setMapView('clinics');
               switchSidebarSmoothly('nearby');
