@@ -23,6 +23,7 @@ import ProtectedRoute from './ProtectedRoute';
 import VetDashboard from '../pages/dashboard/VetDashboard';
 import ShelterDashboard from '../pages/dashboard/ShelterDashboard';
 import AdminDashboard from '../pages/dashboard/AdminDashboard';
+import KlinikDashboard from '../pages/dashboard/KlinikDashboard';
 import Profile from '../pages/profile/Profile';
 
 
@@ -72,7 +73,9 @@ const AppRouter = () => {
       <Route element={<ProtectedRoute allow={['admin']} />}>
         <Route path="/dashboard/admin" element={<AdminDashboard />} />
       </Route>
-
+      <Route element={<ProtectedRoute allow={['klinik']} />}>
+        <Route path="/dashboard/klinik" element={<KlinikDashboard />} />
+      </Route>
       {/* 404 */}
       <Route path="*" element={<div className="flex items-center justify-center h-screen">404 - Halaman Tidak Ditemukan</div>} />
     </Routes>
