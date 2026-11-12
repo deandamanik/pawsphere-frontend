@@ -4,6 +4,7 @@ import ClinicLocationSidebar from '../../components/clinic/ClinicLocationSidebar
 import ClinicNearbySidebar from '../../components/clinic/ClinicNearbySidebar';
 import ClinicProfileSidebar from '../../components/clinic/ClinicProfileSidebar';
 import ClinicMapCanvas from '../../components/clinic/ClinicMapCanvas';
+import { getMapReports } from '../../services/pawAlert.service';
 
 export default function Clinic() {
   const [userLocation, setUserLocation] = useState(null);
@@ -14,6 +15,8 @@ export default function Clinic() {
   const [sidebarMode, setSidebarMode] = useState('permission');
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [selectedClinic, setSelectedClinic] = useState(null);
+  const [reports, setReports] = useState([]);
+  const [mapLayer, setMapLayer] = useState('clinics'); // 'clinics' | 'reports' | 'both'
   const initialLocationRequested = useRef(false);
 
   const switchSidebarSmoothly = useCallback((targetMode) => {
@@ -72,6 +75,11 @@ export default function Clinic() {
     initialLocationRequested.current = true;
     getCurrentLocation(false);
   }, [getCurrentLocation]);
+
+  // Ambil laporan Paw Alert aktif untuk overlay peta (publik, tanpa data pelapor).
+  useEffect(() => {
+    getMapReports().then(setReports).catch(() => setReports([]));
+  }, []);
 
   const handleRequestLocation = () => {
     if (userLocation) {
@@ -152,6 +160,9 @@ export default function Clinic() {
         }
         onSelectClinic={handleOpenClinicDetail}
         onLocateClick={handleRequestLocation}
+        reports={reports}
+        mapLayer={mapLayer}
+        onMapLayerChange={setMapLayer}
       />
 
       {/* Wrapper Sidebar: Menempel di Bawah pada Layar HP (Bottom Sheet) & Melayang di Kiri Atas pada Desktop */}
