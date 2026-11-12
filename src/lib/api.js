@@ -6,7 +6,7 @@
 // - Throws a typed ApiError so callers can show clean messages.
 // ============================================================
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+export const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:3000/api").replace(/\/+$/, "");
 const TOKEN_KEY = "pawsphere_token";
 
 export const getToken = () => localStorage.getItem(TOKEN_KEY);

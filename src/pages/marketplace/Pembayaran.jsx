@@ -1,4 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import ProductImage from '../../components/ProductImage';
+import assetImage0 from "../../assets/marketplace/COD-icon.svg";
+import assetImage1 from "../../assets/marketplace/Gopay-icon.svg";
+import assetImage2 from "../../assets/marketplace/DANA-icon.svg";
+import assetImage3 from "../../assets/marketplace/QRIS-icon.svg";
+import assetImage4 from "../../assets/marketplace/bank-icon.svg";
+import assetImage5 from "../../assets/marketplace/Keranjang-Icon.svg";
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -103,11 +110,11 @@ const Pembayaran = () => {
 
   // Daftar Metode Pembayaran
   const paymentMethods = [
-    { id: 'cod', label: 'Cash on Delivery', icon: '/src/assets/marketplace/COD-icon.svg' },
-    { id: 'gopay', label: 'Gopay', icon: '/src/assets/marketplace/Gopay-icon.svg' },
-    { id: 'dana', label: 'Dana', icon: '/src/assets/marketplace/DANA-icon.svg' },
-    { id: 'qris', label: 'QRIS', icon: '/src/assets/marketplace/QRIS-icon.svg' },
-    { id: 'transfer', label: 'Transfer Bank', icon: '/src/assets/marketplace/Bank-icon.svg' },
+    { id: 'cod', label: 'Cash on Delivery', icon: assetImage0 },
+    { id: 'gopay', label: 'Gopay', icon: assetImage1 },
+    { id: 'dana', label: 'Dana', icon: assetImage2 },
+    { id: 'qris', label: 'QRIS', icon: assetImage3 },
+    { id: 'transfer', label: 'Transfer Bank', icon: assetImage4 },
   ];
 
   return (
@@ -130,7 +137,7 @@ const Pembayaran = () => {
          onClick={() => navigate('/keranjang')} 
          className="mt-6 sm:mt-0 bg-[#2C6E91] text-white px-8 py-3.5 rounded-full shadow-lg flex items-center gap-3 hover:bg-[#235875] transition-all duration-300">
             <img 
-              src="/src/assets/marketplace/Keranjang-Icon.svg" 
+              src={assetImage5}
               alt="Cart" 
               className="w-5 h-5 object-contain" 
             />
@@ -250,7 +257,7 @@ const Pembayaran = () => {
               {cartItems.map(item => (
                 <div key={item.id} className="flex gap-4 items-center">
                   <div className="w-14 h-14 bg-gray-50 rounded border border-gray-100 overflow-hidden shrink-0">
-                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                    <ProductImage src={item.image} alt={item.name} className="w-full h-full object-cover" />
                   </div>
                   <div className="flex flex-col gap-1">
                     <span className="text-sm text-gray-800 line-clamp-1">{item.name}</span>

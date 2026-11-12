@@ -1,4 +1,5 @@
-import React from 'react';
+import ProductImage from '../../components/ProductImage';
+import assetImage0 from "../../assets/marketplace/Keranjang-Icon.svg";
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 
@@ -41,7 +42,7 @@ const Keranjang = () => {
             className="w-full sm:w-auto justify-center mt-4 sm:mt-0 bg-[#2C6E91] text-white px-8 py-3.5 rounded-full shadow-lg flex items-center gap-3 hover:bg-[#235875] transition-all duration-300"
           >
             <img 
-              src="/src/assets/marketplace/Keranjang-Icon.svg" 
+              src={assetImage0}
               alt="Cart" 
               className="w-5 h-5 object-contain" 
             />
@@ -90,7 +91,7 @@ const Keranjang = () => {
                         </button>
                         
                         <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gray-100 rounded-lg overflow-hidden shrink-0">
-                          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                          <ProductImage src={item.image} alt={item.name} className="w-full h-full object-cover" />
                         </div>
                         
                         <span className="font-medium text-gray-800 line-clamp-2">{item.name}</span>

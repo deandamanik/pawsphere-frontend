@@ -1,4 +1,4 @@
-import React from 'react';
+import ProductImage from './ProductImage';
 import { useCart } from '../context/CartContext';
 
 const ProductCard = ({ product }) => {
@@ -27,7 +27,7 @@ const ProductCard = ({ product }) => {
       )}
       {/* Image */}
       <div className="w-full aspect-square flex items-center justify-center overflow-hidden rounded-xl">
-        <img src={product.image} alt={product.name} className="max-h-full max-w-full object-contain" />
+        <ProductImage src={product.image} alt={product.name} className="max-h-full max-w-full object-contain" />
       </div>
 
       {/* Content */}

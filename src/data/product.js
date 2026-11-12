@@ -1,3 +1,9 @@
+import assetImage0 from "../assets/product/Amoxicillin.png";
+import assetImage1 from "../assets/product/Probiotik.png";
+import assetImage2 from "../assets/product/Royal Canin.png";
+import assetImage3 from "../assets/product/Vitamin B.png";
+import assetImage4 from "../assets/product/Shampoo.png";
+import assetImage5 from "../assets/product/Ivermectin.png";
 export const productsData = [
   {
     id: 1,
@@ -8,7 +14,7 @@ export const productsData = [
     price: 45000,
     oldPrice: 60000,
     discount: 25,
-    image: "src/assets/product/Amoxicillin.png",
+    image: assetImage0,
     hasPrescription: true,
     category: "Obat"
   },
@@ -21,7 +27,7 @@ export const productsData = [
     price: 89000,
     oldPrice: null,
     discount: null,
-    image: "/src/assets/product/Probiotik.png", 
+    image: assetImage1,
     hasPrescription: false,
     category: "Vitamin"
   },
@@ -34,7 +40,7 @@ export const productsData = [
     price: 185000,
     oldPrice: 210000,
     discount: 12,
-    image: "/src/assets/product/Royal Canin.png", 
+    image: assetImage2,
     hasPrescription: false,
     category: "Makanan"
   },
@@ -47,7 +53,7 @@ export const productsData = [
     price: 65000,
     oldPrice: null,
     discount: null,
-    image: "/src/assets/product/Vitamin B.png", 
+    image: assetImage3,
     hasPrescription: false,
     category: "Vitamin"
   },
@@ -60,7 +66,7 @@ export const productsData = [
     price: 55000,
     oldPrice: 70000,
     discount: 21,
-    image: "/src/assets/product/Shampoo.png", 
+    image: assetImage4,
     hasPrescription: false,
     category: "Obat"
   },
@@ -73,7 +79,7 @@ export const productsData = [
     price: 35000,
     oldPrice: null,
     discount: null,
-    image: "/src/assets/product/Ivermectin.png", 
+    image: assetImage5,
     hasPrescription: true,
     category: "Obat"
   },

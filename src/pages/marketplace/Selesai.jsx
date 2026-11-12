@@ -1,4 +1,5 @@
-import React from 'react';
+import assetImage0 from "../../assets/marketplace/selesai-icon.svg";
+import assetImage1 from "../../assets/marketplace/ke home-icon.svg";
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const Selesai = () => {
@@ -31,7 +32,7 @@ const Selesai = () => {
 
           <div className="w-24 h-24 bg-white  rounded-full flex items-center justify-center mb-10">
             <img 
-                src="/src/assets/marketplace/selesai-icon.svg" 
+                src={assetImage0}
                 alt="Success" 
                 className="w-24 h-24 object-contain" 
             />
@@ -72,7 +73,7 @@ const Selesai = () => {
           {/* Icon Centang Hijau */}
           <div className="w-5 h-5  flex items-center  ">
             <img 
-                src="/src/assets/marketplace/ke home-icon.svg" 
+                src={assetImage1}
                 alt="Success" 
                 className="w-5 h-5 object-contain" 
             />

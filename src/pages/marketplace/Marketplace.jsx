@@ -1,4 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import assetImage0 from "../../assets/marketplace/Keranjang-Icon.svg";
+import assetImage1 from "../../assets/marketplace/Search-Icon.svg";
+import assetImage2 from "../../assets/marketplace/filter-icon.svg";
+import assetImage3 from "../../assets/marketplace/Resep-Icon.svg";
+import { useState, useEffect } from 'react';
 import ProductCard from '../../components/ProductCard';
 import { useNavigate } from 'react-router-dom';
 import { getProducts } from '../../services/marketplace.service';
@@ -39,7 +43,7 @@ const Marketplace = () => {
          onClick={() => navigate('/Keranjang')} 
          className="mt-6 sm:mt-0 bg-[#2C6E91] text-white px-8 py-3.5 rounded-full shadow-lg flex items-center gap-3 hover:bg-[#235875] transition-all duration-300">
             <img 
-              src="/src/assets/marketplace/Keranjang-Icon.svg" 
+              src={assetImage0}
               alt="Cart" 
               className="w-5 h-5 object-contain" 
             />
@@ -57,7 +61,7 @@ const Marketplace = () => {
           
           <div className="relative grow w-full max-w-2xl">
             <img 
-              src="/src/assets/marketplace/Search-Icon.svg" 
+              src={assetImage1}
               alt="Search" 
               className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 w-5 h-5 object-contain opacity-50" 
             />
@@ -70,7 +74,7 @@ const Marketplace = () => {
 
           <button className="flex items-center justify-center gap-2.5 text-sm font-semibold text-gray-700 px-6 py-3.5 sm:py-4 border border-gray-200 rounded-full hover:bg-gray-50 w-full sm:w-auto whitespace-nowrap">
             <img 
-              src="/src/assets/marketplace/filter-icon.svg" 
+              src={assetImage2}
               alt="Filter" 
               className="w-5 h-5 object-contain" 
             />
@@ -103,7 +107,7 @@ const Marketplace = () => {
   
           <div className="w-full lg:w-auto bg-[#FFFBE6] border border-[#FFE58F] text-[#D48806] text-sm font-medium px-5 py-3.5 rounded-xl flex items-center justify-center lg:justify-start gap-2.5 whitespace-nowrap">
             <img 
-              src="/src/assets/marketplace/Resep-icon.svg" 
+              src={assetImage3}
               alt="Resep" 
               className="w-5 h-5 object-contain" 
             />
