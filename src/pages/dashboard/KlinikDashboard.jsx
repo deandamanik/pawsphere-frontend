@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
-  LuBuilding2, LuLogOut, LuCalendar, LuUser, LuPhone, LuHash,
+  LuBuilding2, LuLogOut, LuCalendar, LuUser, LuPhone, LuHash, LuHouse,
   LuWallet, LuPawPrint, LuClock, LuCheck, LuX, LuStethoscope,
   LuBedDouble, LuMapPin, LuInbox,
 } from "react-icons/lu";
@@ -102,6 +102,15 @@ export default function KlinikDashboard() {
               <p className="text-sm font-semibold text-slate-700 leading-tight">{user?.name}</p>
               <p className="text-[11px] text-slate-400">Pengelola</p>
             </div>
+            <Link
+              to="/"
+              aria-label="Kembali ke beranda"
+              title="Kembali ke beranda"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-blue-normal hover:text-brand-blue-dark border border-brand-blue-normal/20 hover:border-brand-blue-normal/40 hover:bg-brand-blue-light px-3 py-2 rounded-xl transition-colors"
+            >
+              <LuHouse className="w-4 h-4" />
+              <span className="hidden sm:inline">Beranda</span>
+            </Link>
             <button
               onClick={handleLogout}
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-red-600 border border-slate-200 hover:border-red-200 hover:bg-red-50 px-3 py-2 rounded-xl transition-colors"
