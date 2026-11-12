@@ -9,6 +9,7 @@ import ContactModal from '../../components/paw-alert/ContactModal';
 import EmergencyTips from '../../components/paw-alert/EmergencyTips';
 import NearbyShelters from '../../components/paw-alert/NearbyShelters';
 import AlertForm from '../../components/paw-alert/AlertForm';
+import CameraCaptureModal from '../../components/paw-alert/CameraCaptureModal';
 import SuccessModal from '../../components/ui/SuccessModal';
 
 const haversine = (lat1, lng1, lat2, lng2) => {
@@ -31,7 +32,6 @@ const SHELTER_DATA = [
   { id: 5, name: 'Sanur Pet Rescue', address: 'Jl. Danau Tamblingan No. 3, Sanur', status: 'Tutup', hours: '08.00 - 15.00', phone: '6281255667788', lat: -8.6839, lng: 115.2624 },
 ];
 
-// Resize a photo File into a compact JPEG data URL for storage.
 const fileToResizedDataUrl = (file, max = 800) =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -70,6 +70,7 @@ const PawAlert = () => {
   const [locationError, setLocationError] = useState(null);
   const [locationDetected, setLocationDetected] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -78,6 +79,12 @@ const PawAlert = () => {
     if (!file) return;
     setPhoto(file);
     setPhotoPreview(URL.createObjectURL(file));
+  };
+
+  const handleCameraCapture = (file) => {
+    setPhoto(file);
+    setPhotoPreview(URL.createObjectURL(file));
+    setShowCamera(false);
   };
 
   const handleDeteksiLokasi = () => {
@@ -171,6 +178,16 @@ const PawAlert = () => {
         )}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {showCamera && (
+          <CameraCaptureModal
+            open={showCamera}
+            onCapture={handleCameraCapture}
+            onClose={() => setShowCamera(false)}
+          />
+        )}
+      </AnimatePresence>
+
       <SuccessModal
         isOpen={showSuccess}
         onClose={handleCloseSuccessModal}
@@ -210,6 +227,7 @@ const PawAlert = () => {
               handlePhotoChange={handlePhotoChange}
               handleDeteksiLokasi={handleDeteksiLokasi}
               handleSubmit={handleSubmit}
+              onOpenCamera={() => setShowCamera(true)}
             />
           </div>
         </div>

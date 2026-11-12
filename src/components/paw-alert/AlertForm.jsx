@@ -1,11 +1,15 @@
+import { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiCamera, FiUpload, FiMapPin, FiCheckCircle, FiLoader, FiSend, FiRefreshCw } from 'react-icons/fi';
+import { FiCamera, FiUpload, FiMapPin, FiCheckCircle, FiLoader, FiSend, FiRefreshCw, FiMic } from 'react-icons/fi';
 
 const fadeUpVariants = {
   hidden: { opacity: 0, y: 10 },
   visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100, damping: 20 } },
   exit: { opacity: 0, y: -10, transition: { duration: 0.15 } }
 };
+
+const SpeechRecognition =
+  typeof window !== 'undefined' ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
 
 const AlertForm = ({
   photoPreview,
@@ -20,18 +24,54 @@ const AlertForm = ({
   loadingLokasi,
   handlePhotoChange,
   handleDeteksiLokasi,
-  handleSubmit
+  handleSubmit,
+  onOpenCamera,
 }) => {
+  const recognitionRef = useRef(null);
+  const [listening, setListening] = useState(false);
+  const speechSupported = Boolean(SpeechRecognition);
+
+  const toggleDictation = () => {
+    if (!speechSupported) return;
+    if (listening) {
+      recognitionRef.current?.stop();
+      return;
+    }
+    const rec = new SpeechRecognition();
+    rec.lang = 'id-ID';
+    rec.continuous = true;
+    rec.interimResults = false;
+    rec.onresult = (e) => {
+      let finalText = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) finalText += e.results[i][0].transcript;
+      }
+      if (finalText.trim()) {
+        setDeskripsi((prev) => (prev ? prev.trim() + ' ' : '') + finalText.trim());
+      }
+    };
+    rec.onend = () => setListening(false);
+    rec.onerror = () => setListening(false);
+    recognitionRef.current = rec;
+    try {
+      rec.start();
+      setListening(true);
+    } catch {
+      setListening(false);
+    }
+  };
+
   return (
     <form
       onSubmit={handleSubmit}
       className="bg-white border border-gray-100 rounded-2xl p-4 md:p-6 shadow-sm flex flex-col gap-5 md:gap-6"
     >
+      {/* ---- Foto ---- */}
       <motion.div variants={fadeUpVariants} initial="hidden" animate="visible">
         <label className="block text-xs md:text-sm font-bold text-brand-blue-darker uppercase tracking-wider mb-2.5">
           Foto Hewan <span className="text-red-500">*</span>
         </label>
-        
+
         <div
           onClick={() => fileInputRef.current.click()}
           className="relative border-2 border-dashed border-gray-200 hover:border-red-300 rounded-xl bg-gray-50/50 hover:bg-red-50/20
@@ -48,14 +88,28 @@ const AlertForm = ({
                 transition={{ type: 'spring', stiffness: 120, damping: 20 }}
                 className="relative flex flex-col items-center z-10"
               >
-                <img 
-                  src={photoPreview} 
-                  alt="Preview" 
-                  className="h-36 md:h-44 w-auto max-w-full rounded-lg object-cover shadow-sm border border-gray-200" 
+                <img
+                  src={photoPreview}
+                  alt="Preview"
+                  className="h-36 md:h-44 w-auto max-w-full rounded-lg object-cover shadow-sm border border-gray-200"
                 />
-                <p className="text-[11px] text-brand-blue-normal font-bold mt-2 underline group-hover:text-red-500 transition-colors">
-                  Ubah Foto Hewan
-                </p>
+                <div className="flex items-center gap-3 mt-2.5" onClick={(e) => e.stopPropagation()}>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current.click()}
+                    className="text-[11px] text-brand-blue-normal font-bold underline hover:text-red-500 transition-colors"
+                  >
+                    Ganti berkas
+                  </button>
+                  <span className="w-1 h-1 rounded-full bg-gray-300" />
+                  <button
+                    type="button"
+                    onClick={onOpenCamera}
+                    className="inline-flex items-center gap-1 text-[11px] text-brand-blue-normal font-bold underline hover:text-red-500 transition-colors"
+                  >
+                    <FiCamera size={11} /> Foto ulang
+                  </button>
+                </div>
               </motion.div>
             ) : (
               <motion.div
@@ -65,7 +119,7 @@ const AlertForm = ({
                 exit={{ opacity: 0, transition: { duration: 0.1 } }}
                 className="flex flex-col items-center gap-3"
               >
-                <motion.div 
+                <motion.div
                   whileHover={{ scale: 1.05, rotate: -2 }}
                   className="w-12 h-12 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center group-hover:bg-red-100/70 transition-colors"
                 >
@@ -75,17 +129,30 @@ const AlertForm = ({
                   <p className="font-bold text-brand-blue-darker text-sm">Upload Foto Kondisi Hewan</p>
                   <p className="text-brand-blue-darker/40 text-[11px] mt-0.5">Format JPG, PNG maksimal ukuran 5MB</p>
                 </div>
-                <motion.button
-                  type="button"
-                  whileHover={{ scale: 1.02, y: -1 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={(e) => { e.stopPropagation(); fileInputRef.current.click(); }}
-                  className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 
-                            text-brand-blue-darker text-xs font-bold rounded-lg shadow-sm group-hover:border-red-200 transition-colors"
-                >
-                  <FiUpload size={12} className="text-brand-blue-normal" />
-                  Pilih Berkas
-                </motion.button>
+                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: 1.02, y: -1 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => fileInputRef.current.click()}
+                    className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200
+                              text-brand-blue-darker text-xs font-bold rounded-lg shadow-sm hover:border-red-200 transition-colors"
+                  >
+                    <FiUpload size={12} className="text-brand-blue-normal" />
+                    Pilih Berkas
+                  </motion.button>
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: 1.02, y: -1 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={onOpenCamera}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600
+                              text-white text-xs font-bold rounded-lg shadow-sm transition-colors"
+                  >
+                    <FiCamera size={12} />
+                    Buka Kamera
+                  </motion.button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -93,6 +160,7 @@ const AlertForm = ({
         <input ref={fileInputRef} type="file" accept="image/jpeg,image/png" className="hidden" onChange={handlePhotoChange} />
       </motion.div>
 
+      {/* ---- Jenis Hewan ---- */}
       <motion.div variants={fadeUpVariants} initial="hidden" animate="visible" transition={{ delay: 0.05 }}>
         <label className="block text-xs md:text-sm font-bold text-brand-blue-darker uppercase tracking-wider mb-2">
           Jenis Hewan
@@ -103,11 +171,12 @@ const AlertForm = ({
           value={jenisHewan}
           onChange={(e) => setJenisHewan(e.target.value)}
           className="w-full px-4 py-3 border border-gray-200 rounded-xl text-xs md:text-sm
-                    text-brand-blue-darker placeholder:text-brand-blue-darker/35 focus:outline-none 
+                    text-brand-blue-darker placeholder:text-brand-blue-darker/35 focus:outline-none
                     focus:border-brand-blue-normal focus:ring-2 focus:ring-brand-blue-light/50 bg-white transition-all duration-200"
         />
       </motion.div>
 
+      {/* ---- Kondisi Hewan ---- */}
       <motion.div variants={fadeUpVariants} initial="hidden" animate="visible" transition={{ delay: 0.1 }}>
         <label className="block text-xs md:text-sm font-bold text-brand-blue-darker uppercase tracking-wider mb-2">
           Kondisi Hewan
@@ -118,26 +187,49 @@ const AlertForm = ({
           value={kondisiHewan}
           onChange={(e) => setKondisiHewan(e.target.value)}
           className="w-full px-4 py-3 border border-gray-200 rounded-xl text-xs md:text-sm
-                    text-brand-blue-darker placeholder:text-brand-blue-darker/35 focus:outline-none 
+                    text-brand-blue-darker placeholder:text-brand-blue-darker/35 focus:outline-none
                     focus:border-brand-blue-normal focus:ring-2 focus:ring-brand-blue-light/50 bg-white transition-all duration-200"
         />
       </motion.div>
 
+      {/* ---- Deskripsi + Voice-to-text ---- */}
       <motion.div variants={fadeUpVariants} initial="hidden" animate="visible" transition={{ delay: 0.15 }}>
-        <label className="block text-xs md:text-sm font-bold text-brand-blue-darker uppercase tracking-wider mb-2">
-          Deskripsi Singkat <span className="text-red-500">*</span>
-        </label>
+        <div className="flex items-center justify-between mb-2 gap-2">
+          <label className="block text-xs md:text-sm font-bold text-brand-blue-darker uppercase tracking-wider">
+            Deskripsi Singkat <span className="text-red-500">*</span>
+          </label>
+          {speechSupported && (
+            <button
+              type="button"
+              onClick={toggleDictation}
+              className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-colors ${
+                listening
+                  ? 'bg-red-500 text-white border-red-500 animate-pulse'
+                  : 'bg-white text-brand-blue-normal border-gray-200 hover:border-red-200 hover:text-red-500'
+              }`}
+            >
+              <FiMic size={12} />
+              {listening ? 'Merekam… ketuk utk berhenti' : 'Isi dengan suara'}
+            </button>
+          )}
+        </div>
         <textarea
           value={deskripsi}
           onChange={(e) => setDeskripsi(e.target.value)}
-          placeholder="Ceritakan detail kondisi fisik hewan, patokan lokasi spesifik di lapangan, serta situasi darurat yang sedang terjadi..."
+          placeholder={listening ? 'Silakan bicara, teks akan muncul di sini…' : 'Ceritakan detail kondisi fisik hewan, patokan lokasi spesifik di lapangan, serta situasi darurat yang sedang terjadi...'}
           rows={4}
           className="w-full px-4 py-3 border border-gray-200 rounded-xl text-xs md:text-sm
                     text-brand-blue-darker placeholder:text-brand-blue-darker/35
                     focus:outline-none focus:border-brand-blue-normal focus:ring-2 focus:ring-brand-blue-light/50 bg-white resize-none transition-all duration-200"
         />
+        {!speechSupported && (
+          <p className="text-[10px] text-brand-blue-darker/40 mt-1">
+            Isi dengan suara belum didukung di browser ini — coba Chrome.
+          </p>
+        )}
       </motion.div>
 
+      {/* ---- Lokasi GPS ---- */}
       <motion.div variants={fadeUpVariants} initial="hidden" animate="visible" transition={{ delay: 0.2 }}>
         <label className="block text-xs md:text-sm font-bold text-brand-blue-darker uppercase tracking-wider mb-2">
           Lokasi Koordinat GPS <span className="text-red-500">*</span>
@@ -146,7 +238,7 @@ const AlertForm = ({
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <AnimatePresence mode="wait">
               {lokasi ? (
-                <motion.div 
+                <motion.div
                   key="success"
                   initial={{ scale: 0.5, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
@@ -155,7 +247,7 @@ const AlertForm = ({
                   <FiCheckCircle size={16} />
                 </motion.div>
               ) : (
-                <motion.div 
+                <motion.div
                   key="error"
                   initial={{ scale: 0.5, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
@@ -167,7 +259,7 @@ const AlertForm = ({
             </AnimatePresence>
             <div className="min-w-0 flex-1">
               <AnimatePresence mode="wait">
-                <motion.h5 
+                <motion.h5
                   key={lokasi ? 'detected' : 'missing'}
                   initial={{ opacity: 0, x: -5 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -182,17 +274,17 @@ const AlertForm = ({
               </p>
             </div>
           </div>
-          
+
           <motion.button
             type="button"
             whileHover={loadingLokasi ? {} : { scale: 1.01, y: -1 }}
             whileTap={loadingLokasi ? {} : { scale: 0.98 }}
             onClick={handleDeteksiLokasi}
             disabled={loadingLokasi}
-            className={`flex items-center justify-center gap-2 px-4 py-2.5 border text-xs font-bold rounded-xl 
+            className={`flex items-center justify-center gap-2 px-4 py-2.5 border text-xs font-bold rounded-xl
                       transition-colors whitespace-nowrap sm:w-auto w-full shadow-sm
-                      ${lokasi 
-                        ? 'bg-gray-50 border-gray-200 hover:border-red-200 hover:bg-red-50/30 text-gray-700 hover:text-red-600' 
+                      ${lokasi
+                        ? 'bg-gray-50 border-gray-200 hover:border-red-200 hover:bg-red-50/30 text-gray-700 hover:text-red-600'
                         : 'bg-white border-gray-200 hover:border-gray-300 text-brand-blue-darker'
                       }`}
           >
@@ -203,17 +295,12 @@ const AlertForm = ({
             ) : (
               <FiMapPin size={13} className="text-brand-blue-normal" />
             )}
-            
-            {loadingLokasi 
-              ? 'Mengunci Koordinat...' 
-              : lokasi 
-                ? 'Ubah Lokasi' 
-                : 'Deteksi Lokasi Otomatis'
-            }
+            {loadingLokasi ? 'Mengunci Koordinat...' : lokasi ? 'Ubah Lokasi' : 'Deteksi Lokasi Otomatis'}
           </motion.button>
         </div>
       </motion.div>
 
+      {/* ---- Submit ---- */}
       <motion.button
         type="submit"
         variants={fadeUpVariants}
@@ -223,7 +310,7 @@ const AlertForm = ({
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
         className="w-full flex items-center justify-center gap-2 py-3.5 mt-2 rounded-xl
-                  bg-red-500 hover:bg-red-600 active:bg-red-700 text-white text-xs md:text-sm font-bold 
+                  bg-red-500 hover:bg-red-600 active:bg-red-700 text-white text-xs md:text-sm font-bold
                   shadow-md shadow-red-500/10 transition-colors duration-200"
       >
         <FiSend size={14} />
