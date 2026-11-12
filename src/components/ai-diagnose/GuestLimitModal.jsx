@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
+import Mascot from "../ui/Mascot";
 
-// Modal pop-up yang muncul saat guest kehabisan 5 sesi gratis.
 const GuestLimitModal = ({ open, onClose, limit = 5 }) => {
   if (!open) return null;
 
@@ -13,9 +13,7 @@ const GuestLimitModal = ({ open, onClose, limit = 5 }) => {
         className="bg-white rounded-2xl shadow-card border border-slate-100 p-8 max-w-md w-full text-center"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mx-auto mb-4 h-14 w-14 rounded-full bg-brand-blue-light flex items-center justify-center">
-          <span className="text-2xl">🐾</span>
-        </div>
+        <Mascot state="confirm" size={120} className="mx-auto mb-3" />
         <h2 className="text-xl font-bold text-slate-800 mb-2">
           Sesi gratis kamu sudah habis
         </h2>

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { FiChevronLeft, FiAlertTriangle, FiUsers, FiClock } from 'react-icons/fi';
 import DonationForm from './DonationForm';
 import SuccessModal from '../../components/ui/SuccessModal';
+import ErrorModal from '../../components/ui/ErrorModal';
 import { donate } from '../../services/donation.service';
 
 const UrgencyBadge = ({ label, color }) => (
@@ -20,6 +21,7 @@ const Tag = ({ label }) => (
 
 const CampaignDetail = ({ campaign, onBack, onDonated }) => {
   const [showSuccess, setShowSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
   const [successData, setSuccessData] = useState({ amount: 0 });
 
   const handleSuccess = async ({ amount, name, message }) => {
@@ -29,7 +31,7 @@ const CampaignDetail = ({ campaign, onBack, onDonated }) => {
       setShowSuccess(true);
       if (onDonated) onDonated();
     } catch (err) {
-      alert(err.message || 'Gagal memproses donasi. Coba lagi.');
+      setErrorMsg(err.message || 'Gagal memproses donasi. Coba lagi.');
     }
   };
 
@@ -49,6 +51,7 @@ const CampaignDetail = ({ campaign, onBack, onDonated }) => {
         title="Donasi Berhasil Terkirim!"
         message={`Terima kasih orang baik! Donasi sebesar Rp ${successData.amount.toLocaleString('id-ID')} untuk "${campaign.title}" telah kami terima.`}
       />
+      <ErrorModal isOpen={!!errorMsg} message={errorMsg} onClose={() => setErrorMsg('')} />
 
       <div className="w-full flex justify-start mb-6">
         <button

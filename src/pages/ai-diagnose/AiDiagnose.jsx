@@ -3,6 +3,7 @@ import AiDiagnoseContainer from "../../components/ai-diagnose/AiDiagnoseContaine
 import GuestLimitModal from "../../components/ai-diagnose/GuestLimitModal";
 import { useAuth } from "../../context/AuthContext";
 import { sendChatMessage } from "../../services/aiChat.service";
+import Mascot from "../../components/ui/Mascot";
 import {
   getGuestRemaining,
   setGuestRemaining,
@@ -34,7 +35,7 @@ const AiDiagnose = () => {
     "Mata berair",
   ];
   const filteredChats = chats.filter((c) =>
-    c.title.toLowerCase().includes(searchQuery.toLowerCase())
+    c.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const getTime = () => {
@@ -44,7 +45,10 @@ const AiDiagnose = () => {
 
   const handleNewChat = () => {
     const newId = Date.now();
-    setChats((prev) => [{ id: newId, title: "Chat Baru", messages: [] }, ...prev]);
+    setChats((prev) => [
+      { id: newId, title: "Chat Baru", messages: [] },
+      ...prev,
+    ]);
     setActiveChatId(newId);
     setInputValue("");
     setTimeout(() => inputRef.current?.focus(), 100);
@@ -81,7 +85,12 @@ const AiDiagnose = () => {
       ]);
     }
 
-    const userMsg = { id: Date.now(), role: "user", text: trimmed, time: getTime() };
+    const userMsg = {
+      id: Date.now(),
+      role: "user",
+      text: trimmed,
+      time: getTime(),
+    };
 
     setChats((prev) =>
       prev.map((c) =>
@@ -96,8 +105,8 @@ const AiDiagnose = () => {
                   : c.title,
               messages: [...c.messages, userMsg],
             }
-          : c
-      )
+          : c,
+      ),
     );
     setInputValue("");
     setIsTyping(true);
@@ -115,11 +124,16 @@ const AiDiagnose = () => {
       if (guest && typeof guest.remaining === "number") {
         setGuestRemaining(guest.remaining);
       }
-      const aiMsg = { id: Date.now() + 1, role: "ai", text: reply, time: getTime() };
+      const aiMsg = {
+        id: Date.now() + 1,
+        role: "ai",
+        text: reply,
+        time: getTime(),
+      };
       setChats((prev) =>
         prev.map((c) =>
-          c.id === chatId ? { ...c, messages: [...c.messages, aiMsg] } : c
-        )
+          c.id === chatId ? { ...c, messages: [...c.messages, aiMsg] } : c,
+        ),
       );
     } catch (err) {
       // Guest kena limit di server (mirror lokal out-of-sync) -> tampilkan modal.
@@ -138,8 +152,8 @@ const AiDiagnose = () => {
       };
       setChats((prev) =>
         prev.map((c) =>
-          c.id === chatId ? { ...c, messages: [...c.messages, aiMsg] } : c
-        )
+          c.id === chatId ? { ...c, messages: [...c.messages, aiMsg] } : c,
+        ),
       );
     } finally {
       setIsTyping(false);
@@ -150,7 +164,9 @@ const AiDiagnose = () => {
     const t = title.trim();
     if (!t) return;
     setChats((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, title: t, titleLocked: true } : c))
+      prev.map((c) =>
+        c.id === id ? { ...c, title: t, titleLocked: true } : c,
+      ),
     );
   };
 
@@ -175,18 +191,31 @@ const AiDiagnose = () => {
   if (loading) {
     return (
       <div className="font-poppins bg-slate-50 min-h-[calc(100vh-4rem)] flex items-center justify-center">
-        <div className="h-10 w-10 rounded-full border-4 border-brand-blue-normal/30 border-t-brand-blue-normal animate-spin" />
+        <Mascot state="loading" size={120} />
       </div>
     );
   }
 
   const chatState = {
-    chats, activeChatId, activeChat, inputValue, isTyping,
-    searchQuery, isSearching, symptoms, inputRef,
+    chats,
+    activeChatId,
+    activeChat,
+    inputValue,
+    isTyping,
+    searchQuery,
+    isSearching,
+    symptoms,
+    inputRef,
   };
   const chatActions = {
-    setInputValue, setSearchQuery, setIsSearching, filteredChats,
-    handleNewChat, handleSend, handleSymptomClick, handleKeyDown,
+    setInputValue,
+    setSearchQuery,
+    setIsSearching,
+    filteredChats,
+    handleNewChat,
+    handleSend,
+    handleSymptomClick,
+    handleKeyDown,
     handleChatSelect: setActiveChatId,
     handleRenameChat,
     handleDeleteChat,
