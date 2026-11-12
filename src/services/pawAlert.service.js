@@ -1,8 +1,9 @@
 // Paw Alert API calls.
 import { apiRequest } from "../lib/api";
 
-// public — direktori shelter terdekat
+// public — direktori shelter + laporan untuk peta
 export const getShelters = () => apiRequest("/paw-alert/shelters");
+export const getMapReports = () => apiRequest("/paw-alert/reports/map");
 
 // reporter (any logged-in user)
 export const createReport = (payload) =>
