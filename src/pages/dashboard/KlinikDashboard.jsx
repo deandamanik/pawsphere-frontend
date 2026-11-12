@@ -21,6 +21,7 @@ import {
 } from "react-icons/lu";
 import { useAuth } from "../../context/AuthContext";
 import ErrorModal from "../../components/ui/ErrorModal";
+import ConfirmModal from "../../components/ui/ConfirmModal";
 import {
   getClinicDashboard,
   getClinicReservations,
@@ -77,6 +78,7 @@ export default function KlinikDashboard() {
   const [busyId, setBusyId] = useState(null);
   const [error, setError] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [confirm, setConfirm] = useState(null);
 
   const loadDashboard = useCallback(() => {
     getClinicDashboard()
@@ -110,10 +112,45 @@ export default function KlinikDashboard() {
       setBusyId(null);
     }
   };
+
+  // Minta konfirmasi dulu sebelum mengubah status reservasi
+  const STATUS_CONFIRM = {
+    confirmed: {
+      title: "Konfirmasi reservasi ini?",
+      message: "Reservasi akan ditandai sebagai terkonfirmasi.",
+      confirmText: "Ya, konfirmasi",
+      tone: "default",
+    },
+    completed: {
+      title: "Tandai reservasi selesai?",
+      message: "Reservasi akan dipindahkan ke daftar selesai.",
+      confirmText: "Ya, selesai",
+      tone: "default",
+    },
+    cancelled: {
+      title: "Batalkan reservasi ini?",
+      message: "Tindakan ini menolak/membatalkan reservasi dan tidak bisa dibatalkan.",
+      confirmText: "Ya, batalkan",
+      tone: "danger",
+    },
+  };
+  const askStatus = (id, status) => {
+    const cfg = STATUS_CONFIRM[status] || {};
+    setConfirm({ ...cfg, onConfirm: () => handleStatus(id, status) });
+  };
+
   const handleLogout = () => {
     logout();
     navigate("/login", { replace: true });
   };
+  const askLogout = () =>
+    setConfirm({
+      title: "Keluar dari akun?",
+      message: "Kamu perlu login lagi untuk masuk ke dashboard.",
+      confirmText: "Ya, keluar",
+      tone: "danger",
+      onConfirm: handleLogout,
+    });
 
   const stats = dashboard?.stats || {
     pending: 0,
@@ -167,7 +204,7 @@ export default function KlinikDashboard() {
               <span className="hidden sm:inline">Beranda</span>
             </Link>
             <button
-              onClick={handleLogout}
+              onClick={askLogout}
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-red-600 border border-slate-200 hover:border-red-200 hover:bg-red-50 px-3 py-2 rounded-xl transition-colors"
             >
               <LuLogOut className="w-4 h-4" />
@@ -265,7 +302,7 @@ export default function KlinikDashboard() {
                 key={r.id}
                 r={r}
                 busy={busyId === r.id}
-                onStatus={handleStatus}
+                onStatus={askStatus}
               />
             ))}
           </div>
@@ -275,6 +312,19 @@ export default function KlinikDashboard() {
         isOpen={!!errorMsg}
         message={errorMsg}
         onClose={() => setErrorMsg("")}
+      />
+      <ConfirmModal
+        open={!!confirm}
+        title={confirm?.title}
+        message={confirm?.message}
+        confirmText={confirm?.confirmText}
+        tone={confirm?.tone}
+        onConfirm={() => {
+          const fn = confirm?.onConfirm;
+          setConfirm(null);
+          fn?.();
+        }}
+        onClose={() => setConfirm(null)}
       />
     </div>
   );

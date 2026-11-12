@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { resolveProductImage } from "../data/product";
 
 const CartContext = createContext(null);
 const KEY = "pawsphere_cart";
@@ -7,7 +8,10 @@ export function CartProvider({ children }) {
   const [cart, setCart] = useState(() => {
     try {
       const raw = localStorage.getItem(KEY);
-      return raw ? JSON.parse(raw) : [];
+      const items = raw ? JSON.parse(raw) : [];
+      return Array.isArray(items)
+        ? items.map((item) => ({ ...item, image: resolveProductImage(item) }))
+        : [];
     } catch {
       return [];
     }

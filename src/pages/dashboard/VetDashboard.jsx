@@ -4,6 +4,7 @@ import { LuArrowLeft, LuMessageCircle, LuCheck, LuCircleCheck } from "react-icon
 import DashboardShell from "../../components/dashboard/DashboardShell";
 import ConsultationChat from "../../components/vet-connect/ConsultationChat";
 import ErrorModal from "../../components/ui/ErrorModal";
+import ConfirmModal from "../../components/ui/ConfirmModal";
 import {
   getVetConsultations,
   updateConsultationStatus,
@@ -24,6 +25,7 @@ export default function VetDashboard() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
+  const [confirm, setConfirm] = useState(null);
 
   const load = useCallback(async () => {
     try {
@@ -52,6 +54,25 @@ export default function VetDashboard() {
     }
   };
 
+  const STATUS_CONFIRM = {
+    active: {
+      title: "Terima konsultasi ini?",
+      message: "Konsultasi akan menjadi aktif dan kamu bisa membalas chat pemilik hewan.",
+      confirmText: "Ya, terima",
+      tone: "default",
+    },
+    completed: {
+      title: "Selesaikan konsultasi ini?",
+      message: "Konsultasi akan ditandai selesai dan tidak bisa dibuka kembali.",
+      confirmText: "Ya, selesaikan",
+      tone: "default",
+    },
+  };
+  const askStatus = (id, status) => {
+    const cfg = STATUS_CONFIRM[status] || {};
+    setConfirm({ ...cfg, onConfirm: () => setStatus(id, status) });
+  };
+
   const counts = {
     pending: consultations.filter((c) => c.status === "pending").length,
     active: consultations.filter((c) => c.status === "active").length,
@@ -63,6 +84,19 @@ export default function VetDashboard() {
     return (
       <DashboardShell title="Konsultasi" subtitle={`Pasien: ${selected.patient.name}`}>
         <ErrorModal isOpen={!!errorMsg} message={errorMsg} onClose={() => setErrorMsg("")} />
+        <ConfirmModal
+          open={!!confirm}
+          title={confirm?.title}
+          message={confirm?.message}
+          confirmText={confirm?.confirmText}
+          tone={confirm?.tone}
+          onConfirm={() => {
+            const fn = confirm?.onConfirm;
+            setConfirm(null);
+            fn?.();
+          }}
+          onClose={() => setConfirm(null)}
+        />
         <button
           onClick={() => {
             setSelected(null);
@@ -98,7 +132,7 @@ export default function VetDashboard() {
             <div className="flex flex-col gap-2 mt-5">
               {selected.status === "pending" && (
                 <button
-                  onClick={() => setStatus(selected.id, "active")}
+                  onClick={() => askStatus(selected.id, "active")}
                   className="flex items-center justify-center gap-2 bg-brand-blue-dark hover:bg-brand-blue-normal text-white text-sm font-semibold py-2.5 rounded-xl transition-colors"
                 >
                   <LuCheck className="w-4 h-4" />
@@ -107,7 +141,7 @@ export default function VetDashboard() {
               )}
               {selected.status === "active" && (
                 <button
-                  onClick={() => setStatus(selected.id, "completed")}
+                  onClick={() => askStatus(selected.id, "completed")}
                   className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors"
                 >
                   <LuCircleCheck className="w-4 h-4" />
