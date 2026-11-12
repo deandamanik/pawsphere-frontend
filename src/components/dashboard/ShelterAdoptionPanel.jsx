@@ -7,6 +7,7 @@ import {
   getShelterApplications, updateApplicationStatus,
 } from "../../services/adoption.service";
 import ErrorModal from "../ui/ErrorModal";
+import ConfirmModal from "../ui/ConfirmModal";
 
 const ANIMAL_STATUS = {
   available: { label: "Tersedia", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
@@ -55,6 +56,7 @@ export default function ShelterAdoptionPanel() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [confirm, setConfirm] = useState(null);
 
   const load = useCallback(async () => {
     try {
@@ -88,9 +90,7 @@ export default function ShelterAdoptionPanel() {
     e.target.value = "";
   };
 
-  const submitAnimal = async (e) => {
-    e.preventDefault();
-    if (saving) return;
+  const doSubmitAnimal = async () => {
     setSaving(true);
     try {
       await createAnimal(form);
@@ -103,6 +103,17 @@ export default function ShelterAdoptionPanel() {
       setSaving(false);
     }
   };
+  const submitAnimal = (e) => {
+    e.preventDefault();
+    if (saving) return;
+    setConfirm({
+      title: "Simpan data hewan baru?",
+      message: "Hewan akan ditambahkan ke katalog adopsi shelter.",
+      confirmText: "Ya, simpan",
+      tone: "default",
+      onConfirm: doSubmitAnimal,
+    });
+  };
 
   const setAnimalStatus = async (id, status) => {
     try {
@@ -113,8 +124,7 @@ export default function ShelterAdoptionPanel() {
     }
   };
 
-  const removeAnimal = async (id) => {
-    if (!window.confirm("Hapus data hewan ini?")) return;
+  const doRemoveAnimal = async (id) => {
     try {
       await deleteAnimal(id);
       load();
@@ -122,6 +132,14 @@ export default function ShelterAdoptionPanel() {
       setErrorMsg(err.message || "Gagal menghapus.");
     }
   };
+  const removeAnimal = (id) =>
+    setConfirm({
+      title: "Hapus data hewan ini?",
+      message: "Data hewan yang dihapus tidak bisa dikembalikan.",
+      confirmText: "Ya, hapus",
+      tone: "danger",
+      onConfirm: () => doRemoveAnimal(id),
+    });
 
   const setAppStatus = async (id, status) => {
     try {
@@ -143,6 +161,19 @@ export default function ShelterAdoptionPanel() {
   return (
     <div className="space-y-8">
       <ErrorModal isOpen={!!errorMsg} message={errorMsg} onClose={() => setErrorMsg("")} />
+      <ConfirmModal
+        open={!!confirm}
+        title={confirm?.title}
+        message={confirm?.message}
+        confirmText={confirm?.confirmText}
+        tone={confirm?.tone}
+        onConfirm={() => {
+          const fn = confirm?.onConfirm;
+          setConfirm(null);
+          fn?.();
+        }}
+        onClose={() => setConfirm(null)}
+      />
       {/* ---- Manage animals ---- */}
       <section>
         <div className="flex items-center justify-between mb-3">
@@ -301,7 +332,15 @@ export default function ShelterAdoptionPanel() {
                     </button>
                   ))}
                   <button
-                    onClick={() => setAppStatus(app.id, "rejected")}
+                    onClick={() =>
+                      setConfirm({
+                        title: "Tolak permohonan adopsi ini?",
+                        message: "Permohonan akan ditandai ditolak.",
+                        confirmText: "Ya, tolak",
+                        tone: "danger",
+                        onConfirm: () => setAppStatus(app.id, "rejected"),
+                      })
+                    }
                     className={"text-xs px-2.5 py-1 rounded-lg border transition-colors " + (app.status === "rejected" ? "bg-red-600 text-white border-red-600" : "bg-white text-red-600 border-red-200 hover:bg-red-50")}
                   >
                     Tolak

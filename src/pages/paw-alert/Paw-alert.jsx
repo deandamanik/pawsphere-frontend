@@ -12,6 +12,7 @@ import AlertForm from '../../components/paw-alert/AlertForm';
 import CameraCaptureModal from '../../components/paw-alert/CameraCaptureModal';
 import SuccessModal from '../../components/ui/SuccessModal';
 import ErrorModal from '../../components/ui/ErrorModal';
+import ConfirmModal from '../../components/ui/ConfirmModal';
 
 const haversine = (lat1, lng1, lat2, lng2) => {
   const R = 6371;
@@ -66,6 +67,7 @@ const PawAlert = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [askSubmit, setAskSubmit] = useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -134,7 +136,7 @@ const PawAlert = () => {
     setLokasi(null);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (submitting) return;
 
@@ -143,6 +145,12 @@ const PawAlert = () => {
       return;
     }
 
+    // Minta konfirmasi dulu sebelum laporan dikirim ke sistem rescue.
+    setAskSubmit(true);
+  };
+
+  const confirmSubmit = async () => {
+    setAskSubmit(false);
     setSubmitting(true);
     try {
       let photoUrl = null;
@@ -202,6 +210,17 @@ const PawAlert = () => {
         message="Laporan darurat Anda telah berhasil diterbitkan ke dalam sistem rescue."
       />
       <ErrorModal isOpen={!!errorMsg} message={errorMsg} onClose={() => setErrorMsg('')} />
+      <ConfirmModal
+        open={askSubmit}
+        tone="danger"
+        mascot="confirm"
+        title="Kirim laporan darurat?"
+        message="Pastikan foto, kondisi, dan lokasi sudah benar. Laporan akan diterbitkan ke tim rescue."
+        confirmText="Ya, kirim laporan"
+        loading={submitting}
+        onConfirm={confirmSubmit}
+        onClose={() => setAskSubmit(false)}
+      />
 
       <HeroHeader />
 
