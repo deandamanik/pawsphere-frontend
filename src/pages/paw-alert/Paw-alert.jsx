@@ -11,6 +11,7 @@ import NearbyShelters from '../../components/paw-alert/NearbyShelters';
 import AlertForm from '../../components/paw-alert/AlertForm';
 import CameraCaptureModal from '../../components/paw-alert/CameraCaptureModal';
 import SuccessModal from '../../components/ui/SuccessModal';
+import ErrorModal from '../../components/ui/ErrorModal';
 
 const haversine = (lat1, lng1, lat2, lng2) => {
   const R = 6371;
@@ -64,6 +65,7 @@ const PawAlert = () => {
   const [locationDetected, setLocationDetected] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const fileInputRef = useRef(null);
 
@@ -157,7 +159,7 @@ const PawAlert = () => {
 
       setShowSuccess(true);
     } catch (err) {
-      alert(err.message || 'Gagal mengirim laporan. Coba lagi.');
+      setErrorMsg(err.message || 'Gagal mengirim laporan. Coba lagi.');
     } finally {
       setSubmitting(false);
     }
@@ -199,6 +201,7 @@ const PawAlert = () => {
         title="Laporan Dikirim!"
         message="Laporan darurat Anda telah berhasil diterbitkan ke dalam sistem rescue."
       />
+      <ErrorModal isOpen={!!errorMsg} message={errorMsg} onClose={() => setErrorMsg('')} />
 
       <HeroHeader />
 

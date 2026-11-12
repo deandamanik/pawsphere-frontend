@@ -11,6 +11,7 @@ import PetDetailStage from './PetDetailStage';
 import PetFormStage from './PetFormStage';
 import PetSuccessStage from './PetSuccessStage';
 import MyAdoptionApplications from './MyAdoptionApplications';
+import ErrorModal from '../../components/ui/ErrorModal';
 
 const AdoptionContainer = () => {
   const { isAuthenticated } = useAuth();
@@ -24,6 +25,7 @@ const AdoptionContainer = () => {
 
   const [selectedPet, setSelectedPet] = useState(null);
   const [modalStage, setModalStage] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
     setLoading(true);
@@ -51,7 +53,7 @@ const AdoptionContainer = () => {
       setModalStage('success');
       setAppsRefresh((n) => n + 1);
     } catch (err) {
-      alert(err.message || 'Gagal mengirim permohonan. Coba lagi.');
+      setErrorMsg(err.message || 'Gagal mengirim permohonan. Coba lagi.');
     }
   };
 
@@ -230,6 +232,7 @@ const AdoptionContainer = () => {
           />
         )}
       </AdoptionModal>
+      <ErrorModal isOpen={!!errorMsg} message={errorMsg} onClose={() => setErrorMsg('')} />
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiNavigation, FiRefreshCw } from 'react-icons/fi';
 import ShelterCard from './ShelterCard';
+import Mascot from '../ui/Mascot';
 
 const textVariants = {
   hidden: { opacity: 0, x: -15 },
@@ -23,7 +24,7 @@ const NearbyShelters = ({
         <h3 className="font-bold text-brand-blue-darker text-sm">Shelter Terdekat</h3>
         <AnimatePresence>
           {locationDetected && (
-            <motion.span 
+            <motion.span
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
@@ -39,16 +40,16 @@ const NearbyShelters = ({
       <div className="relative min-h-19 flex flex-col justify-center">
         <AnimatePresence mode="wait">
           {!locationDetected ? (
-            <motion.div
-              key="cta-state"
-              variants={textVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="w-full"
-            >
+            <motion.div key="cta-state" variants={textVariants} initial="hidden" animate="visible" exit="exit" className="w-full">
+              {loadingLokasi && (
+                <div className="flex justify-center mb-1">
+                  <Mascot state="search" size={76} wobble />
+                </div>
+              )}
               <p className="text-brand-blue-darker/50 text-[11px] mb-3 leading-snug">
-                Aktifkan GPS untuk menampilkan shelter paling dekat dengan lokasimu.
+                {loadingLokasi
+                  ? 'Sedang mencari lokasimu…'
+                  : 'Aktifkan GPS untuk menampilkan shelter paling dekat dengan lokasimu.'}
               </p>
 
               <motion.button
@@ -65,14 +66,7 @@ const NearbyShelters = ({
               </motion.button>
             </motion.div>
           ) : (
-            <motion.div
-              key="detected-state"
-              variants={textVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="pb-2.5"
-            >
+            <motion.div key="detected-state" variants={textVariants} initial="hidden" animate="visible" exit="exit" className="pb-2.5">
               <p className="text-green-600 font-bold text-[11px] leading-snug">
                 Berhasil mengunci titik GPS!
               </p>
@@ -86,7 +80,7 @@ const NearbyShelters = ({
 
       <AnimatePresence>
         {locationError && (
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
@@ -97,7 +91,6 @@ const NearbyShelters = ({
         )}
       </AnimatePresence>
 
-      {/* Daftar Card Shelter */}
       <div className="flex flex-col gap-3">
         <AnimatePresence mode="popLayout">
           {sortedShelters.map((s, i) => (
@@ -109,11 +102,7 @@ const NearbyShelters = ({
               transition={{ type: 'spring', stiffness: 150, damping: 20 }}
               layout
             >
-              <ShelterCard
-                shelter={s}
-                rank={i}
-                onContact={onContact} 
-              />
+              <ShelterCard shelter={s} rank={i} onContact={onContact} />
             </motion.div>
           ))}
         </AnimatePresence>

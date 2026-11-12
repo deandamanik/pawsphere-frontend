@@ -16,6 +16,7 @@ import ChatHistoryCard from "../../components/vet-connect/ChatHistoryCard";
 import InfoCard from "../../components/vet-connect/InfoCard";
 import BookingForm from "../../components/vet-connect/BookingForm";
 import ConsultationChat from "../../components/vet-connect/ConsultationChat";
+import ErrorModal from "../../components/ui/ErrorModal";
 import { useAuth } from "../../context/AuthContext";
 import {
   getVets,
@@ -45,6 +46,7 @@ const VetConnect = () => {
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [bookingData, setBookingData] = useState(null);
 
@@ -114,7 +116,7 @@ const VetConnect = () => {
       setView("home");
       loadConsultations();
     } catch (err) {
-      alert(err.message || "Gagal membuat booking. Coba lagi.");
+      setErrorMsg(err.message || "Gagal membuat booking. Coba lagi.");
     }
   };
 
@@ -147,11 +149,14 @@ const VetConnect = () => {
   // ----- Booking view -----
   if (view === "booking") {
     return (
-      <BookingForm
-        doctor={selectedDoctor}
-        onSuccess={handleBookingSuccess}
-        onCancel={handleCancelBooking}
-      />
+      <>
+        <BookingForm
+          doctor={selectedDoctor}
+          onSuccess={handleBookingSuccess}
+          onCancel={handleCancelBooking}
+        />
+        <ErrorModal isOpen={!!errorMsg} message={errorMsg} onClose={() => setErrorMsg("")} />
+      </>
     );
   }
 
@@ -348,6 +353,7 @@ const VetConnect = () => {
           </div>
         </div>
       )}
+      <ErrorModal isOpen={!!errorMsg} message={errorMsg} onClose={() => setErrorMsg("")} />
     </div>
   );
 };

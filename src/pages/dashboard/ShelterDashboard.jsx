@@ -4,6 +4,7 @@ import { LuMapPin, LuPhone, LuSiren, LuHandHelping, LuCircleCheck, LuPawPrint, L
 import DashboardShell from "../../components/dashboard/DashboardShell";
 import ShelterAdoptionPanel from "../../components/dashboard/ShelterAdoptionPanel";
 import ShelterDonationPanel from "../../components/dashboard/ShelterDonationPanel";
+import ErrorModal from "../../components/ui/ErrorModal";
 import { getActiveReports, updateReportStatus } from "../../services/pawAlert.service";
 
 const STATUS_META = {
@@ -20,6 +21,7 @@ const fmtDateTime = (iso) =>
 function PawAlertPanel() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const load = useCallback(async () => {
     try {
@@ -43,7 +45,7 @@ function PawAlertPanel() {
       await updateReportStatus(id, status);
       await load();
     } catch (err) {
-      alert(err.message || "Gagal mengubah status.");
+      setErrorMsg(err.message || "Gagal mengubah status.");
     }
   };
 
@@ -54,6 +56,7 @@ function PawAlertPanel() {
 
   return (
     <div>
+      <ErrorModal isOpen={!!errorMsg} message={errorMsg} onClose={() => setErrorMsg("")} />
       <div className="grid gap-4 sm:grid-cols-3 mb-6">
         <Stat title="Laporan Baru" value={counts.open} hint="Belum ditangani" />
         <Stat title="Sedang Ditangani" value={counts.responding} hint="Dalam proses" />
