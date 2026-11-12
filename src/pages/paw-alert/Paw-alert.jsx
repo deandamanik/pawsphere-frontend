@@ -1,8 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { createReport } from '../../services/pawAlert.service';
+import { createReport, getShelters } from '../../services/pawAlert.service';
 
 import HeroHeader from '../../components/paw-alert/HeroHeader';
 import ContactModal from '../../components/paw-alert/ContactModal';
@@ -23,14 +23,6 @@ const haversine = (lat1, lng1, lat2, lng2) => {
       Math.sin(dLng / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
-
-const SHELTER_DATA = [
-  { id: 1, name: 'Chandra Shelter', address: 'Jl. Sudirman No. 45, Denpasar', status: 'Buka', hours: '10.00 - 16.00', phone: '6281234567890', lat: -8.6705, lng: 115.2126 },
-  { id: 2, name: 'Dean Shelter', address: 'Jl. Sudirman No. 45, Kuta', status: 'Buka', hours: '09.00 - 16.00', phone: '6281298765432', lat: -8.7215, lng: 115.1685 },
-  { id: 3, name: 'Bali Animal Care', address: 'Jl. Raya Ubud No. 12, Gianyar', status: 'Buka', hours: '08.00 - 17.00', phone: '6281333445566', lat: -8.5069, lng: 115.2625 },
-  { id: 4, name: 'BAWA Shelter', address: 'Jl. Sunset Road No. 88, Seminyak', status: 'Buka', hours: '07.00 - 19.00', phone: '6281244556677', lat: -8.6915, lng: 115.1590 },
-  { id: 5, name: 'Sanur Pet Rescue', address: 'Jl. Danau Tamblingan No. 3, Sanur', status: 'Tutup', hours: '08.00 - 15.00', phone: '6281255667788', lat: -8.6839, lng: 115.2624 },
-];
 
 const fileToResizedDataUrl = (file, max = 800) =>
   new Promise((resolve, reject) => {
@@ -66,13 +58,27 @@ const PawAlert = () => {
   const [lokasi, setLokasi] = useState(null);
   const [loadingLokasi, setLoadingLokasi] = useState(false);
   const [activeShelter, setActiveShelter] = useState(null);
-  const [sortedShelters, setSortedShelters] = useState(SHELTER_DATA.slice(0, 2));
+  const [shelters, setShelters] = useState([]);
+  const [sortedShelters, setSortedShelters] = useState([]);
   const [locationError, setLocationError] = useState(null);
   const [locationDetected, setLocationDetected] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
 
   const fileInputRef = useRef(null);
+
+  // Ambil daftar shelter dari DB saat halaman dibuka.
+  useEffect(() => {
+    getShelters()
+      .then((data) => {
+        setShelters(data);
+        setSortedShelters(data.slice(0, 2));
+      })
+      .catch(() => {
+        setShelters([]);
+        setSortedShelters([]);
+      });
+  }, []);
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
@@ -98,10 +104,9 @@ const PawAlert = () => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude: userLat, longitude: userLng } = pos.coords;
-        const withDist = SHELTER_DATA.map((s) => ({
-          ...s,
-          distance: haversine(userLat, userLng, s.lat, s.lng),
-        })).sort((a, b) => a.distance - b.distance);
+        const withDist = shelters
+          .map((s) => ({ ...s, distance: haversine(userLat, userLng, s.lat, s.lng) }))
+          .sort((a, b) => a.distance - b.distance);
 
         setSortedShelters(withDist.slice(0, 3));
         setLokasi({ lat: userLat, lng: userLng });
@@ -123,7 +128,7 @@ const PawAlert = () => {
 
   const handleResetLokasi = () => {
     setLocationDetected(false);
-    setSortedShelters(SHELTER_DATA.slice(0, 2));
+    setSortedShelters(shelters.slice(0, 2));
     setLokasi(null);
   };
 
@@ -167,7 +172,7 @@ const PawAlert = () => {
     setDeskripsi('');
     setLokasi(null);
     setLocationDetected(false);
-    setSortedShelters(SHELTER_DATA.slice(0, 2));
+    setSortedShelters(shelters.slice(0, 2));
   };
 
   return (
