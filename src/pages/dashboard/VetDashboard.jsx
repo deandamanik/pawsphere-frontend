@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { LuArrowLeft, LuMessageCircle, LuCheck, LuCircleCheck } from "react-icons/lu";
 import DashboardShell from "../../components/dashboard/DashboardShell";
 import ConsultationChat from "../../components/vet-connect/ConsultationChat";
+import ErrorModal from "../../components/ui/ErrorModal";
 import {
   getVetConsultations,
   updateConsultationStatus,
@@ -22,6 +23,7 @@ export default function VetDashboard() {
   const [consultations, setConsultations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const load = useCallback(async () => {
     try {
@@ -46,7 +48,7 @@ export default function VetDashboard() {
       await updateConsultationStatus(id, status);
       await load();
     } catch (err) {
-      alert(err.message || "Gagal mengubah status.");
+      setErrorMsg(err.message || "Gagal mengubah status.");
     }
   };
 
@@ -60,6 +62,7 @@ export default function VetDashboard() {
   if (selected) {
     return (
       <DashboardShell title="Konsultasi" subtitle={`Pasien: ${selected.patient.name}`}>
+        <ErrorModal isOpen={!!errorMsg} message={errorMsg} onClose={() => setErrorMsg("")} />
         <button
           onClick={() => {
             setSelected(null);
@@ -135,6 +138,7 @@ export default function VetDashboard() {
       title="Konsultasi Masuk"
       subtitle="Terima permintaan konsultasi dan balas chat dari pemilik hewan."
     >
+      <ErrorModal isOpen={!!errorMsg} message={errorMsg} onClose={() => setErrorMsg("")} />
       <div className="grid gap-4 sm:grid-cols-3 mb-6">
         <Stat title="Menunggu" value={counts.pending} hint="Permintaan baru" />
         <Stat title="Aktif" value={counts.active} hint="Sedang berjalan" />

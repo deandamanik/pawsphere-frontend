@@ -5,6 +5,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { jsPDF } from 'jspdf';
 import { CLINICS_DATA } from '../../data/clinicsData';
+import Mascot from '../../components/ui/Mascot';
 
 // Helper dikurangi 15 menit untuk jam kedatangan check-in (contoh: "10.00" -> "09.45")
 function getArrivalTime(timeStr = '10.00') {
@@ -768,22 +769,7 @@ export default function ClinicSuccess() {
     <div className="bg-[#F4F8FB] min-h-[calc(100dvh-80px)] py-10 md:py-14 px-5 sm:px-6 font-sans flex flex-col items-center">
       <div className="w-full max-w-[660px]">
         <div className="flex items-center gap-3.5 mb-6">
-          <div className="w-11 h-11 rounded-full bg-[#E6F4EA] flex items-center justify-center text-[#2C5E7A] shrink-0">
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <circle cx="12" cy="12" r="9" strokeWidth="1.8" />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M9 12.5l2 2 4-4"
-              />
-            </svg>
-          </div>
+          <Mascot state="success" size={58} />
           <h1 className="font-display text-2xl md:text-[28px] font-extrabold text-[#1E3A4C] tracking-tight">
             Booking berhasil!
           </h1>

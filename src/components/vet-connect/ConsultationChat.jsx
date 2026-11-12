@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { LuArrowLeft, LuSend, LuCamera, LuMic } from "react-icons/lu";
 import ChatMessage from "./ChatMessage";
+import ErrorModal from "../ui/ErrorModal";
 import { getMessages, sendMessage } from "../../services/vetConnect.service";
 
 const STATUS_LABEL = {
@@ -61,6 +62,7 @@ const ConsultationChat = ({
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
   const [recording, setRecording] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const bottomRef = useRef(null);
   const fileInputRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -107,7 +109,7 @@ const ConsultationChat = ({
     } catch (err) {
       setMessages((prev) => prev.filter((m) => m.id !== temp.id));
       if (type === "text") setInput(content);
-      alert(err.message || "Gagal mengirim pesan.");
+      setErrorMsg(err.message || "Gagal mengirim pesan.");
     } finally {
       setSending(false);
     }
@@ -136,7 +138,7 @@ const ConsultationChat = ({
       const dataUrl = await compressImage(file);
       await pushMessage({ type: "image", attachmentUrl: dataUrl });
     } catch {
-      alert("Gagal memproses foto.");
+      setErrorMsg("Gagal memproses foto.");
     }
   };
 
@@ -158,14 +160,14 @@ const ConsultationChat = ({
           const dataUrl = await blobToDataUrl(blob);
           await pushMessage({ type: "audio", attachmentUrl: dataUrl });
         } catch {
-          alert("Gagal memproses rekaman.");
+          setErrorMsg("Gagal memproses rekaman.");
         }
       };
       mediaRecorderRef.current = mr;
       mr.start();
       setRecording(true);
     } catch {
-      alert("Tidak bisa mengakses mikrofon. Pastikan izin diberikan.");
+      setErrorMsg("Tidak bisa mengakses mikrofon. Pastikan izin diberikan.");
     }
   };
 
@@ -282,6 +284,7 @@ const ConsultationChat = ({
               ● Merekam... tekan mic lagi untuk kirim
             </p>
           )}
+          <ErrorModal isOpen={!!errorMsg} message={errorMsg} onClose={() => setErrorMsg("")} />
         </div>
       )}
     </div>

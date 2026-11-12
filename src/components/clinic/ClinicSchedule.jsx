@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { CLINICS_DATA } from '../../data/clinicsData';
+import Mascot from '../../components/ui/Mascot';
 
 const TIME_SLOTS = ['09.00', '09.30', '10.00', '10.30', '11.00'];
 
@@ -695,6 +696,11 @@ export default function ClinicSchedule() {
                         onClick={(e) => e.stopPropagation()}
                         className="w-full max-w-[520px] bg-white rounded-[28px] p-6 md:p-8 shadow-[0_20px_50px_rgba(24,59,86,0.18)] border border-slate-100 animate-[fadeIn_0.2s_ease-out]"
                     >
+                        {/* Maskot Konfirmasi */}
+                        <div className="flex justify-center -mt-1 mb-1">
+                            <Mascot state="confirm" size={92} />
+                        </div>
+
                         {/* Header Pop-up & Tombol Close Bulat */}
                         <div className="flex items-start justify-between gap-4 mb-2">
                             <h2 className="font-display text-xl md:text-[22px] font-extrabold text-[#1E3A4C] leading-snug">
