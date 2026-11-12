@@ -3,6 +3,7 @@ import { LuPlus, LuTrash2, LuHeartHandshake, LuImagePlus, LuUsers } from "react-
 import {
   getShelterCampaigns, createCampaign, updateCampaignStatus, deleteCampaign,
 } from "../../services/donation.service";
+import ErrorModal from "../ui/ErrorModal";
 
 const STATUS_META = {
   active: { label: "Aktif", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
@@ -44,6 +45,7 @@ export default function ShelterDonationPanel() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const load = useCallback(async () => {
     try {
@@ -67,7 +69,7 @@ export default function ShelterDonationPanel() {
     try {
       setField("image_url", await fileToResizedDataUrl(file));
     } catch {
-      alert("Gagal memproses gambar.");
+      setErrorMsg("Gagal memproses gambar.");
     }
     e.target.value = "";
   };
@@ -89,7 +91,7 @@ export default function ShelterDonationPanel() {
       setShowForm(false);
       load();
     } catch (err) {
-      alert(err.message || "Gagal membuat kampanye.");
+      setErrorMsg(err.message || "Gagal membuat kampanye.");
     } finally {
       setSaving(false);
     }
@@ -100,7 +102,7 @@ export default function ShelterDonationPanel() {
       await updateCampaignStatus(id, "closed");
       load();
     } catch (err) {
-      alert(err.message || "Gagal menutup kampanye.");
+      setErrorMsg(err.message || "Gagal menutup kampanye.");
     }
   };
 
@@ -110,7 +112,7 @@ export default function ShelterDonationPanel() {
       await deleteCampaign(id);
       load();
     } catch (err) {
-      alert(err.message || "Gagal menghapus.");
+      setErrorMsg(err.message || "Gagal menghapus.");
     }
   };
 
@@ -124,6 +126,7 @@ export default function ShelterDonationPanel() {
 
   return (
     <div>
+      <ErrorModal isOpen={!!errorMsg} message={errorMsg} onClose={() => setErrorMsg("")} />
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <LuHeartHandshake className="w-5 h-5 text-brand-blue-normal" />

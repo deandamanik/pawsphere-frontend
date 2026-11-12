@@ -6,6 +6,7 @@ import {
   getShelterAnimals, createAnimal, updateAnimalStatus, deleteAnimal,
   getShelterApplications, updateApplicationStatus,
 } from "../../services/adoption.service";
+import ErrorModal from "../ui/ErrorModal";
 
 const ANIMAL_STATUS = {
   available: { label: "Tersedia", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
@@ -53,6 +54,7 @@ export default function ShelterAdoptionPanel() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const load = useCallback(async () => {
     try {
@@ -81,7 +83,7 @@ export default function ShelterAdoptionPanel() {
       const url = await fileToResizedDataUrl(file);
       setField("image_url", url);
     } catch {
-      alert("Gagal memproses gambar.");
+      setErrorMsg("Gagal memproses gambar.");
     }
     e.target.value = "";
   };
@@ -96,7 +98,7 @@ export default function ShelterAdoptionPanel() {
       setShowForm(false);
       load();
     } catch (err) {
-      alert(err.message || "Gagal menambah hewan.");
+      setErrorMsg(err.message || "Gagal menambah hewan.");
     } finally {
       setSaving(false);
     }
@@ -107,7 +109,7 @@ export default function ShelterAdoptionPanel() {
       await updateAnimalStatus(id, status);
       load();
     } catch (err) {
-      alert(err.message || "Gagal mengubah status.");
+      setErrorMsg(err.message || "Gagal mengubah status.");
     }
   };
 
@@ -117,7 +119,7 @@ export default function ShelterAdoptionPanel() {
       await deleteAnimal(id);
       load();
     } catch (err) {
-      alert(err.message || "Gagal menghapus.");
+      setErrorMsg(err.message || "Gagal menghapus.");
     }
   };
 
@@ -126,7 +128,7 @@ export default function ShelterAdoptionPanel() {
       await updateApplicationStatus(id, status);
       load();
     } catch (err) {
-      alert(err.message || "Gagal mengubah status.");
+      setErrorMsg(err.message || "Gagal mengubah status.");
     }
   };
 
@@ -140,6 +142,7 @@ export default function ShelterAdoptionPanel() {
 
   return (
     <div className="space-y-8">
+      <ErrorModal isOpen={!!errorMsg} message={errorMsg} onClose={() => setErrorMsg("")} />
       {/* ---- Manage animals ---- */}
       <section>
         <div className="flex items-center justify-between mb-3">

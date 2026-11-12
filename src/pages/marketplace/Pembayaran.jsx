@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { createOrder } from '../../services/marketplace.service';
+import ErrorModal from '../../components/ui/ErrorModal';
 
 const Pembayaran = () => {
   const navigate = useNavigate();
@@ -10,6 +11,7 @@ const Pembayaran = () => {
   const { cart: cartItems, subtotal, clearCart } = useCart();
   const [selectedPayment, setSelectedPayment] = useState('qris');
   const [placing, setPlacing] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   // Form pembeli (otomatis terisi dari akun bila sudah login)
   const [nama, setNama] = useState('');
@@ -72,7 +74,7 @@ const Pembayaran = () => {
       return;
     }
     if (cartItems.length === 0) {
-      alert('Keranjang masih kosong.');
+      setErrorMsg('Keranjang masih kosong.');
       return;
     }
     setPlacing(true);
@@ -89,7 +91,7 @@ const Pembayaran = () => {
       clearCart();
       navigate('/Selesai', { state: { order } });
     } catch (err) {
-      alert(err.message || 'Gagal membuat pesanan. Coba lagi.');
+      setErrorMsg(err.message || 'Gagal membuat pesanan. Coba lagi.');
     } finally {
       setPlacing(false);
     }
@@ -110,6 +112,7 @@ const Pembayaran = () => {
 
   return (
     <div className="min-h-screen bg-[#FBF8F2]">
+      <ErrorModal isOpen={!!errorMsg} message={errorMsg} onClose={() => setErrorMsg('')} />
       
       <section className="bg-[#C2D4DF] w-full mb-6 sm:mb-10">
        

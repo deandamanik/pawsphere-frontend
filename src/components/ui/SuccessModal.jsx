@@ -1,11 +1,12 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiCheck, FiX } from 'react-icons/fi';
+import { FiX } from 'react-icons/fi';
+import Mascot from './Mascot';
 
-const SuccessModal = ({ 
-  isOpen, 
-  onClose, 
-  title = "Berhasil!", 
-  message = "Aksi Anda telah berhasil diproses." 
+const SuccessModal = ({
+  isOpen,
+  onClose,
+  title = "Berhasil!",
+  message = "Aksi Anda telah berhasil diproses."
 }) => {
   return (
     <AnimatePresence>
@@ -35,14 +36,9 @@ const SuccessModal = ({
               <FiX size={14} className="text-brand-blue-darker/60" />
             </button>
 
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.1, type: 'spring', stiffness: 200, damping: 15 }}
-              className="w-14 h-14 rounded-full bg-green-50 border border-green-100 flex items-center justify-center text-green-500 mb-4"
-            >
-              <FiCheck size={28} className="stroke-[2.5]" />
-            </motion.div>
+            <div className="mb-3">
+              <Mascot state="success" size={120} />
+            </div>
 
             <h3 className="font-black text-brand-blue-darker text-lg tracking-tight mb-1.5">
               {title}
@@ -55,7 +51,7 @@ const SuccessModal = ({
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               onClick={onClose}
-              className="w-full py-2.5 rounded-xl bg-brand-blue-darker hover:bg-brand-blue-dark-hover 
+              className="w-full py-2.5 rounded-xl bg-brand-blue-darker hover:bg-brand-blue-dark-hover
                         text-white font-bold text-xs shadow-sm transition-colors"
             >
               Selesai
