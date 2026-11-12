@@ -698,7 +698,7 @@ export default function ClinicSchedule() {
                     >
                         {/* Maskot Konfirmasi */}
                         <div className="flex justify-center -mt-1 mb-1">
-                            <Mascot state="confirm" size={92} />
+                            <Mascot state="confirm" size={116} />
                         </div>
 
                         {/* Header Pop-up & Tombol Close Bulat */}

@@ -37,7 +37,7 @@ export default function ConfirmModal({
       >
         {/* Maskot */}
         <div className="flex justify-center mb-3">
-          <Mascot state={mascot} size={104} />
+          <Mascot state={mascot} size={144} />
         </div>
 
         {/* Judul & Pesan */}

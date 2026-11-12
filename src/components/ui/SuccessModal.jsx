@@ -37,7 +37,7 @@ const SuccessModal = ({
             </button>
 
             <div className="mb-3">
-              <Mascot state="success" size={120} />
+              <Mascot state="success" size={144} />
             </div>
 
             <h3 className="font-black text-brand-blue-darker text-lg tracking-tight mb-1.5">

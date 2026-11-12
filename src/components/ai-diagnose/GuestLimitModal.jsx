@@ -13,7 +13,7 @@ const GuestLimitModal = ({ open, onClose, limit = 5 }) => {
         className="bg-white rounded-2xl shadow-card border border-slate-100 p-8 max-w-md w-full text-center"
         onClick={(e) => e.stopPropagation()}
       >
-        <Mascot state="confirm" size={120} className="mx-auto mb-3" />
+        <Mascot state="confirm" size={144} className="mx-auto mb-3" />
         <h2 className="text-xl font-bold text-slate-800 mb-2">
           Sesi gratis kamu sudah habis
         </h2>

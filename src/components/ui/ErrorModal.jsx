@@ -25,7 +25,7 @@ const ErrorModal = ({
             <button onClick={onClose} className="absolute top-4 right-4 w-7 h-7 rounded-full bg-gray-50 hover:bg-gray-100 flex items-center justify-center border border-gray-100 transition-colors">
               <FiX size={14} className="text-brand-blue-darker/60" />
             </button>
-            <div className="mb-3"><Mascot state="error" size={120} /></div>
+            <div className="mb-3"><Mascot state="error" size={144} /></div>
             <h3 className="font-black text-brand-blue-darker text-lg tracking-tight mb-1.5">{title}</h3>
             <p className="text-gray-500 text-xs leading-relaxed max-w-60 mb-5">{message}</p>
             <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }} onClick={onClose}
