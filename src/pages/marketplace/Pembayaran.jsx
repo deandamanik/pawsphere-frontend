@@ -4,6 +4,12 @@ import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { createOrder } from '../../services/marketplace.service';
 import ErrorModal from '../../components/ui/ErrorModal';
+import cartIcon from '../../assets/marketplace/Keranjang-Icon.svg';
+import codIcon from '../../assets/marketplace/COD-icon.svg';
+import gopayIcon from '../../assets/marketplace/Gopay-icon.svg';
+import danaIcon from '../../assets/marketplace/DANA-icon.svg';
+import qrisIcon from '../../assets/marketplace/QRIS-icon.svg';
+import bankIcon from '../../assets/marketplace/bank-icon.svg';
 
 const Pembayaran = () => {
   const navigate = useNavigate();
@@ -103,11 +109,11 @@ const Pembayaran = () => {
 
   // Daftar Metode Pembayaran
   const paymentMethods = [
-    { id: 'cod', label: 'Cash on Delivery', icon: '/src/assets/marketplace/COD-icon.svg' },
-    { id: 'gopay', label: 'Gopay', icon: '/src/assets/marketplace/Gopay-icon.svg' },
-    { id: 'dana', label: 'Dana', icon: '/src/assets/marketplace/DANA-icon.svg' },
-    { id: 'qris', label: 'QRIS', icon: '/src/assets/marketplace/QRIS-icon.svg' },
-    { id: 'transfer', label: 'Transfer Bank', icon: '/src/assets/marketplace/Bank-icon.svg' },
+    { id: 'cod', label: 'Cash on Delivery', icon: codIcon },
+    { id: 'gopay', label: 'Gopay', icon: gopayIcon },
+    { id: 'dana', label: 'Dana', icon: danaIcon },
+    { id: 'qris', label: 'QRIS', icon: qrisIcon },
+    { id: 'transfer', label: 'Transfer Bank', icon: bankIcon },
   ];
 
   return (
@@ -130,7 +136,7 @@ const Pembayaran = () => {
          onClick={() => navigate('/keranjang')} 
          className="mt-6 sm:mt-0 bg-[#2C6E91] text-white px-8 py-3.5 rounded-full shadow-lg flex items-center gap-3 hover:bg-[#235875] transition-all duration-300">
             <img 
-              src="/src/assets/marketplace/Keranjang-Icon.svg" 
+              src={cartIcon}
               alt="Cart" 
               className="w-5 h-5 object-contain" 
             />

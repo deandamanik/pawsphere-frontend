@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
+import cartIcon from '../../assets/marketplace/Keranjang-Icon.svg';
 
 
 const Keranjang = () => {
@@ -41,7 +42,7 @@ const Keranjang = () => {
             className="w-full sm:w-auto justify-center mt-4 sm:mt-0 bg-[#2C6E91] text-white px-8 py-3.5 rounded-full shadow-lg flex items-center gap-3 hover:bg-[#235875] transition-all duration-300"
           >
             <img 
-              src="/src/assets/marketplace/Keranjang-Icon.svg" 
+              src={cartIcon}
               alt="Cart" 
               className="w-5 h-5 object-contain" 
             />

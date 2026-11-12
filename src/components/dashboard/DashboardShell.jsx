@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { LuHouse } from "react-icons/lu";
 import { useAuth } from "../../context/AuthContext";
 import logo from "../../assets/Logo-Pawsphere.svg";
+import ConfirmModal from "../ui/ConfirmModal";
 
 const ROLE_LABEL = {
   vet: "Dokter Hewan",
@@ -13,6 +15,7 @@ const ROLE_LABEL = {
 export default function DashboardShell({ title, subtitle, children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [askLogout, setAskLogout] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -58,7 +61,7 @@ export default function DashboardShell({ title, subtitle, children }) {
             </Link>
 
             <button
-              onClick={handleLogout}
+              onClick={() => setAskLogout(true)}
               className="px-5 py-2 bg-white text-brand-orange border border-brand-orange font-bold rounded-full text-sm hover:bg-slate-50 transition-all active:scale-95 cursor-pointer"
             >
               Logout
@@ -78,6 +81,17 @@ export default function DashboardShell({ title, subtitle, children }) {
         </div>
         {children}
       </main>
+
+      {/* Pop-up konfirmasi logout */}
+      <ConfirmModal
+        open={askLogout}
+        tone="danger"
+        title="Keluar dari akun?"
+        message="Kamu perlu login lagi untuk masuk kembali ke dashboard."
+        confirmText="Ya, keluar"
+        onConfirm={() => { setAskLogout(false); handleLogout(); }}
+        onClose={() => setAskLogout(false)}
+      />
     </div>
   );
 }

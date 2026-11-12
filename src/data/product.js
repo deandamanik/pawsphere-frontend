@@ -1,3 +1,10 @@
+import amoxicillinImage from "../assets/product/Amoxicillin.png";
+import probioticImage from "../assets/product/Probiotik.png";
+import royalCaninImage from "../assets/product/Royal Canin.png";
+import vitaminBImage from "../assets/product/Vitamin B.png";
+import shampooImage from "../assets/product/Shampoo.png";
+import ivermectinImage from "../assets/product/Ivermectin.png";
+
 export const productsData = [
   {
     id: 1,
@@ -8,7 +15,7 @@ export const productsData = [
     price: 45000,
     oldPrice: 60000,
     discount: 25,
-    image: "src/assets/product/Amoxicillin.png",
+    image: amoxicillinImage,
     hasPrescription: true,
     category: "Obat"
   },
@@ -21,7 +28,7 @@ export const productsData = [
     price: 89000,
     oldPrice: null,
     discount: null,
-    image: "/src/assets/product/Probiotik.png", 
+    image: probioticImage,
     hasPrescription: false,
     category: "Vitamin"
   },
@@ -34,7 +41,7 @@ export const productsData = [
     price: 185000,
     oldPrice: 210000,
     discount: 12,
-    image: "/src/assets/product/Royal Canin.png", 
+    image: royalCaninImage,
     hasPrescription: false,
     category: "Makanan"
   },
@@ -47,7 +54,7 @@ export const productsData = [
     price: 65000,
     oldPrice: null,
     discount: null,
-    image: "/src/assets/product/Vitamin B.png", 
+    image: vitaminBImage,
     hasPrescription: false,
     category: "Vitamin"
   },
@@ -60,7 +67,7 @@ export const productsData = [
     price: 55000,
     oldPrice: 70000,
     discount: 21,
-    image: "/src/assets/product/Shampoo.png", 
+    image: shampooImage,
     hasPrescription: false,
     category: "Obat"
   },
@@ -73,8 +80,33 @@ export const productsData = [
     price: 35000,
     oldPrice: null,
     discount: null,
-    image: "/src/assets/product/Ivermectin.png", 
+    image: ivermectinImage,
     hasPrescription: true,
     category: "Obat"
   },
 ];
+
+const legacyProductImages = {
+  "amoxicillin.png": amoxicillinImage,
+  "probiotik.png": probioticImage,
+  "royal canin.png": royalCaninImage,
+  "vitamin b.png": vitaminBImage,
+  "shampoo.png": shampooImage,
+  "ivermectin.png": ivermectinImage,
+};
+
+export const resolveProductImage = (product = {}) => {
+  const image = product.image || product.image_url || product.imageUrl;
+  const normalizedName = product.name?.trim().toLowerCase();
+  const matchingProduct = productsData.find(
+    (item) => item.name.toLowerCase() === normalizedName,
+  );
+
+  if (typeof image === "string" && image.trim() && !/^\/?src\/assets\//.test(image)) {
+    return image;
+  }
+
+  const legacyFilename = image?.split("/").pop()?.toLowerCase();
+
+  return legacyProductImages[legacyFilename] || matchingProduct?.image || "";
+};

@@ -4,8 +4,10 @@ import { Link, useLocation } from 'react-router-dom';
 import logoPawsphere from '../../assets/Logo-Pawsphere.svg';
 import warningIcon from '../../assets/Warning.svg';
 import { homeForRole } from '../../config/roles';
+import ConfirmModal from '../ui/ConfirmModal';
 
 const Navbar = ({ isLoggedIn = false, role = null, user = null, handleLogout }) => {
+  const [askLogout, setAskLogout] = useState(false);
   // Roles that have their own workspace get a quick "Dashboard" link.
   const dashboardPath =
     role && role !== 'user' ? homeForRole(role) : null;
@@ -191,7 +193,7 @@ const Navbar = ({ isLoggedIn = false, role = null, user = null, handleLogout }) 
                     )}
                   </Link>
                   <button
-                    onClick={handleLogout}
+                    onClick={() => setAskLogout(true)}
                     className="px-8 py-2.5 bg-white text-brand-orange border border-brand-orange font-bold rounded-full text-base hover:bg-slate-50 transition-all shadow-md active:scale-95 cursor-pointer"
                   >
                     Logout
@@ -292,13 +294,24 @@ const Navbar = ({ isLoggedIn = false, role = null, user = null, handleLogout }) 
                     </span>
                     Profile
                   </Link>
-                  <button onClick={handleLogout} className="w-full py-4 bg-white/10 text-white rounded-2xl font-bold text-lg border border-white/10 cursor-pointer">Logout</button>
+                  <button onClick={() => { setIsMobileMenuOpen(false); setAskLogout(true); }} className="w-full py-4 bg-white/10 text-white rounded-2xl font-bold text-lg border border-white/10 cursor-pointer">Logout</button>
                 </>
               )}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Pop-up konfirmasi logout */}
+      <ConfirmModal
+        open={askLogout}
+        tone="danger"
+        title="Keluar dari akun?"
+        message="Kamu perlu login lagi untuk masuk kembali ke PawSphere."
+        confirmText="Ya, keluar"
+        onConfirm={() => { setAskLogout(false); handleLogout?.(); }}
+        onClose={() => setAskLogout(false)}
+      />
     </>
   );
 };

@@ -4,6 +4,7 @@ import {
   getShelterCampaigns, createCampaign, updateCampaignStatus, deleteCampaign,
 } from "../../services/donation.service";
 import ErrorModal from "../ui/ErrorModal";
+import ConfirmModal from "../ui/ConfirmModal";
 
 const STATUS_META = {
   active: { label: "Aktif", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
@@ -46,6 +47,7 @@ export default function ShelterDonationPanel() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [confirm, setConfirm] = useState(null);
 
   const load = useCallback(async () => {
     try {
@@ -74,9 +76,7 @@ export default function ShelterDonationPanel() {
     e.target.value = "";
   };
 
-  const submit = async (e) => {
-    e.preventDefault();
-    if (saving) return;
+  const doSubmit = async () => {
     setSaving(true);
     try {
       await createCampaign({
@@ -96,8 +96,19 @@ export default function ShelterDonationPanel() {
       setSaving(false);
     }
   };
+  const submit = (e) => {
+    e.preventDefault();
+    if (saving) return;
+    setConfirm({
+      title: "Buat kampanye donasi ini?",
+      message: "Kampanye akan diterbitkan dan bisa menerima donasi.",
+      confirmText: "Ya, buat",
+      tone: "default",
+      onConfirm: doSubmit,
+    });
+  };
 
-  const close = async (id) => {
+  const doClose = async (id) => {
     try {
       await updateCampaignStatus(id, "closed");
       load();
@@ -105,9 +116,16 @@ export default function ShelterDonationPanel() {
       setErrorMsg(err.message || "Gagal menutup kampanye.");
     }
   };
+  const close = (id) =>
+    setConfirm({
+      title: "Tutup kampanye ini?",
+      message: "Kampanye tidak akan menerima donasi lagi setelah ditutup.",
+      confirmText: "Ya, tutup",
+      tone: "default",
+      onConfirm: () => doClose(id),
+    });
 
-  const remove = async (id) => {
-    if (!window.confirm("Hapus kampanye ini?")) return;
+  const doRemove = async (id) => {
     try {
       await deleteCampaign(id);
       load();
@@ -115,6 +133,14 @@ export default function ShelterDonationPanel() {
       setErrorMsg(err.message || "Gagal menghapus.");
     }
   };
+  const remove = (id) =>
+    setConfirm({
+      title: "Hapus kampanye ini?",
+      message: "Kampanye yang dihapus tidak bisa dikembalikan.",
+      confirmText: "Ya, hapus",
+      tone: "danger",
+      onConfirm: () => doRemove(id),
+    });
 
   if (loading) {
     return (
@@ -127,6 +153,19 @@ export default function ShelterDonationPanel() {
   return (
     <div>
       <ErrorModal isOpen={!!errorMsg} message={errorMsg} onClose={() => setErrorMsg("")} />
+      <ConfirmModal
+        open={!!confirm}
+        title={confirm?.title}
+        message={confirm?.message}
+        confirmText={confirm?.confirmText}
+        tone={confirm?.tone}
+        onConfirm={() => {
+          const fn = confirm?.onConfirm;
+          setConfirm(null);
+          fn?.();
+        }}
+        onClose={() => setConfirm(null)}
+      />
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <LuHeartHandshake className="w-5 h-5 text-brand-blue-normal" />
