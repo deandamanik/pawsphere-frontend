@@ -1,9 +1,16 @@
-import { useEffect, useRef } from 'react';
+import { createElement, useEffect, useRef } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { LuHospital, LuMapPin } from 'react-icons/lu';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import mascotPin from '../../assets/mascot/mascot-pin.png';
 
 const BALI_CENTER = [-8.6650, 115.2350];
+const CLINIC_MARKER_ICON = renderToStaticMarkup(
+  createElement(LuHospital, { size: 17, strokeWidth: 2.5 }),
+);
+const USER_MARKER_ICON = renderToStaticMarkup(
+  createElement(LuMapPin, { size: 24, strokeWidth: 2.5 }),
+);
 
 export default function ClinicMapCanvas({
   clinics = [],
@@ -88,26 +95,36 @@ export default function ClinicMapCanvas({
               <div style="font-weight: 800; font-size: 13px; color: #1E3A4C; margin-bottom: 2px;">${clinic.number} · ${clinic.name}</div>
               <div style="font-size: 11px; color: #64748b; font-weight: 500;">${clinic.shortArea} · Mitra pilihanmu</div>
             </div>
-            <div class="ps-clinic" style="width: 38px; height: 38px; background-color: #FF6B00; color: #ffffff;
+            <div class="ps-clinic" style="position: relative; width: 40px; height: 40px; background-color: #FF6B00; color: #ffffff;
               border: 3px solid #ffffff; border-radius: 9999px; display: flex; align-items: center; justify-content: center;
-              font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 14px; box-shadow: 0 6px 16px rgba(255, 107, 0, 0.38);">
-              ${clinic.number}
+              box-sizing: border-box; box-shadow: 0 6px 16px rgba(255, 107, 0, 0.38);">
+              ${CLINIC_MARKER_ICON}
+              <span style="position: absolute; right: -5px; bottom: -4px; min-width: 17px; height: 17px; padding: 0 3px;
+                border: 2px solid #ffffff; border-radius: 9999px; background: #1E3A4C; color: #ffffff;
+                display: flex; align-items: center; justify-content: center; font: 700 9px 'Poppins', sans-serif;">
+                ${clinic.number}
+              </span>
             </div>
           </div>
         `
         : `
-          <div class="ps-clinic" style="width: 36px; height: 36px; background-color: #2C5E7A; color: #ffffff; border: 3px solid #ffffff;
-            border-radius: 9999px; display: flex; align-items: center; justify-content: center;
-            font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 14px; box-shadow: 0 4px 12px rgba(30, 58, 76, 0.28);">
-            ${clinic.number}
+          <div class="ps-clinic" style="position: relative; width: 40px; height: 40px; background-color: #2C5E7A; color: #ffffff; border: 3px solid #ffffff;
+            border-radius: 9999px; display: flex; align-items: center; justify-content: center; box-sizing: border-box;
+            box-shadow: 0 4px 12px rgba(30, 58, 76, 0.28);">
+            ${CLINIC_MARKER_ICON}
+            <span style="position: absolute; right: -5px; bottom: -4px; min-width: 17px; height: 17px; padding: 0 3px;
+              border: 2px solid #ffffff; border-radius: 9999px; background: #1E3A4C; color: #ffffff;
+              display: flex; align-items: center; justify-content: center; font: 700 9px 'Poppins', sans-serif;">
+              ${clinic.number}
+            </span>
           </div>
         `;
 
       const numberedIcon = L.divIcon({
         className: 'bg-transparent border-0',
         html: markerHtml,
-        iconSize: isSelected ? [220, 110] : [36, 36],
-        iconAnchor: isSelected ? [110, 91] : [18, 18],
+        iconSize: isSelected ? [220, 110] : [40, 40],
+        iconAnchor: isSelected ? [110, 91] : [20, 20],
       });
 
       const marker = L.marker(clinic.coordinates, {
@@ -164,7 +181,7 @@ export default function ClinicMapCanvas({
     });
   }, [reports, showReports]);
 
-  // 3. Lokasi Pengguna = Maskot mengambang
+  // 3. Lokasi pengguna ditandai terpisah dari marker klinik.
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
@@ -177,9 +194,9 @@ export default function ClinicMapCanvas({
 
     const userIcon = L.divIcon({
       className: 'bg-transparent border-0',
-      html: `<img src="${mascotPin}" alt="Lokasi kamu" class="ps-float" style="width: 54px; height: auto; filter: drop-shadow(0 5px 8px rgba(0,0,0,0.28));" />`,
-      iconSize: [54, 60],
-      iconAnchor: [27, 52],
+      html: `<div class="ps-user-marker" aria-label="Lokasi kamu">${USER_MARKER_ICON}</div>`,
+      iconSize: [48, 48],
+      iconAnchor: [24, 24],
     });
 
     userMarkerRef.current = L.marker([userLocation.lat, userLocation.lng], {
@@ -235,12 +252,17 @@ export default function ClinicMapCanvas({
     <div className={`relative w-full h-full ${isSelectingLocation ? 'cursor-crosshair' : ''}`}>
       {/* Animasi marker */}
       <style>{`
-        @keyframes psFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
         @keyframes psPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.14)} }
-        .ps-float{animation:psFloat 2.4s ease-in-out infinite;transform-origin:center bottom;}
         .ps-pulse{animation:psPulse 1.6s ease-in-out infinite;}
         .ps-clinic{transition:transform .18s ease;cursor:pointer;}
         .ps-clinic:hover{transform:scale(1.14);}
+        .ps-user-marker{position:relative;width:42px;height:42px;border:3px solid #fff;border-radius:9999px;
+          background:#3B7597;color:#fff;display:flex;align-items:center;justify-content:center;
+          box-shadow:0 4px 14px rgba(21,41,53,.38);cursor:grab;}
+        .ps-user-marker::before{content:"";position:absolute;inset:-8px;border:2px solid rgba(59,117,151,.42);
+          border-radius:9999px;animation:psPulse 1.8s ease-in-out infinite;pointer-events:none;}
+        .leaflet-marker-draggable .ps-user-marker{cursor:grab;}
+        .leaflet-dragging .ps-user-marker{cursor:grabbing;}
       `}</style>
 
       <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} className="w-full h-full z-0" />
