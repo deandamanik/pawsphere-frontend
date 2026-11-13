@@ -319,6 +319,7 @@ function ReservationCard({ r, busy, onStatus }) {
   };
   const SvIcon = sv.Icon;
   const isHome = r.careMethod === "rumah";
+  const canClinicConfirm = ["paid", "cash_due"].includes(r.paymentStatus);
 
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-card p-5 hover:border-slate-200 transition-colors">
@@ -382,6 +383,22 @@ function ReservationCard({ r, busy, onStatus }) {
           label="Estimasi"
           value={fmtRupiah(r.estimatedTotal)}
         />
+        <Detail
+          Icon={LuWallet}
+          label="Pembayaran"
+          value={`${r.paymentMethod === "qris" ? "QRIS" : "Tunai"} · ${
+            {
+              cash_due: "Bayar di klinik",
+              pending: "Menunggu pembayaran",
+              paid: "Lunas",
+              partially_refunded: "Dikembalikan sebagian",
+              failed: "Gagal",
+              expired: "Kedaluwarsa",
+              cancelled: "Dibatalkan",
+              refunded: "Dikembalikan",
+            }[r.paymentStatus] || r.paymentStatus
+          }`}
+        />
       </div>
 
       {(r.complaint || r.notes) && (
@@ -397,16 +414,18 @@ function ReservationCard({ r, busy, onStatus }) {
         <div className="flex items-center gap-2 flex-wrap mt-4">
           {r.status === "pending" && (
             <button
-              disabled={busy}
+              disabled={busy || !canClinicConfirm}
               onClick={() => onStatus(r.id, "confirmed")}
+              title={!canClinicConfirm ? "Menunggu pembayaran QRIS" : undefined}
               className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-xl bg-brand-blue-dark text-white hover:bg-brand-blue-normal disabled:opacity-50 transition-colors"
             >
-              <LuCheck className="w-4 h-4" /> Konfirmasi
+              <LuCheck className="w-4 h-4" />{" "}
+              {canClinicConfirm ? "Konfirmasi" : "Menunggu pembayaran"}
             </button>
           )}
           {r.status === "confirmed" && (
             <button
-              disabled={busy}
+              disabled={busy || !canClinicConfirm}
               onClick={() => onStatus(r.id, "completed")}
               className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
             >

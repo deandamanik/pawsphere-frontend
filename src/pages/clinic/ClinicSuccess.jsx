@@ -1,11 +1,15 @@
 // src/pages/clinic/ClinicSuccess.jsx
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { jsPDF } from 'jspdf';
 import { CLINICS_DATA } from '../../data/clinicsData';
 import Mascot from '../../components/ui/Mascot';
+import {
+  getClinicBooking,
+  updateClinicBookingAddress,
+} from '../../services/clinicBooking.service';
 
 // Helper dikurangi 15 menit untuk jam kedatangan check-in (contoh: "10.00" -> "09.45")
 function getArrivalTime(timeStr = '10.00') {
@@ -26,31 +30,92 @@ export default function ClinicSuccess() {
   const navigate = useNavigate();
 
   const state = location.state || {};
+  const reservationId = new URLSearchParams(location.search).get('reservationId');
+  const [booking, setBooking] = useState(state.booking || null);
+  const [address, setAddress] = useState(state.booking?.address || '');
+  const [phone, setPhone] = useState(state.booking?.phone || '');
+  const initialBookingLoad = useRef(!state.booking);
+  const [bookingLoading, setBookingLoading] = useState(Boolean(reservationId));
+  const [bookingLoadError, setBookingLoadError] = useState('');
+  const [addressSaving, setAddressSaving] = useState(false);
   const clinic =
-    state.clinic || CLINICS_DATA.find((c) => c.id === id) || CLINICS_DATA[0];
+    CLINICS_DATA.find((c) => c.id === id) || state.clinic || CLINICS_DATA[0];
 
-  const isHomeCare =
-    state.careMethod === 'rumah' || state.method === 'Dokter ke rumah';
+  const isHomeCare = booking
+    ? booking.careMethod === 'rumah'
+    : state.careMethod === 'rumah' || state.method === 'Dokter ke rumah';
 
-  const petData = state.petData || {
-    name: 'Milo',
-    type: 'Kucing domestik',
-    age: '2 tahun',
-    weight: '4 kg',
-  };
+  const petData = booking
+    ? {
+        name: booking.petName,
+        type: booking.petType || '',
+        age: booking.petAge || '',
+        weight: booking.petWeight || '',
+      }
+    : state.petData || {
+        name: 'Milo',
+        type: 'Kucing domestik',
+        age: '2 tahun',
+        weight: '4 kg',
+      };
 
   const dateObj = state.date || {
-    label: 'Senin, 2 November 2026',
-    short: '2 Nov',
+    label:
+      booking?.scheduleDate ||
+      booking?.checkInDate ||
+      'Jadwal menunggu konfirmasi',
+    short: booking?.scheduleDate || booking?.checkInDate || '-',
   };
 
   // Singkatkan tanggal untuk kartu kiri ("2 Nov 2026" -> "2 Nov")
   const shortDateDisplay = (dateObj.short || '2 Nov').replace(/\s+\d{4}$/, '');
-  const timeSlot = state.time || '10.00';
+  const timeSlot = booking?.scheduleTime || state.time || '-';
   const arrivalTime = getArrivalTime(timeSlot);
-  const queueNumber = state.queueNumber || 'A-012';
+  const queueNumber =
+    booking?.queueNumber ||
+    state.queueNumber ||
+    (booking?.serviceType === 'konsultasi' ? 'A-012' : '-');
   const bookingCode =
-    state.bookingCode || (isHomeCare ? 'PS-H-261102-008' : 'PS-C-261102-012');
+    booking?.bookingCode ||
+    state.bookingCode ||
+    (isHomeCare ? 'PS-H-261102-008' : 'PS-C-261102-012');
+  const formatRupiah = (amount) => 'Rp' + Number(amount || 0).toLocaleString('id-ID');
+
+  useEffect(() => {
+    if (!reservationId) return undefined;
+    let active = true;
+    let timer;
+    let attempts = 0;
+
+    const refreshBooking = async () => {
+      try {
+        const latestBooking = await getClinicBooking(reservationId);
+        if (!active) return;
+        if (initialBookingLoad.current) {
+          setAddress(latestBooking.address || '');
+          setPhone(latestBooking.phone || '');
+          initialBookingLoad.current = false;
+        }
+        setBooking(latestBooking);
+        setBookingLoading(false);
+        setBookingLoadError('');
+        if (latestBooking.paymentStatus === 'pending' && attempts < 30) {
+          attempts += 1;
+          timer = setTimeout(refreshBooking, 2000);
+        }
+      } catch (error) {
+        if (!active) return;
+        setBookingLoadError(error.message || 'Gagal memuat status pembayaran.');
+        setBookingLoading(false);
+      }
+    };
+
+    refreshBooking();
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [reservationId]);
 
   // ================= UNDUH TIKET ANTREAN PDF (UNTUK DATANG KE KLINIK) =================
   const handleDownloadTicket = () => {
@@ -182,7 +247,11 @@ export default function ClinicSuccess() {
 
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(100, 116, 139);
-    doc.text('GoPay · Rp15.000 dibayar', 20, 94);
+    const paymentSummary =
+      booking?.paymentMethod === 'qris'
+        ? `QRIS · ${formatRupiah(booking.estimatedTotal)} dibayar`
+        : 'Tunai · dibayar saat kunjungan';
+    doc.text(paymentSummary, 20, 94);
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10.5);
@@ -220,8 +289,6 @@ export default function ClinicSuccess() {
   };
 
   // ================= STATE & PETA KHUSUS KONSULTASI DI RUMAH =================
-  const [address, setAddress] = useState('');
-  const [phone, setPhone] = useState('');
   const [landmark, setLandmark] = useState('');
   const [addressFormError, setAddressFormError] = useState('');
   const [houseCoords, setHouseCoords] = useState(() => {
@@ -433,7 +500,7 @@ export default function ClinicSuccess() {
     }
   };
 
-  const handleSendHomeAddress = () => {
+  const handleSendHomeAddress = async () => {
     const missingFields = [
       [address, 'alamat lengkap'],
       [phone, 'nomor telepon aktif'],
@@ -450,22 +517,95 @@ export default function ClinicSuccess() {
     }
 
     setAddressFormError('');
-    navigate(`/clinic/${clinic.id}/perjalanan`, {
-      state: {
-        ...state,
-        clinic,
-        petData,
-        address: address.trim(),
-        landmark: landmark.trim(),
-        phone: phone.trim(),
-        homeCoords: {
-          lat: houseCoords[0],
-          lng: houseCoords[1],
+    setAddressSaving(true);
+    try {
+      const savedBooking = booking
+        ? await updateClinicBookingAddress(booking.id, {
+            address: address.trim(),
+            phone: phone.trim(),
+          })
+        : null;
+      if (savedBooking) setBooking(savedBooking);
+      navigate(`/clinic/${clinic.id}/perjalanan`, {
+        state: {
+          ...state,
+          clinic,
+          petData,
+          booking: savedBooking || booking,
+          address: address.trim(),
+          landmark: landmark.trim(),
+          phone: phone.trim(),
+          homeCoords: {
+            lat: houseCoords[0],
+            lng: houseCoords[1],
+          },
+          bookingCode,
         },
-        bookingCode,
-      },
-    });
+      });
+    } catch (error) {
+      setAddressFormError(error.message || 'Gagal menyimpan alamat.');
+    } finally {
+      setAddressSaving(false);
+    }
   };
+
+  if (
+    reservationId &&
+    (bookingLoading ||
+      bookingLoadError ||
+      !booking ||
+      (booking.paymentMethod === 'qris' && booking.paymentStatus !== 'paid'))
+  ) {
+    const statusLabels = {
+      pending: 'Menunggu pembayaran QRIS',
+      partially_refunded: 'Pembayaran dikembalikan sebagian',
+      refunded: 'Pembayaran dikembalikan',
+      failed: 'Pembayaran gagal',
+      expired: 'Pembayaran kedaluwarsa',
+      cancelled: 'Pembayaran dibatalkan',
+    };
+    const statusLabel =
+      statusLabels[booking?.paymentStatus] || 'Memeriksa pembayaran';
+
+    return (
+      <div className="bg-[#F4F8FB] min-h-[calc(100dvh-80px)] py-12 px-5 flex items-center justify-center">
+        <div className="w-full max-w-lg bg-white rounded-3xl border border-slate-200 p-7 text-center shadow-sm">
+          <h1 className="font-display text-xl font-extrabold text-[#1E3A4C]">
+            {bookingLoadError ? 'Status reservasi belum dapat dimuat' : statusLabel}
+          </h1>
+          <p className="mt-3 text-sm text-slate-600" role={bookingLoadError ? 'alert' : undefined}>
+            {bookingLoadError ||
+              (bookingLoading
+                ? 'Mengambil status pembayaran dari PawSphere…'
+                : 'Reservasi baru dianggap lunas setelah notifikasi Midtrans diverifikasi oleh server.')}
+          </p>
+          {booking?.bookingCode && (
+            <p className="mt-4 text-sm font-bold text-[#2C5E7A]">
+              Kode reservasi: {booking.bookingCode}
+            </p>
+          )}
+          {booking?.paymentStatus === 'pending' && booking.snapRedirectUrl && (
+            <button
+              type="button"
+              onClick={() => window.location.assign(booking.snapRedirectUrl)}
+              className="mt-6 rounded-xl bg-[#FF6B00] px-5 py-3 text-sm font-bold text-white"
+            >
+              Lanjutkan pembayaran
+            </button>
+          )}
+          {bookingLoadError && (
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="mt-6 rounded-xl bg-[#2C5E7A] px-5 py-3 text-sm font-bold text-white"
+            >
+              Coba lagi
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   // ================= TAMPILAN 1: ONGKIR LUNAS & ALAMAT RUMAH (SESUAI GAMBAR TERBARU) =================
   if (isHomeCare) {
@@ -516,7 +656,9 @@ export default function ClinicSuccess() {
               {/* Status Pembayaran & Kode Transaksi */}
               <div className="mb-4">
                 <div className="text-xs text-slate-500 mb-1">
-                  QRIS · Rp15.000 dibayar
+                  {booking?.paymentMethod === 'qris'
+                    ? `QRIS · ${formatRupiah(booking.estimatedTotal)} lunas`
+                    : 'Tunai · bayar saat kunjungan'}
                 </div>
                 <div className="text-xs md:text-sm font-extrabold text-[#1E3A4C]">
                   {bookingCode}
@@ -562,8 +704,9 @@ export default function ClinicSuccess() {
                 />
               </svg>
               <p className="text-xs text-[#243B53] leading-relaxed">
-                Ongkir dan biaya PawSphere sudah dibayar. Biaya medis belum
-                ditagihkan. Dokter ditugaskan setelah alamat diterima.
+                {booking?.paymentMethod === 'qris'
+                  ? 'Ongkir dan biaya PawSphere sudah dibayar. Biaya medis belum ditagihkan.'
+                  : 'Ongkir dan biaya PawSphere dibayar saat kunjungan. Biaya medis ditentukan setelah pemeriksaan.'}
               </p>
             </div>
           </div>
@@ -740,7 +883,8 @@ export default function ClinicSuccess() {
               <button
                 type="button"
                 onClick={handleSendHomeAddress}
-                className="bg-[#FF6B00] hover:bg-[#e66000] text-white font-bold py-3.5 px-7 rounded-2xl text-xs md:text-sm inline-flex items-center justify-center gap-2.5 transition shadow-sm cursor-pointer shrink-0"
+                disabled={addressSaving}
+                className="bg-[#FF6B00] hover:bg-[#e66000] text-white font-bold py-3.5 px-7 rounded-2xl text-xs md:text-sm inline-flex items-center justify-center gap-2.5 transition shadow-sm cursor-pointer shrink-0 disabled:opacity-60"
               >
                 <svg
                   className="w-4 h-4 text-white shrink-0"
@@ -755,7 +899,9 @@ export default function ClinicSuccess() {
                     d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
                   />
                 </svg>
-                <span>Kirim alamat & panggil dokter</span>
+                <span>
+                  {addressSaving ? 'Menyimpan alamat…' : 'Kirim alamat & panggil dokter'}
+                </span>
               </button>
             </div>
           </div>
@@ -771,25 +917,38 @@ export default function ClinicSuccess() {
         <div className="flex items-center gap-3.5 mb-6">
           <Mascot state="success" size={58} />
           <h1 className="font-display text-2xl md:text-[28px] font-extrabold text-[#1E3A4C] tracking-tight">
-            Booking berhasil!
+            {booking?.serviceType === 'rawat_inap' ||
+            booking?.serviceType === 'penitipan'
+              ? 'Reservasi berhasil!'
+              : 'Booking berhasil!'}
           </h1>
         </div>
 
         <div className="bg-[#2C5E7A] text-white rounded-[24px] px-6 py-8 md:px-8 md:py-9 shadow-[0_12px_32px_rgba(44,94,122,0.18)] text-center mb-4">
           <div className="text-[11px] md:text-xs font-extrabold uppercase tracking-[0.08em] text-white/85 mb-2">
-            ANTREAN KUNJUNGAN · {clinic.name.toUpperCase()}
+            {booking?.serviceType === 'rawat_inap' ||
+            booking?.serviceType === 'penitipan'
+              ? `${booking.serviceType === 'rawat_inap' ? 'RAWAT INAP' : 'PENITIPAN'} · ${clinic.name.toUpperCase()}`
+              : `ANTREAN KUNJUNGAN · ${clinic.name.toUpperCase()}`}
           </div>
 
           <div className="font-display text-5xl md:text-[64px] font-extrabold leading-none tracking-tight my-3">
-            {queueNumber}
+            {booking?.serviceType === 'rawat_inap' ||
+            booking?.serviceType === 'penitipan'
+              ? bookingCode
+              : queueNumber}
           </div>
 
           <div className="text-sm md:text-base font-bold text-white/95 mt-3 mb-7">
-            {dateObj.label} · {timeSlot} WITA
+            {booking?.checkInDate
+              ? `${booking.checkInDate} – ${booking.checkOutDate}`
+              : `${dateObj.label} · ${timeSlot} WITA`}
           </div>
 
           <div className="flex items-center justify-between gap-2 text-xs text-white/85 pt-1">
-            <span>{petData.name} · Konsultasi di klinik</span>
+            <span>
+              {petData.name} · {booking?.serviceType || 'Konsultasi'} di klinik
+            </span>
             <span className="font-medium">{bookingCode}</span>
           </div>
         </div>
@@ -809,9 +968,10 @@ export default function ClinicSuccess() {
             />
           </svg>
           <p className="text-xs text-[#243B53] leading-relaxed">
-            Datang pukul {arrivalTime} WITA dan tunjukkan tiket ke resepsionis
-            untuk check-in. Antrean mengikuti urutan layanan; kondisi darurat
-            dapat diprioritaskan.
+            {booking?.serviceType === 'rawat_inap' ||
+            booking?.serviceType === 'penitipan'
+              ? 'Pembayaran QRIS sudah diverifikasi. Klinik akan menghubungi kamu untuk konfirmasi detail check-in.'
+              : `Datang pukul ${arrivalTime} WITA dan tunjukkan tiket ke resepsionis untuk check-in. Antrean mengikuti urutan layanan; kondisi darurat dapat diprioritaskan.`}
           </p>
         </div>
 
@@ -821,12 +981,17 @@ export default function ClinicSuccess() {
               Ringkasan reservasi
             </h2>
             <span className="bg-[#E6F4EA] text-[#1E3A4C] text-[11px] font-bold px-3 py-1 rounded-full shrink-0">
-              Terjadwal
+              {booking?.paymentMethod === 'qris'
+                ? 'Pembayaran lunas'
+                : 'Menunggu klinik'}
             </span>
           </div>
 
           <p className="text-xs text-slate-500 pb-5 mb-5 border-b border-slate-100">
-            Biaya konsultasi, obat, dan tindakan ditentukan saat pemeriksaan.
+            {booking?.serviceType === 'rawat_inap' ||
+            booking?.serviceType === 'penitipan'
+              ? `Estimasi biaya: ${formatRupiah(booking.estimatedTotal)}.`
+              : 'Biaya konsultasi, obat, dan tindakan ditentukan saat pemeriksaan.'}
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
