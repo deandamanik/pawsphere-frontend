@@ -20,6 +20,7 @@ import ClinicDoctorTracking from "../pages/clinic/ClinicDoctorTracking";
 import ClinicInpatient from "../pages/clinic/ClinicInpatient";
 
 import ProtectedRoute from './ProtectedRoute';
+import DashboardSearchProvider from '../context/DashboardSearchContext';
 import VetDashboard from '../pages/dashboard/VetDashboard';
 import ShelterDashboard from '../pages/dashboard/ShelterDashboard';
 import AdminDashboard from '../pages/dashboard/AdminDashboard';
@@ -64,19 +65,23 @@ const AppRouter = () => {
 
       {/* Role-restricted dashboards. Each guard allows exactly one role;
           a logged-in user with the wrong role is redirected to their own
-          home, and a guest is sent to /login. */}
-      <Route element={<ProtectedRoute allow={['vet']} />}>
-        <Route path="/dashboard/vet" element={<VetDashboard />} />
-      </Route>
-      <Route element={<ProtectedRoute allow={['shelter']} />}>
-        <Route path="/dashboard/shelter" element={<ShelterDashboard />} />
-      </Route>
-      <Route element={<ProtectedRoute allow={['admin']} />}>
-        <Route path="/dashboard/admin" element={<AdminDashboard />} />
-        <Route path="/dashboard/admin/users" element={<AdminUsers />} />
-      </Route>
-      <Route element={<ProtectedRoute allow={['klinik']} />}>
-        <Route path="/dashboard/klinik" element={<KlinikDashboard />} />
+          home, and a guest is sent to /login.
+          DashboardSearchProvider menyediakan state pencarian topbar untuk
+          semua halaman dashboard. */}
+      <Route element={<DashboardSearchProvider />}>
+        <Route element={<ProtectedRoute allow={['vet']} />}>
+          <Route path="/dashboard/vet" element={<VetDashboard />} />
+        </Route>
+        <Route element={<ProtectedRoute allow={['shelter']} />}>
+          <Route path="/dashboard/shelter" element={<ShelterDashboard />} />
+        </Route>
+        <Route element={<ProtectedRoute allow={['admin']} />}>
+          <Route path="/dashboard/admin" element={<AdminDashboard />} />
+          <Route path="/dashboard/admin/users" element={<AdminUsers />} />
+        </Route>
+        <Route element={<ProtectedRoute allow={['klinik']} />}>
+          <Route path="/dashboard/klinik" element={<KlinikDashboard />} />
+        </Route>
       </Route>
       {/* 404 */}
       <Route path="*" element={<div className="flex items-center justify-center h-screen">404 - Halaman Tidak Ditemukan</div>} />

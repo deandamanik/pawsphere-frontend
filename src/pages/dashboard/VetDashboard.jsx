@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { LuArrowLeft, LuMessageCircle, LuCheck, LuCircleCheck } from "react-icons/lu";
 import DashboardShell from "../../components/dashboard/DashboardShell";
+import { useDashboardSearch } from "../../context/DashboardSearchContext";
 import ConsultationChat from "../../components/vet-connect/ConsultationChat";
 import ErrorModal from "../../components/ui/ErrorModal";
 import ConfirmModal from "../../components/ui/ConfirmModal";
@@ -21,6 +22,7 @@ const fmtDate = (iso) =>
   new Date(iso).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
 
 export default function VetDashboard() {
+  const { query } = useDashboardSearch();
   const [consultations, setConsultations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
@@ -78,6 +80,16 @@ export default function VetDashboard() {
     active: consultations.filter((c) => c.status === "active").length,
     done: consultations.filter((c) => c.status === "completed").length,
   };
+
+  // Filter dari search bar topbar (nama pasien / catatan booking)
+  const q = query.trim().toLowerCase();
+  const visible = !q
+    ? consultations
+    : consultations.filter(
+        (c) =>
+          (c.patient?.name || "").toLowerCase().includes(q) ||
+          (c.notes || "").toLowerCase().includes(q)
+      );
 
   // ----- Chat panel for one consultation -----
   if (selected) {
@@ -183,13 +195,15 @@ export default function VetDashboard() {
         <div className="bg-white rounded-2xl shadow-card p-10 text-center text-slate-500">
           Memuat konsultasi…
         </div>
-      ) : consultations.length === 0 ? (
+      ) : visible.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-card p-10 text-center text-slate-500">
-          Belum ada konsultasi masuk.
+          {q
+            ? `Tidak ada konsultasi yang cocok dengan "${query}".`
+            : "Belum ada konsultasi masuk."}
         </div>
       ) : (
         <div className="space-y-3">
-          {consultations.map((c) => (
+          {visible.map((c) => (
             <motion.div
               key={c.id}
               initial={{ opacity: 0, y: 8 }}

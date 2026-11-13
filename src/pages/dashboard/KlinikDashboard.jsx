@@ -17,6 +17,7 @@ import {
   LuInbox,
 } from "react-icons/lu";
 import DashboardShell from "../../components/dashboard/DashboardShell";
+import { useDashboardSearch } from "../../context/DashboardSearchContext";
 import ErrorModal from "../../components/ui/ErrorModal";
 import ConfirmModal from "../../components/ui/ConfirmModal";
 import {
@@ -65,6 +66,7 @@ const FILTERS = [
 const fmtRupiah = (n) => "Rp" + (n || 0).toLocaleString("id-ID");
 
 export default function KlinikDashboard() {
+  const { query } = useDashboardSearch();
   const [dashboard, setDashboard] = useState(null);
   const [reservations, setReservations] = useState([]);
   const [filter, setFilter] = useState("all");
@@ -141,6 +143,16 @@ export default function KlinikDashboard() {
     total: 0,
   };
   const tabCount = (v) => (v === "all" ? stats.total : (stats[v] ?? 0));
+
+  // Filter dari search bar topbar (nama hewan, jenis, kode booking, pemilik, telepon)
+  const q = query.trim().toLowerCase();
+  const visibleReservations = !q
+    ? reservations
+    : reservations.filter((r) =>
+        [r.petName, r.petType, r.bookingCode, r.customer?.name, r.phone]
+          .filter(Boolean)
+          .some((v) => String(v).toLowerCase().includes(q))
+      );
 
   return (
     <DashboardShell
@@ -219,22 +231,24 @@ export default function KlinikDashboard() {
           <div className="bg-white rounded-2xl border border-slate-100 shadow-card p-12 text-center text-red-500">
             {error}
           </div>
-        ) : reservations.length === 0 ? (
+        ) : visibleReservations.length === 0 ? (
           <div className="bg-white rounded-2xl border border-slate-100 shadow-card p-12 text-center">
             <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
               <LuInbox className="w-6 h-6 text-slate-400" />
             </div>
             <p className="text-slate-500 font-medium">
-              Belum ada reservasi
-              {filter !== "all"
-                ? ` berstatus "${STATUS_META[filter]?.label || filter}"`
-                : ""}
-              .
+              {q
+                ? `Tidak ada reservasi yang cocok dengan "${query}".`
+                : `Belum ada reservasi${
+                    filter !== "all"
+                      ? ` berstatus "${STATUS_META[filter]?.label || filter}"`
+                      : ""
+                  }.`}
             </p>
           </div>
         ) : (
           <div className="space-y-4">
-            {reservations.map((r) => (
+            {visibleReservations.map((r) => (
               <ReservationCard
                 key={r.id}
                 r={r}

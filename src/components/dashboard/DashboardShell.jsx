@@ -13,6 +13,7 @@ import {
   LuX,
 } from "react-icons/lu";
 import { useAuth } from "../../context/AuthContext";
+import { useDashboardSearch } from "../../context/DashboardSearchContext";
 import logo from "../../assets/Logo-Pawsphere.svg";
 import ConfirmModal from "../ui/ConfirmModal";
 
@@ -69,8 +70,16 @@ const BOTTOM_NAV = [
   { label: "Profil Saya", to: "/profile", icon: LuUser },
 ];
 
+const SEARCH_PLACEHOLDER = {
+  klinik: "Cari reservasi, pasien, atau kode…",
+  vet: "Cari pasien atau konsultasi…",
+  shelter: "Cari…",
+  admin: "Cari nama atau email pengguna…",
+};
+
 export default function DashboardShell({ title, subtitle, children }) {
   const { user, logout } = useAuth();
+  const { query, setQuery } = useDashboardSearch();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [askLogout, setAskLogout] = useState(false);
@@ -197,7 +206,9 @@ export default function DashboardShell({ title, subtitle, children }) {
               <LuSearch className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Cari…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={SEARCH_PLACEHOLDER[role] || "Cari…"}
                 className="w-full bg-slate-100 border border-transparent focus:border-brand-blue-normal focus:bg-white rounded-full pl-10 pr-4 py-2 text-sm text-slate-700 placeholder:text-slate-400 outline-none transition"
               />
             </div>
