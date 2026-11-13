@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { LuMenu, LuCopy, LuThumbsUp, LuThumbsDown, LuPlus, LuMic, LuSend } from "react-icons/lu";
 import { PiPawPrintFill } from "react-icons/pi";
+import ClinicRecommendation from "./ClinicRecommendation";
 
 const ChatArea = ({
   activeChat,
@@ -165,6 +166,23 @@ const ChatArea = ({
             </div>
           </motion.div>
         )}
+
+        {/* Rekomendasi klinik — muncul setelah AI memberi jawaban diagnosa */}
+        {!isTyping &&
+          activeChat &&
+          activeChat.messages.length > 0 &&
+          activeChat.messages[activeChat.messages.length - 1].role === "ai" && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: "spring", stiffness: 120, damping: 18 }}
+              className="flex items-start gap-2 sm:gap-3 max-w-[94%] sm:max-w-[80%]"
+            >
+              {/* spacer agar sejajar dengan bubble AI (menggantikan avatar) */}
+              <div className="w-7 h-7 sm:w-9 sm:h-9 shrink-0 hidden sm:block" />
+              <ClinicRecommendation />
+            </motion.div>
+          )}
       </div>
 
       <div className="px-3 sm:px-5 py-3 sm:py-4 border-t border-slate-100">

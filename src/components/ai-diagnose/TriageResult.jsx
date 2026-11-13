@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { PiPawPrintFill } from "react-icons/pi";
 import { LuShieldCheck, LuTriangleAlert, LuSiren, LuVideo } from "react-icons/lu";
+import ClinicRecommendation from "./ClinicRecommendation";
 
 const URGENCY = {
   green: {
@@ -79,15 +80,20 @@ const TriageResult = ({ result }) => {
           <p className="text-sm text-slate-700 leading-relaxed">{result.recommendation}</p>
         </div>
 
-        {/* Vet CTA for yellow/red */}
+        {/* Vet CTA + rekomendasi klinik untuk urgensi kuning/merah */}
         {needsVet && (
-          <Link
-            to="/vet-connect"
-            className="inline-flex items-center justify-center gap-2 w-full sm:w-auto self-start px-5 py-2.5 rounded-xl bg-brand-orange text-white text-sm font-semibold hover:opacity-90 transition-all shadow-sm"
-          >
-            <LuVideo className="w-4 h-4" />
-            Hubungi Dokter Hewan
-          </Link>
+          <div className="flex flex-col gap-4">
+            <Link
+              to="/vet-connect"
+              className="inline-flex items-center justify-center gap-2 w-full sm:w-auto self-start px-5 py-2.5 rounded-xl bg-brand-orange text-white text-sm font-semibold hover:opacity-90 transition-all shadow-sm"
+            >
+              <LuVideo className="w-4 h-4" />
+              Hubungi Dokter Hewan
+            </Link>
+
+            {/* Rekomendasi klinik terdekat — tindakan lanjutan dari triase */}
+            <ClinicRecommendation />
+          </div>
         )}
 
         {/* Source + disclaimer */}

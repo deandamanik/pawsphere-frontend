@@ -5,6 +5,7 @@ import {
 } from "../../services/donation.service";
 import ErrorModal from "../ui/ErrorModal";
 import ConfirmModal from "../ui/ConfirmModal";
+import { useDashboardSearch } from "../../context/DashboardSearchContext";
 
 const STATUS_META = {
   active: { label: "Aktif", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
@@ -41,6 +42,7 @@ const emptyForm = {
 };
 
 export default function ShelterDonationPanel() {
+  const { query } = useDashboardSearch();
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -150,6 +152,16 @@ export default function ShelterDonationPanel() {
     );
   }
 
+  // Filter dari search bar topbar (judul / urgensi)
+  const q = query.trim().toLowerCase();
+  const visibleCampaigns = !q
+    ? campaigns
+    : campaigns.filter((c) =>
+        [c.title, c.urgency]
+          .filter(Boolean)
+          .some((v) => String(v).toLowerCase().includes(q))
+      );
+
   return (
     <div>
       <ErrorModal isOpen={!!errorMsg} message={errorMsg} onClose={() => setErrorMsg("")} />
@@ -227,13 +239,15 @@ export default function ShelterDonationPanel() {
         </form>
       )}
 
-      {campaigns.length === 0 ? (
+      {visibleCampaigns.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-card p-8 text-center text-slate-500">
-          Belum ada kampanye. Klik "Buat Kampanye" untuk memulai.
+          {q
+            ? `Tidak ada kampanye yang cocok dengan "${query}".`
+            : 'Belum ada kampanye. Klik "Buat Kampanye" untuk memulai.'}
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
-          {campaigns.map((c) => (
+          {visibleCampaigns.map((c) => (
             <div key={c.id} className="bg-white rounded-2xl shadow-card border border-slate-100 overflow-hidden flex flex-col">
               <img src={c.image} alt="" className="h-36 w-full object-cover" />
               <div className="p-4 flex flex-col gap-2 flex-1">

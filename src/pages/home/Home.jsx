@@ -3,6 +3,7 @@ import NearestClinics from '../../components/home/NearestClinics';
 import Features from '../../components/home/Features';
 import HowItWorks from '../../components/home/HowItWorks';
 import Testimonials from '../../components/home/Testimonials';
+import FaqSection from '../../components/home/FaqSection';
 
 function Home() {
   return (
@@ -12,6 +13,7 @@ function Home() {
         <Features /> 
         <HowItWorks />
         <Testimonials />
+        <FaqSection />
       </div>
   );
 }

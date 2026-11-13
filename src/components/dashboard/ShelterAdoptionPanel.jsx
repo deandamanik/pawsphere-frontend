@@ -8,6 +8,7 @@ import {
 } from "../../services/adoption.service";
 import ErrorModal from "../ui/ErrorModal";
 import ConfirmModal from "../ui/ConfirmModal";
+import { useDashboardSearch } from "../../context/DashboardSearchContext";
 
 const ANIMAL_STATUS = {
   available: { label: "Tersedia", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
@@ -49,6 +50,7 @@ const emptyForm = {
 };
 
 export default function ShelterAdoptionPanel() {
+  const { query } = useDashboardSearch();
   const [animals, setAnimals] = useState([]);
   const [apps, setApps] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -158,6 +160,23 @@ export default function ShelterAdoptionPanel() {
     );
   }
 
+  // Filter dari search bar topbar
+  const q = query.trim().toLowerCase();
+  const visibleAnimals = !q
+    ? animals
+    : animals.filter((a) =>
+        [a.name, a.type, a.breed, a.gender]
+          .filter(Boolean)
+          .some((v) => String(v).toLowerCase().includes(q))
+      );
+  const visibleApps = !q
+    ? apps
+    : apps.filter((ap) =>
+        [ap.full_name, ap.email, ap.phone, ap.animal?.name]
+          .filter(Boolean)
+          .some((v) => String(v).toLowerCase().includes(q))
+      );
+
   return (
     <div className="space-y-8">
       <ErrorModal isOpen={!!errorMsg} message={errorMsg} onClose={() => setErrorMsg("")} />
@@ -252,13 +271,15 @@ export default function ShelterAdoptionPanel() {
           </form>
         )}
 
-        {animals.length === 0 ? (
+        {visibleAnimals.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-card p-8 text-center text-slate-500">
-            Belum ada hewan. Klik "Tambah Hewan" untuk memulai.
+            {q
+              ? `Tidak ada hewan yang cocok dengan "${query}".`
+              : 'Belum ada hewan. Klik "Tambah Hewan" untuk memulai.'}
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {animals.map((a) => (
+            {visibleAnimals.map((a) => (
               <div key={a.id} className="bg-white rounded-2xl shadow-card border border-slate-100 overflow-hidden flex flex-col">
                 <img src={a.image} alt="" className="h-36 w-full object-cover" />
                 <div className="p-4 flex flex-col gap-2 flex-1">
@@ -297,13 +318,15 @@ export default function ShelterAdoptionPanel() {
           <h2 className="text-lg font-bold text-slate-800">Permohonan Adopsi ({apps.length})</h2>
         </div>
 
-        {apps.length === 0 ? (
+        {visibleApps.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-card p-8 text-center text-slate-500">
-            Belum ada permohonan adopsi.
+            {q
+              ? `Tidak ada permohonan yang cocok dengan "${query}".`
+              : "Belum ada permohonan adopsi."}
           </div>
         ) : (
           <div className="space-y-3">
-            {apps.map((app) => (
+            {visibleApps.map((app) => (
               <div key={app.id} className="bg-white rounded-2xl shadow-card border border-slate-100 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>

@@ -1,10 +1,11 @@
 // src/pages/dashboard/AdminUsers.jsx
 import { useEffect, useState, useCallback } from "react";
-import { LuSearch, LuShieldCheck } from "react-icons/lu";
+import { LuShieldCheck } from "react-icons/lu";
 import DashboardShell from "../../components/dashboard/DashboardShell";
 import ErrorModal from "../../components/ui/ErrorModal";
 import ConfirmModal from "../../components/ui/ConfirmModal";
 import { useAuth } from "../../context/AuthContext";
+import { useDashboardSearch } from "../../context/DashboardSearchContext";
 import { getUsers, updateUserRole } from "../../services/admin.service";
 
 const ROLES = [
@@ -26,11 +27,11 @@ const roleLabel = (v) => ROLES.find((r) => r.value === v)?.label || v;
 
 export default function AdminUsers() {
   const { user: me } = useAuth();
+  const { query } = useDashboardSearch();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
-  const [search, setSearch] = useState("");
   const [confirm, setConfirm] = useState(null);
 
   const load = useCallback(() => {
@@ -71,7 +72,7 @@ export default function AdminUsers() {
   };
 
   const filtered = users.filter((u) => {
-    const q = search.trim().toLowerCase();
+    const q = query.trim().toLowerCase();
     if (!q) return true;
     return (
       (u.name || "").toLowerCase().includes(q) ||
@@ -86,22 +87,15 @@ export default function AdminUsers() {
     >
       <ErrorModal isOpen={!!errorMsg} message={errorMsg} onClose={() => setErrorMsg("")} />
 
-      {/* Search */}
-      <div className="relative max-w-sm mb-5">
-        <LuSearch className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Cari nama atau email…"
-          className="w-full bg-white border border-slate-200 focus:border-brand-blue-normal rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-700 outline-none transition"
-        />
-      </div>
-
       <div className="bg-white rounded-2xl border border-slate-100 shadow-card overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-slate-400">Memuat pengguna…</div>
         ) : filtered.length === 0 ? (
-          <div className="p-12 text-center text-slate-400">Tidak ada pengguna.</div>
+          <div className="p-12 text-center text-slate-400">
+            {query.trim()
+              ? `Tidak ada pengguna yang cocok dengan "${query}".`
+              : "Tidak ada pengguna."}
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
