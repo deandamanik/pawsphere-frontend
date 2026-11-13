@@ -1,14 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom";
 import Mascot from "../../components/ui/Mascot";
 import {
   LuBuilding2,
-  LuLogOut,
   LuCalendar,
   LuUser,
   LuPhone,
   LuHash,
-  LuHouse,
   LuWallet,
   LuPawPrint,
   LuClock,
@@ -19,7 +16,7 @@ import {
   LuMapPin,
   LuInbox,
 } from "react-icons/lu";
-import { useAuth } from "../../context/AuthContext";
+import DashboardShell from "../../components/dashboard/DashboardShell";
 import ErrorModal from "../../components/ui/ErrorModal";
 import ConfirmModal from "../../components/ui/ConfirmModal";
 import {
@@ -68,9 +65,6 @@ const FILTERS = [
 const fmtRupiah = (n) => "Rp" + (n || 0).toLocaleString("id-ID");
 
 export default function KlinikDashboard() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-
   const [dashboard, setDashboard] = useState(null);
   const [reservations, setReservations] = useState([]);
   const [filter, setFilter] = useState("all");
@@ -139,19 +133,6 @@ export default function KlinikDashboard() {
     setConfirm({ ...cfg, onConfirm: () => handleStatus(id, status) });
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login", { replace: true });
-  };
-  const askLogout = () =>
-    setConfirm({
-      title: "Keluar dari akun?",
-      message: "Kamu perlu login lagi untuk masuk ke dashboard.",
-      confirmText: "Ya, keluar",
-      tone: "danger",
-      onConfirm: handleLogout,
-    });
-
   const stats = dashboard?.stats || {
     pending: 0,
     confirmed: 0,
@@ -162,59 +143,15 @@ export default function KlinikDashboard() {
   const tabCount = (v) => (v === "all" ? stats.total : (stats[v] ?? 0));
 
   return (
-    <div className="min-h-screen bg-slate-50 font-poppins">
-      {/* ---- Topbar ---- */}
-      <header className="sticky top-0 z-10 bg-white/90 backdrop-blur border-b border-slate-200">
-        <div className="max-w-6xl mx-auto px-5 py-3.5 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-11 h-11 rounded-xl bg-brand-blue-light flex items-center justify-center shrink-0 overflow-hidden">
-              {dashboard?.clinic?.image ? (
-                <img
-                  src={dashboard.clinic.image}
-                  alt=""
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <LuBuilding2 className="w-5 h-5 text-brand-blue-normal" />
-              )}
-            </div>
-            <div className="min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-blue-normal/60">
-                Dashboard Klinik
-              </p>
-              <h1 className="text-base md:text-lg font-bold text-brand-blue-normal truncate leading-tight">
-                {dashboard?.clinic?.name || "Memuat…"}
-              </h1>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="text-right hidden sm:block">
-              <p className="text-sm font-semibold text-slate-700 leading-tight">
-                {user?.name}
-              </p>
-              <p className="text-[11px] text-slate-400">Pengelola</p>
-            </div>
-            <Link
-              to="/"
-              aria-label="Kembali ke beranda"
-              title="Kembali ke beranda"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-blue-normal hover:text-brand-blue-dark border border-brand-blue-normal/20 hover:border-brand-blue-normal/40 hover:bg-brand-blue-light px-3 py-2 rounded-xl transition-colors"
-            >
-              <LuHouse className="w-4 h-4" />
-              <span className="hidden sm:inline">Beranda</span>
-            </Link>
-            <button
-              onClick={askLogout}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-red-600 border border-slate-200 hover:border-red-200 hover:bg-red-50 px-3 py-2 rounded-xl transition-colors"
-            >
-              <LuLogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Keluar</span>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-5 py-6">
+    <DashboardShell
+      title="Dashboard Klinik"
+      subtitle={
+        dashboard?.clinic?.name
+          ? `Kelola reservasi ${dashboard.clinic.name}`
+          : "Kelola reservasi klinikmu"
+      }
+    >
+      <div>
         {/* ---- Stat cards ---- */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
           <StatCard
@@ -307,7 +244,7 @@ export default function KlinikDashboard() {
             ))}
           </div>
         )}
-      </main>
+      </div>
       <ErrorModal
         isOpen={!!errorMsg}
         message={errorMsg}
@@ -326,7 +263,7 @@ export default function KlinikDashboard() {
         }}
         onClose={() => setConfirm(null)}
       />
-    </div>
+    </DashboardShell>
   );
 }
 
