@@ -1,56 +1,134 @@
 // src/pages/clinic/ClinicPayment.jsx
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { CLINICS_DATA } from '../../data/clinicsData';
+import { useAuth } from '../../context/AuthContext';
+import { createClinicBooking } from '../../services/clinicBooking.service';
+
+const getIdempotencyKey = (payload) => {
+  const storageKey = 'pawsphere-clinic-checkout';
+  const fingerprint = JSON.stringify(payload);
+  const saved = JSON.parse(sessionStorage.getItem(storageKey) || 'null');
+  if (saved?.fingerprint === fingerprint && saved.key) return saved.key;
+  const key = crypto.randomUUID();
+  sessionStorage.setItem(storageKey, JSON.stringify({ fingerprint, key }));
+  return key;
+};
 
 export default function ClinicPayment() {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
 
   const state = location.state || {};
   const clinic =
-    state.clinic || CLINICS_DATA.find((c) => c.id === id) || CLINICS_DATA[0];
+    CLINICS_DATA.find((c) => c.id === id) || state.clinic || CLINICS_DATA[0];
 
-  const petData = state.petData || {
-    name: 'Milo',
-    type: 'Kucing domestik',
-    age: '2 tahun',
-    weight: '4 kg',
-  };
+  const petData = state.petData;
 
   // Cek apakah dari alur Rawat Inap / Penitipan atau Kunjungan Rumah
   const isInpatient = Boolean(state.stayType);
+  const hasBookingDetails = Boolean(clinic && petData?.name && state.service);
 
   // State pilihan metode pembayaran ('tunai' | 'qris')
   const [paymentMethod, setPaymentMethod] = useState('tunai');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
-  // Kalkulasi biaya (Default mengikuti desain Ongkir Dokter ke Rumah: Rp10.000 + Rp5.000 = Rp15.000)
-  const deliveryFee = isInpatient
-    ? state.travelFeeNum || 0
-    : 10000;
+  const deliveryFee = isInpatient ? 0 : 10000;
   const platformFee = 5000;
+  const parseRate = (price) => {
+    const digits = String(price || '').match(/\d[\d.]*/)?.[0]?.replace(/\D/g, '');
+    return Number(digits) || 0;
+  };
+  const nightlyRate = isInpatient
+    ? parseRate(
+        state.stayType === 'rawat_inap'
+          ? clinic?.inpatientPrice
+          : clinic?.boardingPrice
+      )
+    : 0;
+  const totalNights = state.totalNights || 1;
+  const accommodationPrice = nightlyRate * totalNights;
   const inpatientTotal = isInpatient
-    ? (state.basePriceNum || 500000) + deliveryFee + platformFee
-    : 15000;
+    ? accommodationPrice + platformFee
+    : deliveryFee + platformFee;
 
   const formatRupiah = (num) => 'Rp' + num.toLocaleString('id-ID');
 
-  const handleConfirmPayment = () => {
-    navigate(`/clinic/${clinic.id}/berhasil`, {
-      state: {
-        ...state,
-        clinic,
-        petData,
-        careMethod: isInpatient ? 'inpatient' : 'rumah',
-        method: isInpatient ? state.method : 'Dokter ke rumah',
-        paymentMethod: paymentMethod === 'tunai' ? 'Tunai' : 'QRIS',
-        paymentStatus:
-          paymentMethod === 'tunai' ? 'Tunai · Saat tiba' : 'QRIS · Lunas',
-        totalPaid: isInpatient ? formatRupiah(inpatientTotal) : 'Rp15.000',
-        bookingCode: 'PS-H-261102-008',
-      },
-    });
+  const handleConfirmPayment = async () => {
+    if (!hasBookingDetails) {
+      setError('Data booking tidak ditemukan. Silakan pilih layanan klinik kembali.');
+      return;
+    }
+    if (authLoading) return;
+    if (!isAuthenticated) {
+      navigate('/login', {
+        state: { from: { pathname: location.pathname, state } },
+      });
+      return;
+    }
+
+    const payload = {
+      serviceType: state.stayType || 'konsultasi',
+      careMethod: isInpatient ? 'klinik' : 'rumah',
+      paymentMethod: paymentMethod === 'tunai' ? 'cash' : 'qris',
+      petName: petData.name,
+      petType: petData.type,
+      petAge: petData.age,
+      petWeight: petData.weight,
+      doctorName: state.doctor,
+      scheduleDate: state.date?.label,
+      scheduleTime: state.time,
+      checkInDate: state.checkInDate?.iso,
+      checkOutDate: state.checkOutDate?.iso,
+      complaint: state.complaint,
+      notes: state.notes,
+      phone: user?.phoneNumber,
+    };
+
+    setSubmitting(true);
+    setError('');
+    try {
+      const booking = await createClinicBooking(
+        clinic.id,
+        payload,
+        getIdempotencyKey(payload)
+      );
+
+      if (paymentMethod === 'qris') {
+        if (!booking.snapRedirectUrl) {
+          throw new Error('Sesi pembayaran QRIS belum tersedia. Muat ulang halaman.');
+        }
+        sessionStorage.removeItem('pawsphere-clinic-checkout');
+        window.location.assign(booking.snapRedirectUrl);
+        return;
+      }
+
+      sessionStorage.removeItem('pawsphere-clinic-checkout');
+      navigate(`/clinic/${clinic.id}/berhasil?reservationId=${encodeURIComponent(booking.id)}`, {
+        state: {
+          ...state,
+          clinic,
+          petData,
+          booking,
+          careMethod: isInpatient ? 'klinik' : 'rumah',
+          method: state.method,
+          paymentMethod: 'Tunai',
+        },
+      });
+    } catch (requestError) {
+      if (requestError.status === 401) {
+        navigate('/login', {
+          state: { from: { pathname: location.pathname, state } },
+        });
+        return;
+      }
+      setError(requestError.message || 'Reservasi belum dapat diproses.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -102,7 +180,7 @@ export default function ClinicPayment() {
                     malam)
                   </span>
                   <span className="font-bold text-[#1E3A4C] text-right">
-                    {formatRupiah(state.basePriceNum || 500000)}
+                    {formatRupiah(accommodationPrice)}
                   </span>
                 </div>
 
@@ -272,9 +350,16 @@ export default function ClinicPayment() {
             Alamat dan telepon tetap perlu diisi.
           </p>
 
+          {error && (
+            <p className="text-xs font-semibold text-rose-600" role="alert">
+              {error}
+            </p>
+          )}
+
           <button
             type="button"
             onClick={handleConfirmPayment}
+            disabled={submitting || authLoading || !hasBookingDetails}
             className="bg-[#FF6B00] hover:bg-[#e66000] text-white font-bold py-3.5 px-7 rounded-2xl text-xs md:text-sm inline-flex items-center justify-center gap-2.5 transition shadow-sm cursor-pointer shrink-0 min-w-[235px]"
           >
             <svg
@@ -299,7 +384,9 @@ export default function ClinicPayment() {
               />
             </svg>
             <span>
-              {paymentMethod === 'tunai'
+              {submitting
+                ? 'Memproses reservasi…'
+                : paymentMethod === 'tunai'
                 ? 'Konfirmasi tunai'
                 : 'Konfirmasi QRIS'}
             </span>

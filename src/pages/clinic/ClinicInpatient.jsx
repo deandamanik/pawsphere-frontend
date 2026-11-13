@@ -104,7 +104,12 @@ export default function ClinicInpatient() {
                 86400000
         )
     );
-    const nightlyRate = stayType === 'rawat_inap' ? 250000 : 150000;
+    const nightlyRateText =
+        stayType === 'rawat_inap' ? clinic.inpatientPrice : clinic.boardingPrice;
+    const nightlyRateDigits = String(nightlyRateText || '')
+        .match(/\d[\d.]*/)?.[0]
+        ?.replace(/\D/g, '');
+    const nightlyRate = Number(nightlyRateDigits) || 0;
     const availableSlots = stayType === 'rawat_inap' ? 3 : 5;
     const accommodationPrice = totalNights * nightlyRate;
     const estimatedTotal = accommodationPrice + SERVICE_FEE;
@@ -507,7 +512,10 @@ export default function ClinicInpatient() {
                                     {availableSlots} tempat tersedia
                                 </span>
                                 <span className="text-xs text-slate-500 font-medium">
-                                    {totalNights} malam · {formatRupiah(nightlyRate)} / malam
+                                    {totalNights} malam ·{' '}
+                                    {nightlyRate
+                                        ? `${formatRupiah(nightlyRate)} / malam`
+                                        : nightlyRateText || 'Harga belum tersedia'}
                                 </span>
                             </div>
 

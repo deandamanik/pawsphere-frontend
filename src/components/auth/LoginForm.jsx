@@ -28,8 +28,11 @@ const LoginForm = () => {
       const user = await login(email, password);
 
       // If the guard bounced them here, return to the page they wanted.
-      const from = location.state?.from?.pathname;
-      navigate(from || homeForRole(user.role), { replace: true });
+      const from = location.state?.from;
+      navigate(
+        from?.pathname || homeForRole(user.role),
+        from?.state ? { state: from.state, replace: true } : { replace: true }
+      );
     } catch (err) {
       setError(err.message || 'Gagal masuk. Coba lagi.');
     } finally {
