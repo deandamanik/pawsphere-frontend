@@ -8,10 +8,11 @@ import { CLINICS_DATA } from '../../data/clinicsData';
 import Mascot from '../../components/ui/Mascot';
 import {
   getClinicBooking,
+  loadMidtransSnap,
+  refreshClinicBookingPaymentStatus,
   updateClinicBookingAddress,
 } from '../../services/clinicBooking.service';
 
-// Helper dikurangi 15 menit untuk jam kedatangan check-in (contoh: "10.00" -> "09.45")
 function getArrivalTime(timeStr = '10.00') {
   const parts = timeStr.split('.');
   if (parts.length !== 2) return '09.45';
@@ -37,9 +38,24 @@ export default function ClinicSuccess() {
   const initialBookingLoad = useRef(!state.booking);
   const [bookingLoading, setBookingLoading] = useState(Boolean(reservationId));
   const [bookingLoadError, setBookingLoadError] = useState('');
+  const [paymentRefreshError, setPaymentRefreshError] = useState('');
+  const [paymentRefreshing, setPaymentRefreshing] = useState(false);
   const [addressSaving, setAddressSaving] = useState(false);
   const clinic =
     CLINICS_DATA.find((c) => c.id === id) || state.clinic || CLINICS_DATA[0];
+  const shouldShowPaymentStatus = Boolean(
+    reservationId &&
+      (bookingLoading ||
+        bookingLoadError ||
+        !booking ||
+        (booking.paymentMethod === 'qris' && booking.paymentStatus !== 'paid'))
+  );
+  const paymentStatusLabel =
+    booking?.paymentStatus === 'paid'
+      ? 'Lunas'
+      : booking?.paymentMethod === 'cash'
+        ? 'Dalam Proses'
+        : null;
 
   const isHomeCare = booking
     ? booking.careMethod === 'rumah'
@@ -79,6 +95,10 @@ export default function ClinicSuccess() {
     booking?.bookingCode ||
     state.bookingCode ||
     (isHomeCare ? 'PS-H-261102-008' : 'PS-C-261102-012');
+  const bookingCodeMatch = bookingCode.match(/^(PS-[A-Z])-\d{6}-([A-F0-9]{8})$/i);
+  const compactBookingCode = bookingCodeMatch
+    ? `${bookingCodeMatch[1]}-${bookingCodeMatch[2].slice(0, 4)}-${bookingCodeMatch[2].slice(4)}`
+    : bookingCode;
   const formatRupiah = (amount) => 'Rp' + Number(amount || 0).toLocaleString('id-ID');
 
   useEffect(() => {
@@ -87,9 +107,20 @@ export default function ClinicSuccess() {
     let timer;
     let attempts = 0;
 
-    const refreshBooking = async () => {
+    const refreshBooking = async (verifyWithProvider = false) => {
       try {
-        const latestBooking = await getClinicBooking(reservationId);
+        let latestBooking;
+        if (verifyWithProvider) {
+          try {
+            latestBooking = await refreshClinicBookingPaymentStatus(reservationId);
+            setPaymentRefreshError('');
+          } catch (error) {
+            latestBooking = await getClinicBooking(reservationId);
+            setPaymentRefreshError(error.message || 'Status Midtrans belum dapat diperiksa.');
+          }
+        } else {
+          latestBooking = await getClinicBooking(reservationId);
+        }
         if (!active) return;
         if (initialBookingLoad.current) {
           setAddress(latestBooking.address || '');
@@ -99,9 +130,12 @@ export default function ClinicSuccess() {
         setBooking(latestBooking);
         setBookingLoading(false);
         setBookingLoadError('');
+        if (latestBooking.paymentStatus !== 'pending') {
+          sessionStorage.removeItem('pawsphere-clinic-checkout');
+        }
         if (latestBooking.paymentStatus === 'pending' && attempts < 30) {
           attempts += 1;
-          timer = setTimeout(refreshBooking, 2000);
+          timer = setTimeout(() => refreshBooking(), 2000);
         }
       } catch (error) {
         if (!active) return;
@@ -110,12 +144,51 @@ export default function ClinicSuccess() {
       }
     };
 
-    refreshBooking();
+    refreshBooking(true);
     return () => {
       active = false;
       clearTimeout(timer);
     };
   }, [reservationId]);
+
+  const handleRefreshPaymentStatus = async () => {
+    if (!reservationId) return;
+    setPaymentRefreshing(true);
+    setPaymentRefreshError('');
+    try {
+      const latestBooking = await refreshClinicBookingPaymentStatus(reservationId);
+      setBooking(latestBooking);
+      if (latestBooking.paymentStatus !== 'pending') {
+        sessionStorage.removeItem('pawsphere-clinic-checkout');
+      }
+    } catch (error) {
+      setPaymentRefreshError(error.message || 'Status Midtrans belum dapat diperiksa.');
+    } finally {
+      setPaymentRefreshing(false);
+    }
+  };
+
+  const handleContinuePayment = async () => {
+    if (!booking?.snapToken) return;
+    setPaymentRefreshError('');
+    try {
+      const snap = await loadMidtransSnap(
+        booking.snapScriptUrl,
+        booking.snapClientKey
+      );
+      snap.pay(booking.snapToken, {
+        onSuccess: handleRefreshPaymentStatus,
+        onPending: () => {
+          setPaymentRefreshError('Pembayaran masih menunggu konfirmasi Midtrans.');
+        },
+        onError: () => {
+          setPaymentRefreshError('Pembayaran QRIS belum berhasil. Silakan coba lagi.');
+        },
+      });
+    } catch (error) {
+      setPaymentRefreshError(error.message || 'Popup Midtrans tidak dapat dibuka.');
+    }
+  };
 
   // ================= UNDUH TIKET ANTREAN PDF (UNTUK DATANG KE KLINIK) =================
   const handleDownloadTicket = () => {
@@ -343,7 +416,7 @@ export default function ClinicSuccess() {
   };
 
   useEffect(() => {
-    if (!isHomeCare) return;
+    if (!isHomeCare || shouldShowPaymentStatus) return;
     const container = homeMapRef.current;
     if (!container || homeMapInstance.current) return;
 
@@ -461,7 +534,7 @@ export default function ClinicSuccess() {
       homeMapInstance.current = null;
       houseRouteRef.current = null;
     };
-  }, [isHomeCare, clinic.id, clinic.coordinates]);
+  }, [isHomeCare, shouldShowPaymentStatus, clinic.id, clinic.coordinates]);
 
   useEffect(() => {
     const clinicCoords = clinic.coordinates || [-8.6725, 115.2335];
@@ -549,13 +622,7 @@ export default function ClinicSuccess() {
     }
   };
 
-  if (
-    reservationId &&
-    (bookingLoading ||
-      bookingLoadError ||
-      !booking ||
-      (booking.paymentMethod === 'qris' && booking.paymentStatus !== 'paid'))
-  ) {
+  if (shouldShowPaymentStatus) {
     const statusLabels = {
       pending: 'Menunggu pembayaran QRIS',
       partially_refunded: 'Pembayaran dikembalikan sebagian',
@@ -584,14 +651,31 @@ export default function ClinicSuccess() {
               Kode reservasi: {booking.bookingCode}
             </p>
           )}
-          {booking?.paymentStatus === 'pending' && booking.snapRedirectUrl && (
-            <button
-              type="button"
-              onClick={() => window.location.assign(booking.snapRedirectUrl)}
-              className="mt-6 rounded-xl bg-[#FF6B00] px-5 py-3 text-sm font-bold text-white"
-            >
-              Lanjutkan pembayaran
-            </button>
+          {booking?.paymentStatus === 'pending' && paymentRefreshError && (
+            <p className="mt-4 text-sm text-rose-600" role="alert">
+              {paymentRefreshError}
+            </p>
+          )}
+          {booking?.paymentStatus === 'pending' && (
+            <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+              {booking.snapToken && (
+                <button
+                  type="button"
+                  onClick={handleContinuePayment}
+                  className="rounded-xl bg-[#FF6B00] px-5 py-3 text-sm font-bold text-white"
+                >
+                  Lanjutkan pembayaran
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleRefreshPaymentStatus}
+                disabled={paymentRefreshing}
+                className="rounded-xl bg-[#2C5E7A] px-5 py-3 text-sm font-bold text-white disabled:opacity-60"
+              >
+                {paymentRefreshing ? 'Memeriksa…' : 'Periksa status pembayaran'}
+              </button>
+            </div>
           )}
           {bookingLoadError && (
             <button
@@ -615,9 +699,23 @@ export default function ClinicSuccess() {
           {/* ================= KOLOM KIRI: KARTU KONSULTASI DI RUMAH & UNDUH BUKTI BAYAR ================= */}
           <div className="lg:col-span-5 space-y-4">
             <div className="bg-white border border-slate-200/80 rounded-[24px] p-6 md:p-7 shadow-[0_8px_30px_rgba(24,59,86,0.04)]">
-              <h1 className="font-display text-lg md:text-xl font-extrabold text-[#1E3A4C] mb-1">
-                Konsultasi di rumah
-              </h1>
+              <div className="flex items-center justify-between gap-3 mb-1">
+                <h1 className="font-display text-lg md:text-xl font-extrabold text-[#1E3A4C]">
+                  Konsultasi di rumah
+                </h1>
+                {paymentStatusLabel && (
+                  <span
+                    role="status"
+                    className={`shrink-0 rounded-full border px-3 py-1 text-[11px] font-bold ${
+                      paymentStatusLabel === 'Lunas'
+                        ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                        : 'border-amber-200 bg-amber-50 text-amber-700'
+                    }`}
+                  >
+                    {paymentStatusLabel}
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-slate-500 pb-4 mb-4 border-b border-slate-100">
                 {clinic.name} · {petData.name}
               </p>
@@ -935,7 +1033,7 @@ export default function ClinicSuccess() {
           <div className="font-display text-5xl md:text-[64px] font-extrabold leading-none tracking-tight my-3">
             {booking?.serviceType === 'rawat_inap' ||
             booking?.serviceType === 'penitipan'
-              ? bookingCode
+              ? compactBookingCode
               : queueNumber}
           </div>
 
@@ -949,7 +1047,9 @@ export default function ClinicSuccess() {
             <span>
               {petData.name} · {booking?.serviceType || 'Konsultasi'} di klinik
             </span>
-            <span className="font-medium">{bookingCode}</span>
+            <span className="font-medium text-right" title={`Kode lengkap: ${bookingCode}`}>
+              Kode lengkap: {bookingCode}
+            </span>
           </div>
         </div>
 

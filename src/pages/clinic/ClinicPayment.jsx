@@ -3,7 +3,10 @@ import { useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { CLINICS_DATA } from '../../data/clinicsData';
 import { useAuth } from '../../context/AuthContext';
-import { createClinicBooking } from '../../services/clinicBooking.service';
+import {
+  createClinicBooking,
+  loadMidtransSnap,
+} from '../../services/clinicBooking.service';
 
 const getIdempotencyKey = (payload) => {
   const storageKey = 'pawsphere-clinic-checkout';
@@ -35,6 +38,7 @@ export default function ClinicPayment() {
   const [paymentMethod, setPaymentMethod] = useState('tunai');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [paymentNotice, setPaymentNotice] = useState('');
 
   const deliveryFee = isInpatient ? 0 : 10000;
   const platformFee = 5000;
@@ -90,6 +94,7 @@ export default function ClinicPayment() {
 
     setSubmitting(true);
     setError('');
+    setPaymentNotice('');
     try {
       const booking = await createClinicBooking(
         clinic.id,
@@ -98,11 +103,44 @@ export default function ClinicPayment() {
       );
 
       if (paymentMethod === 'qris') {
-        if (!booking.snapRedirectUrl) {
-          throw new Error('Sesi pembayaran QRIS belum tersedia. Muat ulang halaman.');
+        if (!booking.snapToken || !booking.snapScriptUrl || !booking.snapClientKey) {
+          throw new Error('Sesi popup QRIS belum tersedia. Muat ulang halaman.');
         }
-        sessionStorage.removeItem('pawsphere-clinic-checkout');
-        window.location.assign(booking.snapRedirectUrl);
+        const snap = await loadMidtransSnap(
+          booking.snapScriptUrl,
+          booking.snapClientKey
+        );
+        snap.pay(booking.snapToken, {
+          onSuccess: () => {
+            navigate(
+              `/clinic/${clinic.id}/berhasil?reservationId=${encodeURIComponent(booking.id)}`,
+              {
+                state: {
+                  ...state,
+                  clinic,
+                  petData,
+                  booking,
+                  careMethod: isInpatient ? 'klinik' : 'rumah',
+                  method: state.method,
+                  paymentMethod: 'QRIS',
+                },
+              }
+            );
+          },
+          onPending: () => {
+            setPaymentNotice(
+              'Pembayaran menunggu konfirmasi. Selesaikan pembayaran pada popup QRIS.'
+            );
+          },
+          onError: () => {
+            setError('Pembayaran QRIS belum berhasil. Silakan coba lagi.');
+          },
+          onClose: () => {
+            setPaymentNotice(
+              'Popup ditutup. Reservasi tetap tersimpan; pilih QRIS lagi untuk melanjutkan.'
+            );
+          },
+        });
         return;
       }
 
@@ -353,6 +391,11 @@ export default function ClinicPayment() {
           {error && (
             <p className="text-xs font-semibold text-rose-600" role="alert">
               {error}
+            </p>
+          )}
+          {paymentNotice && (
+            <p className="text-xs font-semibold text-[#2C5E7A]" role="status">
+              {paymentNotice}
             </p>
           )}
 
