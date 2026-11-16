@@ -1,5 +1,5 @@
 // src/components/clinic/ClinicNearbySidebar.jsx
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 export default function ClinicNearbySidebar({
   clinics = [],
@@ -59,7 +59,7 @@ export default function ClinicNearbySidebar({
       (c.area || '').toLowerCase().includes(activeArea.toLowerCase()) ||
       (c.shortArea || '').toLowerCase().includes(activeArea.toLowerCase());
 
-    const matchOpen = !activeOpenNow || c.isOpen;
+    const matchOpen = !activeOpenNow || c.isOpenNow;
 
     const matchService =
       activeService === 'Semua layanan' ||
@@ -225,6 +225,7 @@ export default function ClinicNearbySidebar({
       <div className="flex-1 overflow-y-auto px-4 md:px-5 py-3.5 space-y-3">
         {filteredClinics.map((clinic) => {
           const isSelected = selectedClinicId === clinic.id;
+          const isOpenNow = clinic.isOpenNow;
           return (
             <div
               key={clinic.id}
@@ -255,17 +256,17 @@ export default function ClinicNearbySidebar({
 
                 <span
                   className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0 ${
-                    clinic.isOpen
+                    isOpenNow
                       ? 'bg-[#E6F7EF] text-[#15803D]'
                       : 'bg-[#FEE2E2] text-[#DC2626]'
                   }`}
                 >
                   <span
                     className={`w-1.5 h-1.5 rounded-full ${
-                      clinic.isOpen ? 'bg-[#16A34A]' : 'bg-[#DC2626]'
+                      isOpenNow ? 'bg-[#16A34A]' : 'bg-[#DC2626]'
                     }`}
                   />
-                  {clinic.isOpen ? 'Buka' : 'Tutup'}
+                  {isOpenNow ? 'Buka' : 'Tutup'}
                 </span>
               </div>
 
