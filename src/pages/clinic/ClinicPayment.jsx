@@ -30,9 +30,25 @@ export default function ClinicPayment() {
 
   const petData = state.petData;
 
-  // Cek apakah dari alur Rawat Inap / Penitipan atau Kunjungan Rumah
-  const isInpatient = Boolean(state.stayType);
-  const hasBookingDetails = Boolean(clinic && petData?.name && state.service);
+  const serviceLabel = String(state.service || '').toLowerCase();
+  const stayType =
+    state.stayType === 'rawat_inap' || state.stayType === 'penitipan'
+      ? state.stayType
+      : serviceLabel.includes('rawat inap')
+        ? 'rawat_inap'
+        : serviceLabel.includes('penitipan')
+          ? 'penitipan'
+          : null;
+  const isStayBooking = Boolean(stayType);
+  const bookingServiceLabel =
+    stayType === 'rawat_inap'
+      ? 'Rawat inap'
+      : stayType === 'penitipan'
+        ? 'Penitipan'
+        : state.service;
+  const hasBookingDetails = Boolean(
+    clinic && petData?.name && (isStayBooking || state.service)
+  );
 
   // State pilihan metode pembayaran ('tunai' | 'qris')
   const [paymentMethod, setPaymentMethod] = useState('tunai');
@@ -40,22 +56,22 @@ export default function ClinicPayment() {
   const [error, setError] = useState('');
   const [paymentNotice, setPaymentNotice] = useState('');
 
-  const deliveryFee = isInpatient ? 0 : 10000;
+  const deliveryFee = isStayBooking ? 0 : 10000;
   const platformFee = 5000;
   const parseRate = (price) => {
     const digits = String(price || '').match(/\d[\d.]*/)?.[0]?.replace(/\D/g, '');
     return Number(digits) || 0;
   };
-  const nightlyRate = isInpatient
+  const nightlyRate = isStayBooking
     ? parseRate(
-        state.stayType === 'rawat_inap'
+        stayType === 'rawat_inap'
           ? clinic?.inpatientPrice
           : clinic?.boardingPrice
       )
     : 0;
   const totalNights = state.totalNights || 1;
   const accommodationPrice = nightlyRate * totalNights;
-  const inpatientTotal = isInpatient
+  const stayTotal = isStayBooking
     ? accommodationPrice + platformFee
     : deliveryFee + platformFee;
 
@@ -75,8 +91,9 @@ export default function ClinicPayment() {
     }
 
     const payload = {
-      serviceType: state.stayType || 'konsultasi',
-      careMethod: isInpatient ? 'klinik' : 'rumah',
+      serviceType: stayType || 'konsultasi',
+      careMethod: isStayBooking ? 'klinik' : 'rumah',
+      transportMethod: isStayBooking ? state.transportMethod : undefined,
       paymentMethod: paymentMethod === 'tunai' ? 'cash' : 'qris',
       petName: petData.name,
       petType: petData.type,
@@ -120,7 +137,7 @@ export default function ClinicPayment() {
                   clinic,
                   petData,
                   booking,
-                  careMethod: isInpatient ? 'klinik' : 'rumah',
+                  careMethod: isStayBooking ? 'klinik' : 'rumah',
                   method: state.method,
                   paymentMethod: 'QRIS',
                 },
@@ -151,7 +168,7 @@ export default function ClinicPayment() {
           clinic,
           petData,
           booking,
-          careMethod: isInpatient ? 'klinik' : 'rumah',
+          careMethod: isStayBooking ? 'klinik' : 'rumah',
           method: state.method,
           paymentMethod: 'Tunai',
         },
@@ -175,13 +192,13 @@ export default function ClinicPayment() {
         {/* ================= KARTU 1: RINCIAN BIAYA KUNJUNGAN RUMAH ================= */}
         <div className="bg-white border border-slate-200/80 rounded-[24px] p-6 md:p-8 shadow-[0_8px_30px_rgba(24,59,86,0.04)] mb-4">
           <h1 className="font-display text-lg md:text-xl font-extrabold text-[#1E3A4C] mb-5">
-            {isInpatient
-              ? `Ringkasan biaya ${state.service?.toLowerCase() || 'rawat inap'}`
+            {isStayBooking
+              ? `Ringkasan biaya ${bookingServiceLabel.toLowerCase()}`
               : 'Biaya kunjungan rumah'}
           </h1>
 
           <div className="space-y-3.5 text-xs md:text-sm pb-5 mb-5 border-b border-slate-200/80">
-            {!isInpatient ? (
+            {!isStayBooking ? (
               <>
                 <div className="flex items-center justify-between gap-4">
                   <span className="text-slate-500">
@@ -214,7 +231,7 @@ export default function ClinicPayment() {
               <>
                 <div className="flex items-center justify-between gap-4">
                   <span className="text-slate-500">
-                    {state.service} {petData.name} ({state.totalNights || 2}{' '}
+                    {bookingServiceLabel} {petData.name} ({state.totalNights || 2}{' '}
                     malam)
                   </span>
                   <span className="font-bold text-[#1E3A4C] text-right">
@@ -249,7 +266,7 @@ export default function ClinicPayment() {
               Total yang harus dibayar
             </span>
             <span className="font-display text-xl md:text-2xl font-extrabold text-[#1E3A4C]">
-              {isInpatient ? formatRupiah(inpatientTotal) : 'Rp15.000'}
+              {isStayBooking ? formatRupiah(stayTotal) : 'Rp15.000'}
             </span>
           </div>
         </div>

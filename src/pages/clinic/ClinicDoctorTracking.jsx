@@ -13,6 +13,10 @@ const QUICK_REPLIES = [
 export default function ClinicDoctorTracking() {
     const { id } = useParams();
     const location = useLocation();
+    const booking = location.state?.booking;
+    const isHomePickup =
+        booking?.serviceType !== 'konsultasi' &&
+        (booking?.transportMethod || location.state?.transportMethod) === 'jemput';
 
     // Ambil data dari state navigasi sebelumnya (dengan fallback sesuai gambar desain)
     const clinic =
@@ -44,8 +48,32 @@ export default function ClinicDoctorTracking() {
     const landmark =
         location.state?.landmark || 'Pagar putih, sebelah warung';
     const phone = location.state?.phone || '0812 3456 7820';
-    const paymentMethodLabel = location.state?.paymentMethodLabel || 'GoPay';
-    const totalPriceNum = location.state?.totalPriceNum || 240000;
+    const paymentMethod =
+        booking?.paymentMethod ||
+        location.state?.paymentMethod ||
+        location.state?.paymentMethodLabel ||
+        'cash';
+    const isQris = String(paymentMethod).toLowerCase().includes('qris');
+    const paymentMethodLabel = isQris ? 'QRIS' : 'Tunai';
+    const paymentStatus = booking?.paymentStatus || location.state?.paymentStatus;
+    const paymentStatusLabel =
+        paymentStatus === 'paid'
+            ? 'Lunas'
+            : paymentStatus === 'failed'
+              ? 'Pembayaran gagal'
+              : paymentStatus === 'expired'
+                ? 'Pembayaran kedaluwarsa'
+                : paymentStatus === 'cancelled'
+                  ? 'Pembayaran dibatalkan'
+                  : isQris
+                    ? 'Bayar dulu'
+                    : 'Dalam Proses';
+    const totalPriceNum =
+        booking?.estimatedTotal ?? location.state?.totalPriceNum ?? 15000;
+    const bookingCode =
+        booking?.bookingCode ||
+        location.state?.bookingCode ||
+        'PS-H-261102-008';
 
     const suppliedHomeCoords = location.state?.homeCoords;
     const homeCoords = Array.isArray(suppliedHomeCoords)
@@ -219,14 +247,18 @@ export default function ClinicDoctorTracking() {
         {
             id: 1,
             sender: 'doctor',
-            text: `Halo Kak! Saya ${doctorName} dari ${clinic.name}. Saat ini saya sedang dalam perjalanan menuju rumah ${petData.name} di area ${clinic.shortArea || 'Renon'}.`,
+            text: isHomePickup
+                ? `Halo Kak! Saya ${doctorName} dari ${clinic.name}. Saya sedang menuju alamat penjemputan ${petData.name} di area ${clinic.shortArea || 'Renon'}.`
+                : `Halo Kak! Saya ${doctorName} dari ${clinic.name}. Saat ini saya sedang dalam perjalanan menuju rumah ${petData.name} di area ${clinic.shortArea || 'Renon'}.`,
             time: '09.45 WITA',
             status: 'read',
         },
         {
             id: 2,
             sender: 'doctor',
-            text: `Patokannya "${landmark}" ya kak? Mohon siapkan ${petData.name} di ruangan yang tenang agar pemeriksaan lebih nyaman.`,
+            text: isHomePickup
+                ? `Patokannya "${landmark}" ya kak? Mohon siapkan ${petData.name} agar mudah dijemput.`
+                : `Patokannya "${landmark}" ya kak? Mohon siapkan ${petData.name} di ruangan yang tenang agar pemeriksaan lebih nyaman.`,
             time: '09.46 WITA',
             status: 'read',
         },
@@ -281,11 +313,17 @@ export default function ClinicDoctorTracking() {
 
             setTimeout(() => {
                 setIsDoctorTyping(false);
-                const doctorReplies = [
-                    `Siap kak, terima kasih infonya! Saya diperkirakan sampai sekitar pukul 10.00 WITA ya.`,
-                    `Baik kak, sudah tercatat. Saya sudah dekat di sekitar Jl. Tukad Badung, sampai bertemu sebentar lagi!`,
-                    `Oke kak, peralatan pemeriksaan dan vitamin untuk ${petData.name} juga sudah saya bawa lengkap.`,
-                ];
+                const doctorReplies = isHomePickup
+                    ? [
+                          'Siap kak, terima kasih infonya! Tim kami diperkirakan sampai sekitar pukul 10.00 WITA.',
+                          'Baik kak, alamat penjemputan sudah tercatat. Sampai bertemu sebentar lagi!',
+                          `Oke kak, ${petData.name} akan kami jemput sesuai jadwal.`,
+                      ]
+                    : [
+                          `Siap kak, terima kasih infonya! Saya diperkirakan sampai sekitar pukul 10.00 WITA ya.`,
+                          `Baik kak, sudah tercatat. Saya sudah dekat di sekitar Jl. Tukad Badung, sampai bertemu sebentar lagi!`,
+                          `Oke kak, peralatan pemeriksaan dan vitamin untuk ${petData.name} juga sudah saya bawa lengkap.`,
+                      ];
                 const randomReply =
                     doctorReplies[Math.floor(Math.random() * doctorReplies.length)];
 
@@ -340,13 +378,15 @@ export default function ClinicDoctorTracking() {
                                         {clinic.name}
                                     </div>
                                     <div className="text-xs text-slate-400 truncate mt-0.5">
-                                        Dokter hewan umum · 7 tahun praktik
+                                        {isHomePickup
+                                            ? 'Tim penjemputan klinik'
+                                            : 'Dokter hewan umum · 7 tahun praktik'}
                                     </div>
                                 </div>
                             </div>
 
                             <p className="text-xs text-slate-500 mb-4">
-                                Konsultasi rumah · {clinic.name}
+                                {isHomePickup ? 'Penjemputan hewan' : 'Konsultasi rumah'} · {clinic.name}
                             </p>
 
                             {/* Tombol Aksi: Chat Dokter (Buka Modal) & Telepon */}
@@ -401,7 +441,7 @@ export default function ClinicDoctorTracking() {
                         {/* CARD 2: Alamat Kunjungan */}
                         <div className="bg-white border border-slate-200/80 rounded-[24px] p-6 md:p-7 shadow-[0_8px_30px_rgba(24,59,86,0.05)]">
                             <h2 className="font-display text-lg md:text-xl font-extrabold text-[#1E3A4C] mb-3">
-                                Alamat kunjungan
+                                {isHomePickup ? 'Alamat penjemputan' : 'Alamat kunjungan'}
                             </h2>
 
                             <p className="text-xs md:text-sm text-[#1E3A4C] leading-relaxed mb-2">
@@ -430,14 +470,24 @@ export default function ClinicDoctorTracking() {
                             </div>
 
                             <div className="flex items-center justify-between text-xs md:text-sm mb-3">
-                                <span className="text-slate-500">PS-H-261102-008</span>
+                                <span className="text-slate-500">{bookingCode}</span>
                                 <span className="font-extrabold text-[#1E3A4C]">
                                     {formatRupiah(totalPriceNum)}
                                 </span>
                             </div>
 
-                            <span className="inline-block bg-[#E6F2EC] text-[#23533D] text-[11px] font-bold px-3.5 py-1 rounded-full">
-                                {paymentMethodLabel} · Lunas
+                            <span
+                                className={`inline-block text-[11px] font-bold px-3.5 py-1 rounded-full ${
+                                    paymentStatus === 'paid'
+                                        ? 'bg-[#E6F2EC] text-[#23533D]'
+                                        : paymentStatus === 'failed' ||
+                                            paymentStatus === 'expired' ||
+                                            paymentStatus === 'cancelled'
+                                          ? 'bg-red-50 text-red-700'
+                                          : 'bg-amber-50 text-amber-700'
+                                }`}
+                            >
+                                {paymentMethodLabel} · {paymentStatusLabel}
                             </span>
                         </div>
                     </div>
@@ -446,7 +496,8 @@ export default function ClinicDoctorTracking() {
                     <div className="lg:col-span-7 space-y-4">
                         <div className="bg-white border border-slate-200/80 rounded-[24px] p-6 md:p-7 shadow-[0_8px_30px_rgba(24,59,86,0.05)]">
                             <p className="text-xs text-slate-500 mb-1">
-                                Perkiraan tiba · {dateObj.label.replace(/^[^,]+,\s*/, '')}
+                                {isHomePickup ? 'Perkiraan penjemputan' : 'Perkiraan tiba'} ·{' '}
+                                {dateObj.label.replace(/^[^,]+,\s*/, '')}
                             </p>
                             <h2 className="font-display text-2xl md:text-[28px] font-extrabold text-[#1E3A4C] mb-5">
                                 10.00–10.10 WITA
@@ -462,8 +513,19 @@ export default function ClinicDoctorTracking() {
 
                                 {/* Pill Rute di Pojok Kiri Bawah Peta */}
                                 <div className="absolute bottom-3.5 left-3.5 z-10 bg-white/95 backdrop-blur-xs px-4 py-2 rounded-xl shadow-md border border-slate-100 text-xs font-medium text-[#1E3A4C]">
-                                    {clinic.name} <span className="text-slate-400 mx-1">→</span>{' '}
-                                    Rumah {petData.name} · {clinic.shortArea || 'Renon'}
+                                    {isHomePickup ? (
+                                        <>
+                                            Rumah {petData.name}{' '}
+                                            <span className="text-slate-400 mx-1">→</span>{' '}
+                                            {clinic.name} · Penjemputan
+                                        </>
+                                    ) : (
+                                        <>
+                                            {clinic.name}{' '}
+                                            <span className="text-slate-400 mx-1">→</span>{' '}
+                                            Rumah {petData.name} · {clinic.shortArea || 'Renon'}
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -484,8 +546,9 @@ export default function ClinicDoctorTracking() {
                                 />
                             </svg>
                             <p className="text-xs text-[#243B53] leading-relaxed font-medium">
-                                Siapkan {petData.name} di tempat yang tenang dan pastikan telepon
-                                aktif. Estimasi dapat berubah mengikuti kondisi perjalanan.
+                                {isHomePickup
+                                    ? `Siapkan ${petData.name} untuk dijemput dan pastikan telepon aktif. Estimasi dapat berubah mengikuti kondisi perjalanan.`
+                                    : `Siapkan ${petData.name} di tempat yang tenang dan pastikan telepon aktif. Estimasi dapat berubah mengikuti kondisi perjalanan.`}
                             </p>
                         </div>
                     </div>
@@ -517,7 +580,9 @@ export default function ClinicDoctorTracking() {
                                 <div className="min-w-0">
                                     <h3 className="text-sm font-bold truncate">{doctorName}</h3>
                                     <p className="text-[11px] text-emerald-300 font-medium truncate">
-                                        Online · Sedang menuju rumah {petData.name}
+                                        {isHomePickup
+                                            ? `Online · Menuju alamat penjemputan ${petData.name}`
+                                            : `Online · Sedang menuju rumah ${petData.name}`}
                                     </p>
                                 </div>
                             </div>

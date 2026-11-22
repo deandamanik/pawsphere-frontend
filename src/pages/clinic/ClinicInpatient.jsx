@@ -89,7 +89,7 @@ export default function ClinicInpatient() {
         return formatStayDate(addDaysToISODate(today, 2));
     });
 
-    // 4. State Metode Kedatangan ('antar' | 'jemput')
+    // 4. State metode kedatangan ('antar' | 'jemput')
     const [arrivalMethod, setArrivalMethod] = useState('antar');
 
     // 5. State Textarea Kebutuhan Singkat
@@ -169,22 +169,6 @@ export default function ClinicInpatient() {
             return;
         }
 
-        if (arrivalMethod === 'rumah') {
-            navigate(`/clinic/${clinic.id}/pembayaran`, {
-                state: {
-                    clinic,
-                    careMethod: 'rumah',
-                    petData,
-                    userLocation: location.state?.userLocation,
-                    service: 'Konsultasi',
-                    method: 'Dokter ke rumah',
-                    complaint: notes,
-                    notes,
-                },
-            });
-            return;
-        }
-
         navigate(`/clinic/${clinic.id}/pembayaran`, {
             state: {
                 clinic,
@@ -198,7 +182,10 @@ export default function ClinicInpatient() {
                 transportMethod: arrivalMethod,
                 notes,
                 service: stayType === 'rawat_inap' ? 'Rawat inap' : 'Penitipan',
-                method: 'Antar ke klinik',
+                method:
+                    arrivalMethod === 'jemput'
+                        ? 'Jemput hewan'
+                        : 'Antar ke klinik',
                 date: {
                     label: `${checkInDate.short}–${checkOutDate.label}`,
                     short: `${checkInDate.short}–${checkOutDate.short}`,
@@ -519,7 +506,7 @@ export default function ClinicInpatient() {
                                 </span>
                             </div>
 
-                            {/* 5. Pilih layanan: antar ke klinik atau kunjungan dokter ke rumah */}
+                            {/* 5. Pilih cara kedatangan hewan */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-5">
                                 {/* Opsi Antar ke klinik */}
                                 <button
@@ -563,11 +550,11 @@ export default function ClinicInpatient() {
                                     />
                                 </button>
 
-                                {/* Opsi Dokter ke rumah */}
+                                {/* Opsi jemput hewan */}
                                 <button
                                     type="button"
-                                    onClick={() => setArrivalMethod('rumah')}
-                                    className={`p-4 rounded-2xl border-2 text-left flex items-center justify-between gap-3 transition cursor-pointer ${arrivalMethod === 'rumah'
+                                    onClick={() => setArrivalMethod('jemput')}
+                                    className={`p-4 rounded-2xl border-2 text-left flex items-center justify-between gap-3 transition cursor-pointer ${arrivalMethod === 'jemput'
                                             ? 'bg-[#EBF2F7] border-[#2C5E7A]'
                                             : 'bg-white border-slate-200/90 hover:border-slate-300'
                                         }`}
@@ -596,18 +583,15 @@ export default function ClinicInpatient() {
                                         </div>
                                         <div className="min-w-0">
                                             <div className="text-xs md:text-sm font-bold text-[#1E3A4C] truncate">
-                                                Dokter ke rumah
+                                                Jemput hewan
                                             </div>
                                             <div className="text-xs text-slate-500 truncate mt-0.5">
-                                                Dokter datang ke alamatmu
-                                            </div>
-                                            <div className="text-xs font-semibold text-[#2C5E7A] mt-1">
-                                                Layanan kunjungan rumah
+                                                Hewan dijemput dari alamatmu
                                             </div>
                                         </div>
                                     </div>
                                     <span
-                                        className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition ${arrivalMethod === 'rumah'
+                                        className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition ${arrivalMethod === 'jemput'
                                                 ? 'border-[#2C5E7A] border-[5px] bg-white'
                                                 : 'border-slate-300 bg-white'
                                             }`}
@@ -615,29 +599,22 @@ export default function ClinicInpatient() {
                                 </button>
                             </div>
 
-                            {arrivalMethod === 'antar' ? (
-                                <div className="bg-[#F4F8FB] rounded-2xl p-4 mb-5 space-y-2 text-xs">
-                                    <div className="flex items-center justify-between text-slate-500">
-                                        <span>
-                                            {stayType === 'rawat_inap' ? 'Rawat inap' : 'Penitipan'} · {totalNights} malam
-                                        </span>
-                                        <span>{formatRupiah(accommodationPrice)}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between text-slate-500">
-                                        <span>Biaya layanan PawSphere</span>
-                                        <span>{formatRupiah(SERVICE_FEE)}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between border-t border-slate-200 pt-2 font-bold text-[#1E3A4C]">
-                                        <span>Estimasi total</span>
-                                        <span>{formatRupiah(estimatedTotal)}</span>
-                                    </div>
+                            <div className="bg-[#F4F8FB] rounded-2xl p-4 mb-5 space-y-2 text-xs">
+                                <div className="flex items-center justify-between text-slate-500">
+                                    <span>
+                                        {stayType === 'rawat_inap' ? 'Rawat inap' : 'Penitipan'} · {totalNights} malam
+                                    </span>
+                                    <span>{formatRupiah(accommodationPrice)}</span>
                                 </div>
-                            ) : (
-                                <p className="bg-[#F4F8FB] rounded-2xl p-4 mb-5 text-xs text-slate-600">
-                                    Kamu akan melanjutkan ke jadwal kunjungan dokter ke rumah.
-                                    Rincian biaya layanan rumah tersedia di halaman ringkasan.
-                                </p>
-                            )}
+                                <div className="flex items-center justify-between text-slate-500">
+                                    <span>Biaya layanan PawSphere</span>
+                                    <span>{formatRupiah(SERVICE_FEE)}</span>
+                                </div>
+                                <div className="flex items-center justify-between border-t border-slate-200 pt-2 font-bold text-[#1E3A4C]">
+                                    <span>Estimasi total</span>
+                                    <span>{formatRupiah(estimatedTotal)}</span>
+                                </div>
+                            </div>
 
                             {/* 6. Textarea Kebutuhan Singkat */}
                             <div>
@@ -657,8 +634,8 @@ export default function ClinicInpatient() {
                         {/* Baris Action Bawah Kiri: Keterangan Penjemputan & Tombol Oranye */}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-5">
                             <p className="text-xs text-slate-500 leading-relaxed max-w-sm">
-                                {arrivalMethod === 'rumah'
-                                    ? 'Pilih jadwal kunjungan dokter ke rumah untuk melanjutkan.'
+                                {arrivalMethod === 'jemput'
+                                    ? 'Hewan akan dijemput dari alamatmu pada tanggal yang dipilih.'
                                     : 'Datang ke klinik bersama hewanmu pada tanggal yang dipilih.'}
                             </p>
 
@@ -668,9 +645,7 @@ export default function ClinicInpatient() {
                                 className="bg-[#FF6B00] hover:bg-[#e66000] text-white font-bold py-3.5 px-7 rounded-2xl text-xs md:text-sm inline-flex items-center justify-center gap-2 transition shadow-sm cursor-pointer shrink-0 min-w-[235px]"
                             >
                                 <span>
-                                    {arrivalMethod === 'rumah'
-                                        ? 'Lanjut atur kunjungan rumah'
-                                        : 'Cek ringkasan & biaya'}
+                                    Cek ringkasan & biaya
                                 </span>
                                 <span>→</span>
                             </button>
