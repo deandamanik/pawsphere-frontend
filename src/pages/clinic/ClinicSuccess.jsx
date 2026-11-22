@@ -25,6 +25,15 @@ function getArrivalTime(timeStr = '10.00') {
   return `${String(hours).padStart(2, '0')}.${String(mins).padStart(2, '0')}`;
 }
 
+function getStayNightCount(checkInDate, checkOutDate) {
+  if (!checkInDate || !checkOutDate) return 1;
+  const nights =
+    (Date.parse(`${checkOutDate}T00:00:00Z`) -
+      Date.parse(`${checkInDate}T00:00:00Z`)) /
+    86400000;
+  return Number.isInteger(nights) && nights > 0 ? nights : 1;
+}
+
 export default function ClinicSuccess() {
   const { id } = useParams();
   const location = useLocation();
@@ -57,9 +66,36 @@ export default function ClinicSuccess() {
         ? 'Dalam Proses'
         : null;
 
-  const isHomeCare = booking
-    ? booking.careMethod === 'rumah'
-    : state.careMethod === 'rumah' || state.method === 'Dokter ke rumah';
+  const serviceLabel = String(state.service || '').toLowerCase();
+  const isStayBooking =
+    ['rawat_inap', 'penitipan'].includes(booking?.serviceType || state.stayType) ||
+    serviceLabel.includes('rawat inap') ||
+    serviceLabel.includes('penitipan');
+  const isHomeCare =
+    !isStayBooking &&
+    (booking
+      ? booking.serviceType === 'konsultasi' && booking.careMethod === 'rumah'
+      : state.careMethod === 'rumah' || state.method === 'Dokter ke rumah');
+  const isHomePickup =
+    isStayBooking &&
+    (booking?.transportMethod || state.transportMethod) === 'jemput';
+  const needsHomeAddress = isHomeCare || isHomePickup;
+  const stayType = booking?.serviceType || state.stayType;
+  const stayServiceLabel =
+    stayType === 'rawat_inap' || serviceLabel.includes('rawat inap')
+      ? 'Rawat inap'
+      : 'Penitipan';
+  const stayNightCount =
+    Number(state.totalNights) ||
+    getStayNightCount(
+      booking?.checkInDate || state.checkInDate?.iso,
+      booking?.checkOutDate || state.checkOutDate?.iso
+    );
+  const stayTotal = Number(booking?.estimatedTotal ?? state.totalPriceNum ?? 0);
+  const stayAccommodationTotal = Math.max(stayTotal - 5000, 0);
+  const isPickupAddressSaved = Boolean(
+    booking?.address && booking.address === address && booking.phone === phone
+  );
 
   const petData = booking
     ? {
@@ -416,7 +452,7 @@ export default function ClinicSuccess() {
   };
 
   useEffect(() => {
-    if (!isHomeCare || shouldShowPaymentStatus) return;
+    if (!needsHomeAddress || shouldShowPaymentStatus) return;
     const container = homeMapRef.current;
     if (!container || homeMapInstance.current) return;
 
@@ -534,7 +570,7 @@ export default function ClinicSuccess() {
       homeMapInstance.current = null;
       houseRouteRef.current = null;
     };
-  }, [isHomeCare, shouldShowPaymentStatus, clinic.id, clinic.coordinates]);
+  }, [needsHomeAddress, shouldShowPaymentStatus, clinic.id, clinic.coordinates]);
 
   useEffect(() => {
     const clinicCoords = clinic.coordinates || [-8.6725, 115.2335];
@@ -592,6 +628,9 @@ export default function ClinicSuccess() {
     setAddressFormError('');
     setAddressSaving(true);
     try {
+      if (!booking) {
+        throw new Error('Data reservasi belum tersedia. Muat ulang halaman lalu coba lagi.');
+      }
       const savedBooking = booking
         ? await updateClinicBookingAddress(booking.id, {
             address: address.trim(),
@@ -691,8 +730,8 @@ export default function ClinicSuccess() {
     );
   }
 
-  // ================= TAMPILAN 1: ONGKIR LUNAS & ALAMAT RUMAH (SESUAI GAMBAR TERBARU) =================
-  if (isHomeCare) {
+  // ================= TAMPILAN 1: KUNJUNGAN RUMAH & PENJEMPUTAN HEWAN =================
+  if (needsHomeAddress) {
     return (
       <div className="bg-[#F4F8FB] min-h-[calc(100dvh-80px)] py-8 md:py-10 px-5 sm:px-6 lg:px-10 font-sans">
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
@@ -701,7 +740,7 @@ export default function ClinicSuccess() {
             <div className="bg-white border border-slate-200/80 rounded-[24px] p-6 md:p-7 shadow-[0_8px_30px_rgba(24,59,86,0.04)]">
               <div className="flex items-center justify-between gap-3 mb-1">
                 <h1 className="font-display text-lg md:text-xl font-extrabold text-[#1E3A4C]">
-                  Konsultasi di rumah
+                  {isHomePickup ? 'Penjemputan hewan' : 'Konsultasi di rumah'}
                 </h1>
                 {paymentStatusLabel && (
                   <span
@@ -722,41 +761,67 @@ export default function ClinicSuccess() {
 
               {/* Rincian Jadwal & Biaya */}
               <div className="space-y-3 text-xs md:text-sm pb-4 mb-4 border-b border-slate-100">
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-slate-500">Jadwal</span>
-                  <span className="font-bold text-[#1E3A4C] text-right">
-                    {shortDateDisplay} · {timeSlot} WITA
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-slate-500">Konsultasi & tindakan</span>
-                  <span className="font-bold text-[#1E3A4C] text-right">
-                    Bayar setelah periksa
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-slate-500">Ongkir zona ≤5 km</span>
-                  <span className="font-bold text-[#1E3A4C] text-right">
-                    Rp10.000
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-slate-500">Biaya PawSphere</span>
-                  <span className="font-bold text-[#1E3A4C] text-right">
-                    Rp5.000
-                  </span>
-                </div>
+                {isHomePickup ? (
+                  <>
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-slate-500">
+                        {stayServiceLabel} · {stayNightCount} malam
+                      </span>
+                      <span className="font-bold text-[#1E3A4C] text-right">
+                        {formatRupiah(stayAccommodationTotal)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-slate-500">Biaya layanan PawSphere</span>
+                      <span className="font-bold text-[#1E3A4C] text-right">
+                        Rp5.000
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-4 border-t border-slate-100 pt-3">
+                      <span className="font-bold text-[#1E3A4C]">Total reservasi</span>
+                      <span className="font-extrabold text-[#1E3A4C]">
+                        {formatRupiah(stayTotal)}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-slate-500">Jadwal</span>
+                      <span className="font-bold text-[#1E3A4C] text-right">
+                        {shortDateDisplay} · {timeSlot} WITA
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-slate-500">Konsultasi & tindakan</span>
+                      <span className="font-bold text-[#1E3A4C] text-right">
+                        Bayar setelah periksa
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-slate-500">Ongkir zona ≤5 km</span>
+                      <span className="font-bold text-[#1E3A4C] text-right">
+                        Rp10.000
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-slate-500">Biaya PawSphere</span>
+                      <span className="font-bold text-[#1E3A4C] text-right">
+                        Rp5.000
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Status Pembayaran & Kode Transaksi */}
               <div className="mb-4">
                 <div className="text-xs text-slate-500 mb-1">
-                  {booking?.paymentMethod === 'qris'
-                    ? `QRIS · ${formatRupiah(booking.estimatedTotal)} lunas`
-                    : 'Tunai · bayar saat kunjungan'}
+                  {isHomePickup
+                    ? `${booking?.paymentMethod === 'qris' ? 'QRIS' : 'Tunai'} · ${paymentStatusLabel || 'Dalam Proses'}`
+                    : booking?.paymentMethod === 'qris'
+                      ? `QRIS · ${formatRupiah(booking.estimatedTotal)} lunas`
+                      : 'Tunai · bayar saat kunjungan'}
                 </div>
                 <div className="text-xs md:text-sm font-extrabold text-[#1E3A4C]">
                   {bookingCode}
@@ -764,26 +829,28 @@ export default function ClinicSuccess() {
               </div>
 
               {/* Tombol Unduh Bukti Bayar */}
-              <button
-                type="button"
-                onClick={handleDownloadReceipt}
-                className="w-full bg-[#EBF2F7] hover:bg-[#dfe9f0] text-[#1E3A4C] font-bold py-3.5 px-5 rounded-xl text-xs md:text-sm inline-flex items-center justify-center gap-2 transition cursor-pointer"
-              >
-                <svg
-                  className="w-4 h-4 text-[#2C5E7A]"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              {isHomeCare && (
+                <button
+                  type="button"
+                  onClick={handleDownloadReceipt}
+                  className="w-full bg-[#EBF2F7] hover:bg-[#dfe9f0] text-[#1E3A4C] font-bold py-3.5 px-5 rounded-xl text-xs md:text-sm inline-flex items-center justify-center gap-2 transition cursor-pointer"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"
-                  />
-                </svg>
-                <span>Unduh Bukti Bayar</span>
-              </button>
+                  <svg
+                    className="w-4 h-4 text-[#2C5E7A]"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"
+                    />
+                  </svg>
+                  <span>Unduh Bukti Bayar</span>
+                </button>
+              )}
             </div>
 
             {/* Info Box Bawah Kiri */}
@@ -802,9 +869,13 @@ export default function ClinicSuccess() {
                 />
               </svg>
               <p className="text-xs text-[#243B53] leading-relaxed">
-                {booking?.paymentMethod === 'qris'
-                  ? 'Ongkir dan biaya PawSphere sudah dibayar. Biaya medis belum ditagihkan.'
-                  : 'Ongkir dan biaya PawSphere dibayar saat kunjungan. Biaya medis ditentukan setelah pemeriksaan.'}
+                {isHomePickup
+                  ? booking?.paymentMethod === 'qris'
+                    ? 'Pembayaran rawat inap/penitipan sudah diverifikasi. Klinik akan menghubungi untuk konfirmasi penjemputan dan check-in.'
+                    : 'Pembayaran reservasi dilakukan saat check-in. Klinik akan menghubungi untuk konfirmasi penjemputan.'
+                  : booking?.paymentMethod === 'qris'
+                    ? 'Ongkir dan biaya PawSphere sudah dibayar. Biaya medis belum ditagihkan.'
+                    : 'Ongkir dan biaya PawSphere dibayar saat kunjungan. Biaya medis ditentukan setelah pemeriksaan.'}
               </p>
             </div>
           </div>
@@ -815,10 +886,10 @@ export default function ClinicSuccess() {
               {/* Header Kanan + Badge Dalam Zona <=5 km */}
               <div className="flex items-center justify-between gap-3 mb-4">
                 <h2 className="font-display text-lg md:text-xl font-extrabold text-[#1E3A4C]">
-                  Pilih Titik Rumah Kamu
+                  {isHomePickup ? 'Tentukan Alamat Penjemputan' : 'Pilih Titik Rumah Kamu'}
                 </h2>
                 <span className="bg-[#EBF2F7] text-[#1E3A4C] text-[11px] font-bold px-3.5 py-1.5 rounded-full shrink-0">
-                  Dalam zona ≤5 km
+                  {isHomePickup ? 'Penjemputan hewan' : 'Dalam zona ≤5 km'}
                 </span>
               </div>
 
@@ -910,7 +981,11 @@ export default function ClinicSuccess() {
                     setAddress(e.target.value);
                     if (addressFormError) setAddressFormError('');
                   }}
-                  placeholder="Masukkan alamat lengkap rumahmu..."
+                  placeholder={
+                    isHomePickup
+                      ? 'Masukkan alamat penjemputan hewan...'
+                      : 'Masukkan alamat lengkap rumahmu...'
+                  }
                   className="w-full bg-white border border-slate-200/90 rounded-2xl p-4 text-xs md:text-sm text-[#1E3A4C] focus:outline-none focus:border-[#2C5E7A] resize-none leading-relaxed"
                 />
               </div>
@@ -969,13 +1044,19 @@ export default function ClinicSuccess() {
                   {addressFormError}
                 </p>
               )}
+              {isHomePickup && isPickupAddressSaved && (
+                <p className="mt-3 text-xs font-semibold text-emerald-700" role="status">
+                  Alamat penjemputan berhasil disimpan.
+                </p>
+              )}
             </div>
 
             {/* Baris Bawah Kanan: Info Privasi & Tombol Oranye Kirim Alamat & Panggil Dokter */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-5">
               <p className="text-xs text-slate-500 leading-relaxed max-w-sm">
-                Alamat dan telepon hanya dibagikan kepada klinik dan dokter yang
-                ditugaskan.
+                {isHomePickup
+                  ? 'Alamat dan telepon dibagikan kepada klinik untuk keperluan penjemputan hewan.'
+                  : 'Alamat dan telepon hanya dibagikan kepada klinik dan dokter yang ditugaskan.'}
               </p>
 
               <button
@@ -998,7 +1079,9 @@ export default function ClinicSuccess() {
                   />
                 </svg>
                 <span>
-                  {addressSaving ? 'Menyimpan alamat…' : 'Kirim alamat & panggil dokter'}
+                  {addressSaving
+                    ? 'Menghubungi dokter…'
+                    : 'Kirim alamat & panggil dokter'}
                 </span>
               </button>
             </div>

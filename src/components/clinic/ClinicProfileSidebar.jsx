@@ -13,6 +13,7 @@ export default function ClinicProfileSidebar({
     const [touchStartX, setTouchStartX] = useState(null);
     const [serviceTab, setServiceTab] = useState('konsultasi'); // 'konsultasi' | 'rawat_inap'
     const [careMethod, setCareMethod] = useState('klinik'); // 'klinik' | 'rumah'
+    const [availabilityError, setAvailabilityError] = useState(null);
 
     const photos = clinic?.images?.length ? clinic.images : [clinic?.image];
 
@@ -44,6 +45,33 @@ export default function ClinicProfileSidebar({
         if (deltaX > 40) prevSlide();
         if (deltaX < -40) nextSlide();
         setTouchStartX(null);
+    };
+
+    const handleContinue = () => {
+        if (clinic.isOpenNow === false) {
+            setAvailabilityError({
+                clinicId: clinic.id,
+                message: `${clinic.name} sedang tutup${clinic.openStatus ? ` (${clinic.openStatus})` : ''}. Silakan pilih klinik yang sedang buka atau coba lagi nanti.`,
+            });
+            return;
+        }
+
+        setAvailabilityError(null);
+        if (serviceTab === 'rawat_inap') {
+            navigate(`/clinic/${clinic.id}/rawat-inap`, {
+                state: {
+                    clinic,
+                    stayType: careMethod === 'rumah' ? 'penitipan' : 'rawat_inap',
+                    userLocation,
+                },
+            });
+        } else if (onContinueSchedule) {
+            onContinueSchedule({ clinic, serviceTab, careMethod });
+        } else {
+            navigate(`/clinic/${clinic.id}/jadwal`, {
+                state: { serviceTab, careMethod, userLocation },
+            });
+        }
     };
 
     return (
@@ -313,25 +341,14 @@ export default function ClinicProfileSidebar({
                 </div>
 
                 {/* Tombol Utama Oranye: Lanjut pilih jadwal */}
+                {availabilityError?.clinicId === clinic.id && (
+                    <p className="mb-3 rounded-xl bg-rose-50 px-3.5 py-3 text-xs font-semibold text-rose-700" role="alert">
+                        {availabilityError.message}
+                    </p>
+                )}
                 <button
                     type="button"
-                    onClick={() => {
-                        if (serviceTab === 'rawat_inap') {
-                            navigate(`/clinic/${clinic.id}/rawat-inap`, {
-                                state: {
-                                    clinic,
-                                    stayType: careMethod === 'rumah' ? 'penitipan' : 'rawat_inap',
-                                    userLocation,
-                                },
-                            });
-                        } else if (onContinueSchedule) {
-                            onContinueSchedule({ clinic, serviceTab, careMethod });
-                        } else {
-                            navigate(`/clinic/${clinic.id}/jadwal`, {
-                                state: { serviceTab, careMethod, userLocation },
-                            });
-                        }
-                    }}
+                    onClick={handleContinue}
                     className="w-full bg-[#FF6B00] hover:bg-[#e66000] text-white font-bold py-3.5 px-5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition shadow-sm cursor-pointer mb-4"
                 >
                     <span>→</span>
